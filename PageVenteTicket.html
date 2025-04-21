@@ -1,0 +1,1771 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Vente Tickets Cyber Campus</title>
+    <!-- External Libraries -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.20/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        /* CSS Styles with improvements */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+
+        :root {
+            --primary-color: #fdbb2d;
+            --secondary-color: #1a2a6c;
+            --text-color: #ffffff;
+            --background-gradient-start: #424242;
+            --background-gradient-mid: #073018;
+            --background-gradient-end: #553a01;
+            --container-bg: rgba(255, 255, 255, 0.1);
+            --container-blur: 10px;
+            --input-bg: rgba(255, 255, 255, 0.2);
+            --button-hover-scale: 1.05;
+            --button-active-scale: 0.95;
+            --border-radius: 12px;
+            --border-radius-small: 8px;
+            --border-radius-large: 25px;
+            --font-family: 'Poppins', sans-serif;
+            --base-font-size: 16px;
+            --line-height: 1.5;
+        }
+
+        /* Global Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-family);
+            -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--background-gradient-start), var(--background-gradient-mid), var(--background-gradient-end));
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: var(--text-color);
+            overflow-x: hidden;
+            font-size: var(--base-font-size);
+            line-height: var(--line-height);
+        }
+
+        /* Layout */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        section {
+            margin: 16px 0;
+            padding: 16px;
+            background: var(--container-bg);
+            border-radius: var(--border-radius);
+            backdrop-filter: blur(var(--container-blur));
+            -webkit-backdrop-filter: blur(var(--container-blur));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        footer {
+            margin-top: auto;
+            text-align: center;
+            padding: 16px;
+            background-color: rgba(0, 0, 0, 0.5);
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Typography */
+        h2 {
+            color: var(--primary-color);
+            margin-bottom: 16px;
+            font-size: 1.6rem; /* Slightly larger */
+            font-weight: 600;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+        }
+
+        h3 {
+            color: var(--primary-color); /* Match h2 color */
+            margin-bottom: 16px;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        h4 {
+             color: var(--primary-color);
+             margin-bottom: 8px;
+             font-size: 1rem; /* Adjusted size */
+        }
+
+        p {
+            margin-bottom: 10px; /* Consistent paragraph spacing */
+        }
+
+        /* Components */
+        /* Buttons */
+        button {
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+            border: none;
+            padding: 12px 20px;
+            border-radius: var(--border-radius-large);
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+            font-weight: 600;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            touch-action: manipulation; /* Improve touch responsiveness */
+        }
+        button:hover:not(:disabled) {
+            background-color: #e6a727; /* Darker shade for hover */
+            transform: scale(var(--button-hover-scale));
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        button:active:not(:disabled) {
+            transform: scale(var(--button-active-scale));
+            box-shadow: none;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            color: #666666;
+            cursor: not-allowed;
+        }
+        .btn-sell { background-color: #4CAF50; color: white; }
+        .btn-cancel { background-color: #f44336; color: white; }
+        .btn-sell:hover:not(:disabled) { background-color: #45a049; }
+        .btn-cancel:hover:not(:disabled) { background-color: #e53935; }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            color: var(--text-color);
+            margin-top: 16px;
+            font-size: 0.9rem;
+            background: rgba(0, 0, 0, 0.1); /* Subtle table background */
+            border-radius: var(--border-radius-small);
+            overflow: hidden; /* Clip content to rounded corners */
+        }
+        th, td {
+            padding: 12px 10px; /* Adjusted padding */
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        th {
+            background-color: rgba(0, 0, 0, 0.2); /* Header background */
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        tr:last-child td {
+            border-bottom: none; /* Remove border from last row */
+        }
+        tr:hover td {
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: background-color 0.3s ease;
+        }
+
+        /* Forms & Inputs */
+        input[type="text"],
+        input[type="password"],
+        input[type="date"],
+        select {
+            width: 100%;
+            padding: 12px 15px; /* Consistent padding */
+            margin-bottom: 12px; /* Consistent margin */
+            border: none;
+            border-radius: var(--border-radius-large);
+            background: var(--input-bg);
+            color: var(--text-color);
+            font-size: 0.95rem;
+            transition: background-color 0.3s;
+        }
+        input[type="text"]::placeholder,
+        input[type="password"]::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        input[type="date"]:focus,
+        select:focus {
+            background-color: rgba(255, 255, 255, 0.3);
+            outline: none;
+            box-shadow: 0 0 0 2px var(--primary-color); /* Focus indicator */
+        }
+        input[type="checkbox"] {
+            margin-right: 8px;
+            accent-color: var(--primary-color); /* Style checkbox color */
+        }
+        label {
+            color: var(--text-color);
+            font-size: 0.9rem;
+        }
+
+        /* Autocomplete */
+        .autocomplete-container {
+            position: relative;
+        }
+        .autocomplete-suggestions {
+            position: absolute;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            z-index: 100;
+            background-color: rgba(40, 40, 40, 0.95); /* Darker background */
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            width: 100%;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            border-radius: var(--border-radius-small);
+            max-height: 150px; /* Limit height */
+            overflow-y: auto;
+            margin-top: 2px; /* Small gap */
+        }
+        .autocomplete-suggestions li {
+            padding: 8px 12px;
+            cursor: pointer;
+            color: var(--text-color);
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .autocomplete-suggestions li:hover,
+        .autocomplete-suggestions li.active { /* Add active state if using keyboard nav */
+             background-color: var(--primary-color);
+             color: var(--secondary-color);
+        }
+
+        /* Modals & Notifications */
+        .modal-overlay { /* Generic overlay for modals */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+        .modal-content { /* Generic modal content style */
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            color: var(--secondary-color);
+            width: 90%;
+            max-width: 450px; /* Slightly wider */
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative; /* For close icon positioning */
+            animation: fadeInScale 0.3s ease-out; /* Add entrance animation */
+        }
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .notification { /* Specific styles for the main notification */
+            /* Uses .modal-overlay and .modal-content structure (applied dynamically) */
+            /* Existing styles like width, max-width apply via .modal-content */
+        }
+        .notification h3 {
+            margin-bottom: 16px;
+            color: var(--secondary-color);
+            font-size: 1.3rem;
+            font-weight: 600;
+            text-align: center;
+        }
+        .ticket-details {
+            margin: 20px 0;
+            font-size: 0.95rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 15px 0;
+        }
+        .ticket-details p {
+            margin: 10px 0;
+            word-break: break-word;
+        }
+        .ticket-details p strong {
+            color: var(--secondary-color);
+            min-width: 100px; /* Align keys */
+            display: inline-block;
+        }
+        .action-icons {
+            display: flex;
+            gap: 25px; /* Increased gap */
+            justify-content: center;
+            margin: 25px 0;
+        }
+        .action-icon {
+            cursor: pointer;
+            padding: 12px;
+            border-radius: 50%;
+            background-color: rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 52px; /* Larger icons */
+            height: 52px;
+            color: #555; /* Default icon color */
+        }
+        .action-icon:hover {
+            background-color: rgba(0, 0, 0, 0.15);
+            transform: scale(1.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .action-icon:active {
+            transform: scale(0.95);
+        }
+        .icon-share { color: #4CAF50; }
+        .icon-pdf { color: #f44336; }
+        .buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .buttons button {
+            flex: 1;
+            min-width: 130px; /* Slightly wider buttons */
+        }
+        .close-icon {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            cursor: pointer;
+            font-size: 26px; /* Larger close icon */
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: rgba(0, 0, 0, 0.05);
+            color: #888;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .close-icon:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+            color: #333;
+        }
+
+        /* History Section */
+        .history-section {
+            /* Uses .modal-overlay structure (applied dynamically) */
+            background: rgba(26, 42, 108, 0.97); /* Slightly more opaque */
+            border-radius: var(--border-radius);
+            padding: 25px;
+            width: 90%;
+            max-width: 850px; /* Increased max-width */
+            max-height: 85vh; /* Adjusted max-height */
+            overflow-y: auto;
+            z-index: 1000;
+            backdrop-filter: blur(var(--container-blur));
+            -webkit-backdrop-filter: blur(var(--container-blur));
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            color: var(--text-color); /* Ensure text is white */
+            animation: fadeInScale 0.3s ease-out;
+        }
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px; /* Add padding */
+            position: sticky;
+            top: -25px; /* Adjust sticky position due to padding */
+            background: inherit; /* Inherit modal background */
+            z-index: 1;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2); /* More visible border */
+        }
+        .history-header h2 {
+            color: var(--primary-color);
+            margin: 0; /* Remove default margin */
+        }
+        .history-header button { /* Style close button */
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px;
+            transition: color 0.3s;
+        }
+        .history-header button:hover {
+            color: var(--primary-color);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Adjusted minmax */
+            gap: 16px;
+            margin-bottom: 25px;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: var(--border-radius-small);
+            padding: 16px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .stat-card .value {
+            font-size: 1.6rem; /* Larger value */
+            font-weight: 600;
+            color: var(--text-color); /* Ensure value is white */
+            margin-top: 5px; /* Space between title and value */
+        }
+        .date-filter {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+        }
+        .date-filter label {
+            margin-right: 5px;
+        }
+        .date-filter input[type="date"],
+        .date-filter select,
+        .date-filter button {
+            padding: 8px 12px;
+            border-radius: var(--border-radius-small);
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            cursor: pointer;
+            flex-grow: 1; /* Allow elements to grow */
+            min-width: 120px; /* Minimum width */
+        }
+         .date-filter button {
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+            font-weight: 500;
+        }
+        .export-buttons {
+            margin-top: 25px;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            padding-top: 20px;
+        }
+        .export-buttons button {
+            margin: 5px 10px;
+        }
+        .history-table {
+            margin-top: 20px;
+        }
+        .history-table table { /* Override general table style slightly */
+            background: none; /* Remove inner background */
+            font-size: 0.85rem;
+        }
+
+        /* Floating Action Button (Toggle History) */
+        .toggle-history {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            width: 60px; /* Larger button */
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+            cursor: pointer;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+        .toggle-history i {
+            font-size: 1.5rem; /* Larger icon */
+            color: var(--secondary-color);
+            transition: transform 0.4s ease;
+        }
+        .toggle-history:hover {
+            background-color: #e6a727;
+            transform: scale(1.1) rotate(15deg); /* Add slight rotation */
+        }
+        .toggle-history:hover i {
+            transform: rotate(360deg);
+        }
+        .toggle-history:active {
+            transform: scale(0.95);
+        }
+
+        /* Messages Section */
+        .messages-section {
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 10px; /* Space for scrollbar */
+        }
+        .message {
+            background: rgba(0, 0, 0, 0.25); /* Slightly darker message bg */
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: var(--border-radius-small);
+            color: var(--text-color);
+            font-size: 0.9rem;
+            border-left: 3px solid var(--primary-color); /* Add accent */
+        }
+        .message .timestamp {
+            display: block; /* Make timestamp take full width */
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 8px;
+            text-align: right;
+        }
+
+        /* Loaders */
+        .loader-wrapper, .page-loader-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7); /* Darker overlay */
+            z-index: 1001;
+            display: flex; /* Use flex for centering */
+            justify-content: center;
+            align-items: center;
+            flex-direction: column; /* Stack loader and message */
+        }
+        .loader, .page-loader {
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid var(--primary-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1.5s linear infinite; /* Faster spin */
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loader-message { /* Style for page loader message */
+            color: var(--text-color);
+            margin-top: 20px;
+            font-size: 1rem;
+            text-align: center;
+            max-width: 80%;
+        }
+        .page-loader-wrapper { z-index: 1002; } /* Ensure page loader is on top */
+        /* Hide loaders by default */
+        .loader-wrapper, .page-loader-wrapper { display: none; }
+        .loader-wrapper.active, .page-loader-wrapper.active { display: flex; }
+
+
+        /* Subscription Required Modal */
+        .subscription-required {
+            /* Uses .modal-overlay structure */
+            /* display: none; is handled dynamically */
+        }
+        .subscription-required-content {
+            /* Uses .modal-content structure */
+            text-align: center;
+        }
+        .subscription-required-content h2 { color: #333; margin-bottom: 20px; }
+        .subscription-required-content p { color: #666; margin-bottom: 30px; }
+        .subscription-required-content button { margin: 0 10px; }
+
+        /* Utilities */
+        .hidden { display: none !important; } /* Utility class to hide elements */
+        .error-message {
+            color: #ff4d4d; /* Brighter red for errors */
+            margin-top: 10px;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        .loading-message {
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        .anitext { /* Simple animation for footer text */
+             animation: colorChange 5s infinite alternate;
+        }
+        @keyframes colorChange {
+            from { color: rgba(255, 255, 255, 0.7); }
+            to { color: var(--primary-color); }
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: fixed;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 8px 16px;
+            border-radius: var(--border-radius-small);
+            font-size: 0.85rem;
+            z-index: 1001;
+            text-align: center;
+            max-width: 200px;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 24px;
+            opacity: 0; /* Hidden by default */
+            transition: opacity 0.3s ease;
+            pointer-events: none; /* Don't block clicks */
+        }
+        .tooltip.show {
+            opacity: 1;
+        }
+
+
+        /* Media Queries */
+        @media (max-width: 768px) {
+            h2 { font-size: 1.4rem; }
+            h3 { font-size: 1.2rem; }
+            button { padding: 10px 16px; font-size: 0.85rem; }
+            .stats-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+            .stat-card .value { font-size: 1.4rem; }
+            .action-icon { width: 48px; height: 48px; }
+            .date-filter { flex-direction: column; align-items: stretch; }
+        }
+
+        @media (max-width: 480px) {
+            body { font-size: 14px; }
+            .container { padding: 12px; }
+            section { padding: 12px; margin: 12px 0; }
+            table { font-size: 0.8rem; }
+            th, td { padding: 8px 6px; }
+            button { padding: 10px 14px; } /* Slightly smaller padding */
+            .modal-content, .history-section { padding: 20px 16px; width: 95%; }
+            .action-icons { gap: 16px; }
+            .action-icon { width: 44px; height: 44px; }
+            .buttons button { flex-basis: 100%; } /* Stack buttons */
+            .close-icon { top: 8px; right: 8px; font-size: 22px; width: 30px; height: 30px;}
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .toggle-history { width: 50px; height: 50px; bottom: 15px; right: 15px; }
+            .toggle-history i { font-size: 1.2rem; }
+            .history-table table { font-size: 0.75rem; } /* Smaller history font */
+            .login-section input[type="text"],
+            .login-section input[type="password"] { padding: 10px 15px; }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Page Loader (covers initial load and subscription check) -->
+    <div class="page-loader-wrapper" id="pageLoaderWrapper">
+        <div class="page-loader"></div>
+        <div class="loader-message" id="pageLoaderMessage">Initialisation...</div>
+    </div>
+
+    <!-- General Activity Loader -->
+    <div class="loader-wrapper" id="loaderWrapper">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Login Section -->
+    <section class="login-section" id="loginSection">
+        <h2>Connexion Partenaire</h2>
+        <form id="loginForm">
+            <div class="autocomplete-container">
+                <input type="text" id="username" placeholder="Nom d'utilisateur" required autocomplete="username">
+                <ul class="autocomplete-suggestions" id="autocompleteSuggestions"></ul>
+            </div>
+            <input type="password" id="password" placeholder="Mot de passe" required autocomplete="current-password">
+            <div style="display: flex; align-items: center; margin: 15px 0;">
+                <input type="checkbox" id="rememberMe" style="width: auto; margin-bottom: 0;">
+                <label for="rememberMe">Se souvenir de moi (24h)</label>
+            </div>
+            <button type="submit">Se connecter</button>
+        </form>
+        <div class="error-message hidden" id="loginError"></div>
+    </section>
+
+    <!-- Main Content Area (Hidden until login) -->
+    <div class="container hidden" id="mainContent">
+        <!-- Ticket Rates/Selling Section -->
+        <section class="rates-section">
+            <h2>Vente de tickets WiFi</h2>
+            <div class="loading-message" id="ticketsLoadingMessage">Chargement des tickets...</div>
+            <table id="ticketsTable" class="hidden">
+                <thead>
+                    <tr>
+                        <th>Catégorie</th>
+                        <th>Prix (FCFA)</th>
+                        <th>Restants</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="ticketsTableBody">
+                    <!-- Ticket rows will be populated here -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Messages Section -->
+        <section class="messages-section">
+            <h2>Messages Reçus</h2>
+            <div id="messagesContainer">
+                <!-- Messages will be added here -->
+                <p class="loading-message" id="messagesPlaceholder">Aucun message reçu pour le moment.</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- Notification Modal -->
+    <div class="modal-overlay hidden" id="notificationOverlay">
+        <div class="modal-content notification" id="notification">
+             <span class="close-icon" id="notificationClose"><i class="fas fa-times"></i></span>
+             <h3 id="notificationTitle">Confirmation</h3>
+             <div class="ticket-details" id="notificationMessage"></div>
+             <!-- Confirmation Buttons (Sell/Cancel) -->
+             <div class="buttons" id="confirmationButtons">
+                 <button class="btn-sell" id="confirmSaleButton">Confirmer</button>
+                 <button class="btn-cancel" id="cancelSaleButton">Annuler</button>
+             </div>
+             <!-- Action Icons (Share/PDF) - Shown after successful sale -->
+             <div class="action-icons hidden" id="ticketActions">
+                 <div class="action-icon icon-share" id="shareTicketButton" title="Partager">
+                     <i class="fas fa-share-alt"></i>
+                 </div>
+                 <div class="action-icon icon-pdf" id="exportPdfButton" title="Exporter en PDF">
+                     <i class="fas fa-file-pdf"></i>
+                 </div>
+                 <!-- Note: Copy button removed as sharing often includes copy functionality, simplify UI -->
+             </div>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div class="modal-overlay hidden" id="historyOverlay">
+        <div class="history-section" id="historySection">
+            <div class="history-header">
+                <h2>Historique des ventes</h2>
+                <button id="closeHistoryButton"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div class="date-filter">
+                <label for="periodFilter">Période:</label>
+                <select id="periodFilter">
+                    <option value="today" selected>Aujourd'hui</option> <!-- CHANGEMENT ICI -->
+                    <option value="week">Cette semaine</option>
+                    <option value="month">Ce mois</option>
+                    <option value="all">Tout l'historique</option>
+                </select>
+                <label for="startDate">Début:</label>
+                <input type="date" id="startDate">
+                <label for="endDate">Fin:</label>
+                <input type="date" id="endDate">
+                <button id="filterDateRangeButton">Filtrer par date</button>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h4>Tickets vendus</h4>
+                    <div id="totalTickets" class="value">0</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Chiffre d'affaires</h4>
+                    <div id="totalRevenue" class="value">0 FCFA</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Ticket le plus vendu</h4>
+                    <div id="topCategory" class="value">-</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Moyenne / jour</h4>
+                    <div id="avgDaily" class="value">0</div>
+                </div>
+            </div>
+
+            <div class="history-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Catégorie</th>
+                            <th>Utilisateur</th>
+                            <th>Prix</th>
+                            <th></th> <!-- For details icon -->
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        <!-- History rows will be populated here -->
+                        <tr><td colspan="5" class="loading-message">Chargement de l'historique...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+             <div class="export-buttons">
+                <button id="printHistoryButton"><i class="fas fa-print"></i> Imprimer</button>
+                <button id="exportPdfHistoryButton"><i class="fas fa-file-pdf"></i> Exporter en PDF</button>
+                <!-- Excel export can be complex/large library, consider if truly needed -->
+                <!-- <button id="exportExcelHistoryButton"><i class="fas fa-file-excel"></i> Exporter en Excel</button> -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button for History -->
+    <div class="toggle-history" id="toggleHistoryButton">
+        <i class="fas fa-history"></i>
+    </div>
+
+    <!-- Tooltip -->
+    <div id="tooltip" class="tooltip"></div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="anitext">PROPULSE PAR EVISIONS</div>
+    </footer>
+
+    <!-- Subscription Required Modal -->
+    <div class="modal-overlay hidden" id="subscriptionRequiredOverlay">
+         <div class="modal-content subscription-required-content" id="subscriptionRequiredModal">
+            <h2>Abonnement Requis</h2>
+            <p>Un abonnement actif est nécessaire pour accéder à cette fonctionnalité.</p>
+            <button id="subscribeButton">S'abonner</button>
+            <button id="closeSubscriptionModalButton">Fermer</button>
+        </div>
+    </div>
+
+    <!-- Firebase and Main Logic -->
+    <script type="module">
+        import { getActiveDatabase } from './firebase-config-manager.js';
+        import { ref, get, set, push, update, onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+        // Immediately Invoked Function Expression (IIFE) to encapsulate the code
+        (async function() {
+            // --- Global State (within IIFE scope) ---
+            let db;
+            let currentAdminId = null;
+            let currentVendorId = null;
+            let vendors = {};
+            let availableUsernames = [];
+            let localTickets = {}; // Cache for available tickets
+            let currentTicketSale = null; // Holds details of the ticket being sold { category, user, password, price, dbRefPath }
+            let salesHistoryCache = []; // Cache for history to avoid re-fetching
+
+            // --- External Libraries ---
+            const { jsPDF } = window.jspdf; // Assign jsPDF to a constant
+
+            // --- DOM Elements ---
+            const pageLoader = document.getElementById('pageLoaderWrapper');
+            const pageLoaderMessage = document.getElementById('pageLoaderMessage');
+            const loader = document.getElementById('loaderWrapper');
+            const loginSection = document.getElementById('loginSection');
+            const loginForm = document.getElementById('loginForm');
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            const rememberMeCheckbox = document.getElementById('rememberMe');
+            const loginError = document.getElementById('loginError');
+            const autocompleteSuggestions = document.getElementById('autocompleteSuggestions');
+            const mainContent = document.getElementById('mainContent');
+            const ratesSection = document.querySelector('.rates-section'); // Assuming only one
+            const ticketsLoadingMessage = document.getElementById('ticketsLoadingMessage');
+            const ticketsTable = document.getElementById('ticketsTable');
+            const ticketsTableBody = document.getElementById('ticketsTableBody');
+            const messagesSection = document.getElementById('messagesSection');
+            const messagesContainer = document.getElementById('messagesContainer');
+            const messagesPlaceholder = document.getElementById('messagesPlaceholder');
+
+            // Notification Modal Elements
+            const notificationOverlay = document.getElementById('notificationOverlay');
+            const notification = document.getElementById('notification');
+            const notificationTitle = document.getElementById('notificationTitle');
+            const notificationMessage = document.getElementById('notificationMessage');
+            const notificationClose = document.getElementById('notificationClose');
+            const confirmationButtons = document.getElementById('confirmationButtons');
+            const confirmSaleButton = document.getElementById('confirmSaleButton');
+            const cancelSaleButton = document.getElementById('cancelSaleButton');
+            const ticketActions = document.getElementById('ticketActions');
+            const shareTicketButton = document.getElementById('shareTicketButton');
+            const exportPdfButton = document.getElementById('exportPdfButton');
+
+            // History Modal Elements
+            const historyOverlay = document.getElementById('historyOverlay');
+            const historySection = document.getElementById('historySection');
+            const toggleHistoryButton = document.getElementById('toggleHistoryButton');
+            const closeHistoryButton = document.getElementById('closeHistoryButton');
+            const periodFilter = document.getElementById('periodFilter');
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+            const filterDateRangeButton = document.getElementById('filterDateRangeButton');
+            const totalTicketsStat = document.getElementById('totalTickets');
+            const totalRevenueStat = document.getElementById('totalRevenue');
+            const topCategoryStat = document.getElementById('topCategory');
+            const avgDailyStat = document.getElementById('avgDaily');
+            const historyTableBody = document.getElementById('historyTableBody');
+            const printHistoryButton = document.getElementById('printHistoryButton');
+            const exportPdfHistoryButton = document.getElementById('exportPdfHistoryButton');
+            // const exportExcelHistoryButton = document.getElementById('exportExcelHistoryButton'); // If implementing
+
+            // Subscription Modal Elements
+            const subscriptionRequiredOverlay = document.getElementById('subscriptionRequiredOverlay');
+            const subscribeButton = document.getElementById('subscribeButton');
+            const closeSubscriptionModalButton = document.getElementById('closeSubscriptionModalButton');
+
+            // Tooltip Element
+            const tooltip = document.getElementById('tooltip');
+
+            // --- Utility Functions ---
+            const showPageLoader = (message = "Chargement...") => {
+                pageLoaderMessage.textContent = message;
+                pageLoader.classList.add('active');
+            };
+            const hidePageLoader = () => pageLoader.classList.remove('active');
+            const showLoader = () => loader.classList.add('active');
+            const hideLoader = () => loader.classList.remove('active');
+
+            const showElement = (el) => el.classList.remove('hidden');
+            const hideElement = (el) => el.classList.add('hidden');
+
+            const showModal = (overlay) => showElement(overlay);
+            const hideModal = (overlay) => hideElement(overlay);
+
+            const showTooltip = (message) => {
+                tooltip.textContent = message;
+                tooltip.classList.add('show');
+                setTimeout(() => tooltip.classList.remove('show'), 2500); // Auto-hide after 2.5s
+            };
+
+            const getAdminIdFromUrl = () => {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get('adminId');
+            };
+
+            // --- Initialization ---
+            async function initializeApp() {
+                showPageLoader("Initialisation de la base de données...");
+                try {
+                    db = await getActiveDatabase();
+                    console.log("Database initialized.");
+                    currentAdminId = getAdminIdFromUrl();
+
+                    if (!currentAdminId) {
+                        hidePageLoader();
+                        showElement(loginSection);
+                        loginError.textContent = "ID administrateur manquant dans l'URL.";
+                        showElement(loginError);
+                        console.error("Admin ID is missing from URL.");
+                        return; // Stop initialization
+                    }
+
+                    // No automatic subscription check here, vendor doesn't need it directly
+                    // The admin interface should handle subscription enforcement
+
+                    showPageLoader("Chargement des données vendeur...");
+                    await fetchVendors(); // Needed for login and autocomplete
+
+                    setupEventListeners(); // Setup listeners early
+
+                    // Check for remembered credentials
+                    const storedUsername = localStorage.getItem('vendorUsername');
+                    const storedPassword = localStorage.getItem('vendorPassword');
+                    const storedTimestamp = localStorage.getItem('vendorUsernameTimestamp');
+                    const now = Date.now();
+                    const twentyFourHours = 24 * 60 * 60 * 1000;
+
+                    if (storedUsername && storedPassword && storedTimestamp && (now - storedTimestamp < twentyFourHours)) {
+                        usernameInput.value = storedUsername;
+                        passwordInput.value = storedPassword;
+                        rememberMeCheckbox.checked = true;
+                        showPageLoader("Tentative de connexion automatique...");
+                        await handleLogin(); // Attempt auto-login
+                    } else {
+                         // If no remembered user, just show login
+                        hidePageLoader();
+                        showElement(loginSection);
+                    }
+
+                } catch (error) {
+                    console.error("Initialization failed:", error);
+                    hidePageLoader();
+                    showElement(loginSection); // Fallback to login
+                    loginError.textContent = "Erreur d'initialisation. Vérifiez la console.";
+                    showElement(loginError);
+                }
+            }
+
+            // --- Authentication ---
+            async function fetchVendors() {
+                if (!currentAdminId) return;
+                try {
+                    const vendorsRef = ref(db, `users-data/${currentAdminId}/Vendors`);
+                    const snapshot = await get(vendorsRef);
+                    if (snapshot.exists()) {
+                        vendors = snapshot.val() || {};
+                        availableUsernames = Object.keys(vendors);
+                        setupAutocomplete(); // Setup after fetching names
+                    } else {
+                        console.log("Aucun vendeur trouvé pour cet admin.");
+                        vendors = {};
+                        availableUsernames = [];
+                    }
+                } catch (error) {
+                    console.error("Erreur lors de la récupération des vendeurs:", error);
+                    loginError.textContent = "Erreur de chargement des vendeurs.";
+                    showElement(loginError);
+                }
+            }
+
+            async function handleLogin() {
+                showPageLoader("Connexion..."); // Use page loader for login process
+                const username = usernameInput.value.trim();
+                const password = passwordInput.value; // No trim on password
+
+                hideElement(loginError); // Hide previous errors
+
+                if (!username || !password) {
+                     loginError.textContent = "Nom d'utilisateur et mot de passe requis.";
+                     showElement(loginError);
+                     hidePageLoader();
+                     return;
+                }
+
+                if (vendors[username] && vendors[username].password === password) {
+                    // Connexion réussie
+                    console.log(`Vendor ${username} logged in.`);
+                    currentVendorId = username;
+
+                    // Handle "Remember Me"
+                     if (rememberMeCheckbox.checked) {
+                        localStorage.setItem('vendorUsername', username);
+                        // SECURITY WARNING: Storing plain password in localStorage is insecure.
+                        // Consider using a session token managed by a backend if possible.
+                        localStorage.setItem('vendorPassword', password);
+                        localStorage.setItem('vendorUsernameTimestamp', Date.now().toString());
+                    } else {
+                        localStorage.removeItem('vendorUsername');
+                        localStorage.removeItem('vendorPassword');
+                        localStorage.removeItem('vendorUsernameTimestamp');
+                    }
+
+                    // Transition UI
+                    hideElement(loginSection);
+                    showElement(mainContent);
+                    hideElement(ticketsTable); // Hide table until tickets load
+                    showElement(ticketsLoadingMessage);
+
+                    // Load necessary data after login
+                    try {
+                        showPageLoader("Chargement des données...");
+                        await syncTickets();
+                        listenForNewMessages();
+                        // History is loaded when modal opens
+                        hidePageLoader();
+                    } catch (error) {
+                         console.error("Error loading data after login:", error);
+                         showNotificationModal("Erreur", "Erreur lors du chargement des données initiales.");
+                         hidePageLoader();
+                         // Potentially log out or show critical error state
+                    }
+
+                } else {
+                    // Identifiants incorrects
+                    loginError.textContent = "Nom d'utilisateur ou mot de passe incorrect.";
+                    showElement(loginError);
+                    hidePageLoader();
+                }
+            }
+
+            // --- Autocomplete ---
+            function setupAutocomplete() {
+                usernameInput.addEventListener('input', () => {
+                    const inputValue = usernameInput.value.toLowerCase();
+                    const suggestions = availableUsernames.filter(name => name.toLowerCase().startsWith(inputValue));
+                    renderAutocomplete(suggestions);
+                });
+
+                // Hide suggestions on click outside
+                document.addEventListener('click', (event) => {
+                    if (!autocompleteSuggestions.contains(event.target) && event.target !== usernameInput) {
+                        hideElement(autocompleteSuggestions);
+                    }
+                });
+            }
+
+            function renderAutocomplete(suggestions) {
+                autocompleteSuggestions.innerHTML = '';
+                if (suggestions.length === 0 || usernameInput.value.length === 0) {
+                    hideElement(autocompleteSuggestions);
+                    return;
+                }
+
+                suggestions.forEach(suggestion => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = suggestion;
+                    listItem.addEventListener('click', () => {
+                        usernameInput.value = suggestion;
+                        hideElement(autocompleteSuggestions);
+                        passwordInput.focus(); // Move focus to password
+                    });
+                    autocompleteSuggestions.appendChild(listItem);
+                });
+                showElement(autocompleteSuggestions);
+            }
+
+            // --- Ticket Management ---
+            async function syncTickets() {
+                if (!currentAdminId) return;
+                showElement(ticketsLoadingMessage);
+                hideElement(ticketsTable);
+                ticketsLoadingMessage.textContent = "Synchronisation des tickets...";
+
+                try {
+                    const ticketsTotalRef = ref(db, `users-data/${currentAdminId}/TicketsTotal`);
+                    const snapshot = await get(ticketsTotalRef);
+
+                    if (snapshot.exists()) {
+                        localTickets = snapshot.val() || {};
+                        renderTicketsTable();
+                        hideElement(ticketsLoadingMessage);
+                        showElement(ticketsTable);
+                    } else {
+                        localTickets = {};
+                        ticketsTableBody.innerHTML = ''; // Clear table
+                        ticketsLoadingMessage.textContent = 'Aucun type de ticket configuré.';
+                        hideElement(ticketsTable);
+                        showElement(ticketsLoadingMessage);
+                    }
+                } catch (error) {
+                    console.error("Erreur de synchronisation des tickets:", error);
+                    ticketsLoadingMessage.textContent = "Erreur de synchronisation.";
+                    showElement(ticketsLoadingMessage);
+                    hideElement(ticketsTable);
+                }
+            }
+
+            function renderTicketsTable() {
+                ticketsTableBody.innerHTML = ''; // Clear existing rows
+                let hasAvailableTickets = false;
+
+                // Sort categories alphabetically for consistent order
+                const sortedCategories = Object.keys(localTickets).sort();
+
+                for (const category of sortedCategories) {
+                    const data = localTickets[category];
+                    const remaining = data && data.utilisateur ? data.utilisateur.length : 0;
+                    const price = data && data.prix && data.prix.length > 0 ? data.prix[0] : 'N/A'; // Handle missing price
+
+                    if (remaining > 0) {
+                        hasAvailableTickets = true;
+                        const row = ticketsTableBody.insertRow();
+                        row.innerHTML = `
+                            <td>${category}</td>
+                            <td>${price === 'N/A' ? price : `${price} FCFA`}</td>
+                            <td>${remaining}</td>
+                            <td><button class="sell-ticket-btn" data-category="${category}" ${price === 'N/A' ? 'disabled' : ''}>Vendre</button></td>
+                        `;
+                    }
+                }
+
+                 if (!hasAvailableTickets) {
+                     const row = ticketsTableBody.insertRow();
+                     row.innerHTML = `<td colspan="4" class="loading-message">Aucun ticket disponible à la vente.</td>`;
+                 }
+
+                // Add event listeners to the new buttons
+                document.querySelectorAll('.sell-ticket-btn').forEach(button => {
+                    button.addEventListener('click', () => initTicketSale(button.dataset.category));
+                });
+            }
+
+            // Step 1: Initiate Sale - Temporarily "reserve" a ticket
+            async function initTicketSale(category) {
+                if (!currentAdminId) return;
+                showLoader();
+
+                const ticketCategoryRef = ref(db, `users-data/${currentAdminId}/TicketsTotal/${category}`);
+
+                try {
+                    // Get current state before making changes
+                    const snapshot = await get(ticketCategoryRef);
+                    if (!snapshot.exists()) {
+                        throw new Error(`Catégorie ${category} introuvable.`);
+                    }
+
+                    const data = snapshot.val();
+                    if (!data.utilisateur || data.utilisateur.length === 0) {
+                         showNotificationModal("Stock épuisé", `Plus de tickets disponibles pour la catégorie : ${category}.`);
+                         await syncTickets(); // Refresh table in case of race condition
+                         hideLoader();
+                         return;
+                    }
+
+                    // Prepare data for the ticket to sell and the update
+                    const user = data.utilisateur[0];
+                    const password = data.motDePasse[0];
+                    const price = data.prix[0];
+
+                    // Data remaining after removing one ticket
+                    const updatedData = {
+                        utilisateur: data.utilisateur.slice(1),
+                        motDePasse: data.motDePasse.slice(1),
+                        prix: data.prix.slice(1)
+                    };
+
+                    // *** Critical Section: Attempt to reserve the ticket ***
+                    // Update the database FIRST to remove the ticket (optimistic reservation)
+                    await set(ticketCategoryRef, updatedData);
+
+                    // If update succeeds, store ticket details locally for confirmation
+                    currentTicketSale = {
+                        category: category,
+                        user: user,
+                        password: password,
+                        price: price,
+                        dbRefPath: ticketCategoryRef.toString() // Store path for potential cancellation
+                    };
+
+                    // Show confirmation modal to the vendor
+                    showConfirmationModal(currentTicketSale);
+                    await syncTickets(); // Update the main table view for this and other vendors
+                    hideLoader();
+
+                } catch (error) {
+                    console.error("Erreur lors de l'initialisation de la vente:", error);
+                     showNotificationModal("Erreur", `Impossible d'initier la vente: ${error.message}`);
+                    currentTicketSale = null; // Ensure no sale state if reservation failed
+                    await syncTickets(); // Refresh UI
+                    hideLoader();
+                }
+            }
+
+            // Step 2a: Confirm Sale - Move ticket to sold, update history
+            async function proceedWithSale() {
+                if (!currentTicketSale || !currentAdminId || !currentVendorId) {
+                    console.error("Invalid state for proceeding with sale.");
+                    hideModal(notificationOverlay);
+                    return;
+                }
+                showLoader(); // Show loader during confirmation process
+
+                const { category, user, password, price } = currentTicketSale;
+                const soldAt = Date.now();
+
+                try {
+                    // Add to global TicketsVendus
+                    const ticketsVendusRef = ref(db, `users-data/${currentAdminId}/TicketsVendus`);
+                    await push(ticketsVendusRef, {
+                        category, user, password, price, soldAt, vendorId: currentVendorId
+                    });
+
+                    // Add to specific vendor's history
+                    const vendorHistoryRef = ref(db, `users-data/${currentAdminId}/VendorsHistory/${currentVendorId}`);
+                    await push(vendorHistoryRef, {
+                        category, user, password, price, soldAt
+                    });
+
+                    // Show success details in the modal
+                    showSoldTicketDetails(currentTicketSale);
+                    salesHistoryCache = []; // Invalidate history cache
+                    hideLoader();
+                    // No need to syncTickets() here, was done in initTicketSale
+
+                } catch (error) {
+                    console.error("Erreur lors de la confirmation de la vente:", error);
+                    showNotificationModal("Erreur", `La vente n'a pas pu être finalisée: ${error.message}`);
+                    // Attempt to rollback? VERY COMPLEX. For now, log error and potentially alert admin.
+                    // The ticket is currently removed from TicketsTotal. Manual intervention might be needed.
+                    hideLoader();
+                } finally {
+                     currentTicketSale = null; // Clear sale state after attempt
+                }
+            }
+
+            // Step 2b: Cancel Sale - Put the "reserved" ticket back
+            async function cancelSale() {
+                hideModal(notificationOverlay); // Hide modal immediately
+
+                if (!currentTicketSale || !currentAdminId) {
+                    console.log("No sale in progress to cancel or missing IDs.");
+                    currentTicketSale = null; // Ensure state is clear if no valid sale exists
+                    return;
+                }
+
+                showLoader(); // Show loader during cancellation
+
+                const { category, user, password, price } = currentTicketSale;
+                const ticketCategoryRef = ref(db, `users-data/${currentAdminId}/TicketsTotal/${category}`);
+                let cancellationSuccessful = false; // Flag to track success
+
+                try {
+                    // Get the current state of the category again to avoid overwriting other sales/additions
+                     const snapshot = await get(ticketCategoryRef);
+                     // If the node doesn't exist (edge case), create it with the ticket
+                     const currentData = snapshot.val() || { utilisateur: [], motDePasse: [], prix: [] };
+
+                     // Add the cancelled ticket back to the beginning of the lists
+                     const revertedData = {
+                         utilisateur: [user, ...(currentData.utilisateur || [])],
+                         motDePasse: [password, ...(currentData.motDePasse || [])],
+                         prix: [price, ...(currentData.prix || [])]
+                     };
+
+                     // *** Put the ticket back in the database ***
+                     await set(ticketCategoryRef, revertedData);
+
+                     console.log(`Sale cancelled, ticket ${user} for category ${category} restored.`);
+                     cancellationSuccessful = true; // Mark as successful before potentially slow sync
+                     await syncTickets(); // Update the main table view
+                     showTooltip("Vente annulée."); // Inform user via tooltip
+
+                } catch (error) {
+                     console.error("Erreur critique lors de l'annulation de la vente:", error);
+                     cancellationSuccessful = false; // Explicitly mark as failed
+                     // The ticket might be lost if this fails. Alert necessary.
+                     showNotificationModal("Erreur Critique", `Impossible d'annuler la vente et de restaurer le ticket: ${error.message}. Contactez l'administrateur.`);
+                     // Do NOT clear currentTicketSale state here, might be needed for manual recovery info
+
+                } finally {
+                    // This block always runs
+                    if (cancellationSuccessful) {
+                        currentTicketSale = null; // Clear sale state ONLY on successful cancellation
+                    }
+                    hideLoader(); // Ensure loader is hidden regardless of success or failure
+                }
+            }
+
+            // --- UI Update Functions (Modals, Tables) ---
+
+             function showConfirmationModal(ticket) {
+                 notificationTitle.textContent = 'Confirmation de vente';
+                 notificationMessage.innerHTML = `
+                     <p>Voulez-vous vendre ce ticket ?</p>
+                     <p><strong>Catégorie:</strong> ${ticket.category}</p>
+                     <p><strong>Prix:</strong> ${ticket.price} FCFA</p>
+                     <!-- Do NOT show user/password before confirmation -->
+                 `;
+                 hideElement(ticketActions);
+                 showElement(confirmationButtons);
+                 showModal(notificationOverlay);
+             }
+
+             function showSoldTicketDetails(ticket) {
+                 notificationTitle.textContent = 'Ticket vendu avec succès';
+                 notificationMessage.innerHTML = `
+                     <p><strong>Catégorie:</strong> ${ticket.category}</p>
+                     <p><strong>Utilisateur:</strong> ${ticket.user}</p>
+                     <p><strong>Mot de passe:</strong> ${ticket.password}</p>
+                     <p><strong>Prix:</strong> ${ticket.price} FCFA</p>
+                 `;
+                 hideElement(confirmationButtons);
+                 showElement(ticketActions);
+                 // Modal remains open until closed manually
+             }
+
+             // Generic notification (e.g., for errors, info)
+             function showNotificationModal(title, message) {
+                 notificationTitle.textContent = title;
+                 notificationMessage.innerHTML = `<p>${message}</p>`;
+                 hideElement(confirmationButtons);
+                 hideElement(ticketActions);
+                 showModal(notificationOverlay);
+             }
+
+            // --- History Management ---
+             async function loadHistory() {
+                 if (!currentAdminId || !currentVendorId) return;
+                 showLoader();
+                 historyTableBody.innerHTML = `<tr><td colspan="5" class="loading-message">Chargement de l'historique...</td></tr>`;
+
+                 // Use cache if available and filters haven't forced a reload
+                 if (salesHistoryCache.length > 0) {
+                    console.log("Using cached history");
+                    filterAndDisplayHistory(salesHistoryCache);
+                    hideLoader();
+                    return;
+                 }
+
+                 try {
+                    const historyRef = ref(db, `users-data/${currentAdminId}/VendorsHistory/${currentVendorId}`);
+                    const snapshot = await get(historyRef);
+
+                    if (snapshot.exists()) {
+                        salesHistoryCache = Object.entries(snapshot.val()).map(([id, data]) => ({
+                            id,
+                            ...data
+                        })).sort((a, b) => b.soldAt - a.soldAt); // Sort newest first
+                    } else {
+                        salesHistoryCache = [];
+                    }
+                    filterAndDisplayHistory(salesHistoryCache); // Apply default/current filters
+
+                 } catch (error) {
+                     console.error("Erreur lors du chargement de l'historique:", error);
+                     historyTableBody.innerHTML = `<tr><td colspan="5" class="error-message">Impossible de charger l'historique.</td></tr>`;
+                     updateHistoryStats([]); // Reset stats on error
+                 } finally {
+                     hideLoader();
+                 }
+             }
+
+             function filterAndDisplayHistory(historyData) {
+                const period = periodFilter.value;
+                const startDate = startDateInput.value ? new Date(startDateInput.value) : null;
+                const endDate = endDateInput.value ? new Date(endDateInput.value) : null;
+
+                let filteredSales = historyData;
+
+                // Filter by selected period (if no date range is used)
+                if (!startDate && !endDate && period !== 'all') {
+                    const now = new Date();
+                    let startOfPeriod;
+                    if (period === 'today') {
+                        startOfPeriod = new Date(now.setHours(0, 0, 0, 0));
+                    } else if (period === 'week') {
+                        const firstDayOfWeek = now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1); // Adjust for Sunday start if needed
+                        startOfPeriod = new Date(now.setDate(firstDayOfWeek));
+                        startOfPeriod.setHours(0, 0, 0, 0);
+                    } else if (period === 'month') {
+                        startOfPeriod = new Date(now.getFullYear(), now.getMonth(), 1);
+                    }
+                    if (startOfPeriod) {
+                        filteredSales = historyData.filter(sale => new Date(sale.soldAt) >= startOfPeriod);
+                    }
+                }
+                // Filter by date range (overrides period)
+                else if (startDate || endDate) {
+                    const start = startDate ? startDate.setHours(0, 0, 0, 0) : 0;
+                    const end = endDate ? endDate.setHours(23, 59, 59, 999) : Date.now();
+                    filteredSales = historyData.filter(sale => {
+                        const saleDate = sale.soldAt;
+                        return saleDate >= start && saleDate <= end;
+                    });
+                }
+
+                updateHistoryTable(filteredSales);
+                updateHistoryStats(filteredSales);
+             }
+
+            function updateHistoryTable(sales) {
+                historyTableBody.innerHTML = ''; // Clear table
+                if (sales.length === 0) {
+                    historyTableBody.innerHTML = `<tr><td colspan="5" class="loading-message">Aucune vente trouvée pour cette période.</td></tr>`;
+                    return;
+                }
+
+                sales.forEach(sale => {
+                    const row = historyTableBody.insertRow();
+                    row.style.cursor = 'pointer';
+                    row.dataset.saleId = sale.id; // Store ID for click handler
+                    row.innerHTML = `
+                        <td>${new Date(sale.soldAt).toLocaleString('fr-FR')}</td>
+                        <td>${sale.category}</td>
+                        <td>${sale.user}</td>
+                        <td>${sale.price} FCFA</td>
+                        <td><i class="fas fa-arrow-right"></i></td>
+                    `;
+                    // Add listener inside the loop for clarity
+                    row.addEventListener('click', () => showTicketDetailsFromHistory(row.dataset.saleId));
+                });
+            }
+
+             function updateHistoryStats(sales) {
+                 const totalTickets = sales.length;
+                 const totalRevenue = sales.reduce((sum, sale) => sum + (parseFloat(sale.price) || 0), 0);
+
+                 const categoryCounts = sales.reduce((acc, sale) => {
+                     acc[sale.category] = (acc[sale.category] || 0) + 1;
+                     return acc;
+                 }, {});
+                 const topCategory = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || '-';
+
+                 // Calculate average daily: number of unique days in the period / total tickets
+                 let avgDaily = 0;
+                 if (totalTickets > 0) {
+                    const uniqueDays = new Set(sales.map(s => new Date(s.soldAt).toDateString())).size;
+                    avgDaily = (totalTickets / Math.max(1, uniqueDays)).toFixed(1); // Avoid division by zero
+                 }
+
+
+                 totalTicketsStat.textContent = totalTickets;
+                 totalRevenueStat.textContent = `${totalRevenue.toLocaleString('fr-FR')} FCFA`;
+                 topCategoryStat.textContent = topCategory;
+                 avgDailyStat.textContent = avgDaily;
+             }
+
+            async function showTicketDetailsFromHistory(saleId) {
+                showLoader();
+                try {
+                    if (!currentAdminId || !currentVendorId || !saleId) {
+                         throw new Error("Missing IDs or Sale ID");
+                    }
+                    const historyRef = ref(db, `users-data/${currentAdminId}/VendorsHistory/${currentVendorId}/${saleId}`);
+                    const snapshot = await get(historyRef);
+                    if (snapshot.exists()) {
+                        const sale = snapshot.val();
+                        hideModal(historyOverlay); // Close history modal
+                        showSoldTicketDetails(sale); // Reuse the function to show details
+                        showModal(notificationOverlay); // Show notification modal
+                    } else {
+                        showNotificationModal("Erreur", "Ticket introuvable dans l'historique.");
+                    }
+                } catch (error) {
+                    console.error("Erreur lors de la récupération du ticket depuis l'historique:", error);
+                    showNotificationModal("Erreur", "Impossible de récupérer les détails du ticket.");
+                } finally {
+                    hideLoader();
+                }
+            }
+
+            // --- Message Handling ---
+            function listenForNewMessages() {
+                 if (!currentAdminId || !currentVendorId) return;
+
+                 const messagesRef = ref(db, `users-data/${currentAdminId}/Vendors/${currentVendorId}/messages`);
+                 onChildAdded(messagesRef, (snapshot) => {
+                     const message = snapshot.val();
+                     if (message && message.content && message.timestamp) {
+                        displayNewMessage(message);
+                     }
+                 });
+                 // Optional: Load initial messages if needed, or just rely on real-time additions
+            }
+
+            function displayNewMessage(message) {
+                 hideElement(messagesPlaceholder); // Hide placeholder if it's visible
+                 const messageElement = document.createElement('div');
+                 messageElement.classList.add('message');
+                 messageElement.innerHTML = `
+                     <p>${message.content}</p> <!-- TODO: Sanitize content if it can contain HTML -->
+                     <span class="timestamp">${new Date(message.timestamp).toLocaleString('fr-FR')}</span>
+                 `;
+                 // Prepend new messages to see the latest first
+                 messagesContainer.insertBefore(messageElement, messagesContainer.firstChild);
+
+                 // Optionally, add a visual cue for new message
+                 messageElement.style.backgroundColor = 'rgba(253, 187, 45, 0.2)'; // Temporary highlight
+                 setTimeout(() => { messageElement.style.backgroundColor = ''; }, 3000);
+            }
+
+            // --- Actions (Share, PDF, Print) ---
+             async function shareTicketDetails() {
+                 const messageContent = notificationMessage.innerText; // Get text content
+                 if (!messageContent) return;
+
+                 const shareData = {
+                    title: 'Détails du Ticket WiFi',
+                    text: messageContent,
+                 };
+
+                 try {
+                    if (navigator.share) {
+                         await navigator.share(shareData);
+                         console.log('Ticket partagé avec succès');
+                         showTooltip("Ticket partagé !");
+                    } else {
+                         // Fallback: Copy to clipboard
+                         await navigator.clipboard.writeText(messageContent);
+                         showTooltip("Détails copiés (partage non supporté) !");
+                    }
+                 } catch (err) {
+                    console.error('Erreur de partage/copie:', err);
+                    // Try clipboard write again as a final fallback
+                    try {
+                        await navigator.clipboard.writeText(messageContent);
+                        showTooltip("Détails copiés (erreur partage) !");
+                    } catch (copyErr) {
+                        console.error('Erreur de copie fallback:', copyErr);
+                        showNotificationModal("Erreur", "Partage et copie non possibles sur cet appareil.");
+                    }
+                 }
+             }
+
+            async function exportTicketToPDF() {
+                 showLoader();
+                 const ticketContent = notificationMessage; // The element containing details
+                 try {
+                    const canvas = await html2canvas(ticketContent, { scale: 2 }); // Increase scale for better quality
+                    const imgData = canvas.toDataURL('image/png');
+                    const pdf = new jsPDF({
+                        orientation: 'p',
+                        unit: 'mm',
+                        format: 'a6' // Small format for ticket
+                    });
+
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const pdfHeight = pdf.internal.pageSize.getHeight();
+                    const imgWidth = canvas.width;
+                    const imgHeight = canvas.height;
+                    const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+
+                    // Calculate position to center the image
+                    const imgX = (pdfWidth - imgWidth * ratio) / 2;
+                    const imgY = 10; // Margin from top
+
+                    pdf.setFontSize(10);
+                    pdf.text("Ticket WiFi - Cyber Campus", pdfWidth / 2, 5, { align: 'center' });
+                    pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+                    pdf.save(`ticket_${currentTicketSale?.user || 'details'}.pdf`);
+                    showTooltip("PDF généré !");
+                 } catch (error) {
+                    console.error("Erreur PDF:", error);
+                    showNotificationModal("Erreur", "Impossible de générer le PDF.");
+                 } finally {
+                    hideLoader();
+                 }
+             }
+
+            function printHistory() {
+                 // Simple browser print - might need more CSS @media print rules for better formatting
+                 window.print();
+            }
+
+            function exportHistoryToPDF() {
+                 if (salesHistoryCache.length === 0) {
+                    showTooltip("Aucun historique à exporter.");
+                    return;
+                 }
+                 showLoader();
+                 try {
+                    const doc = new jsPDF();
+                    doc.setFontSize(18);
+                    doc.text("Historique des Ventes", 14, 22);
+                    doc.setFontSize(11);
+                    doc.setTextColor(100);
+                    doc.text(`Vendeur: ${currentVendorId}`, 14, 28);
+
+                    const head = [['Date', 'Catégorie', 'Utilisateur', 'Prix (FCFA)']];
+                    const body = filterAndDisplayHistory(salesHistoryCache, true).map(sale => [ // Get currently filtered data
+                         new Date(sale.soldAt).toLocaleString('fr-FR'),
+                         sale.category,
+                         sale.user,
+                         sale.price.toString()
+                     ]);
+
+                    doc.autoTable({
+                         head: head,
+                         body: body,
+                         startY: 35,
+                         theme: 'grid',
+                         headStyles: { fillColor: [22, 160, 133], textColor: 255 }, // Example color
+                         styles: { fontSize: 9, cellPadding: 2 },
+                         columnStyles: { 3: { halign: 'right' } }, // Align price right
+                         didDrawPage: function (data) {
+                            // Footer
+                            let str = "Page " + doc.internal.getNumberOfPages();
+                            doc.setFontSize(10);
+                            let pageSize = doc.internal.pageSize;
+                            let pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+                            doc.text(str, data.settings.margin.left, pageHeight - 10);
+                            doc.text(`Exporté le: ${new Date().toLocaleDateString('fr-FR')}`, pageSize.width - data.settings.margin.right - 50, pageHeight - 10);
+                        }
+                     });
+
+                    doc.save(`historique_ventes_${currentVendorId}.pdf`);
+                    showTooltip("PDF de l'historique généré !");
+
+                 } catch (error) {
+                     console.error("Erreur PDF Historique:", error);
+                     showNotificationModal("Erreur", "Impossible de générer le PDF de l'historique.");
+                 } finally {
+                     hideLoader();
+                 }
+            }
+             // --- Subscription Modal ---
+             function showSubscriptionRequiredModal() {
+                 showModal(subscriptionRequiredOverlay);
+             }
+             function hideSubscriptionRequiredModal() {
+                 hideModal(subscriptionRequiredOverlay);
+             }
+             function redirectToSubscription() {
+                 // Redirect to the main admin/subscription page, potentially passing adminId
+                 window.location.href = `index.html?adminId=${currentAdminId || ''}`;
+             }
+
+
+            // --- Event Listeners Setup ---
+            function setupEventListeners() {
+                // Login
+                loginForm.addEventListener('submit', async (event) => {
+                    event.preventDefault(); // Prevent default form submission
+                    await handleLogin();
+                });
+
+                // Sell Ticket Buttons (delegated listener on tbody)
+                 ticketsTableBody.addEventListener('click', (event) => {
+                    if (event.target.classList.contains('sell-ticket-btn') && !event.target.disabled) {
+                        initTicketSale(event.target.dataset.category);
+                    }
+                });
+
+                // Notification Modal
+                notificationClose.addEventListener('click', () => {
+                    // If the sale wasn't confirmed/cancelled, trigger cancellation
+                    if (currentTicketSale) {
+                        cancelSale();
+                    } else {
+                        hideModal(notificationOverlay);
+                    }
+                });
+                confirmSaleButton.addEventListener('click', proceedWithSale);
+                cancelSaleButton.addEventListener('click', cancelSale);
+                shareTicketButton.addEventListener('click', shareTicketDetails);
+                exportPdfButton.addEventListener('click', exportTicketToPDF);
+
+                // History Modal
+                toggleHistoryButton.addEventListener('click', async () => {
+                    showModal(historyOverlay);
+                    await loadHistory(); // Load/refresh history when opened
+                });
+                closeHistoryButton.addEventListener('click', () => hideModal(historyOverlay));
+                periodFilter.addEventListener('change', () => {
+                    // Efface les champs de date lorsque l'utilisateur sélectionne une période
+                    startDateInput.value = '';
+                    endDateInput.value = '';
+                    filterAndDisplayHistory(salesHistoryCache);
+                });                filterDateRangeButton.addEventListener('click', () => {
+                    // Clear period filter when using date range for clarity
+                    periodFilter.value = 'all';
+                    filterAndDisplayHistory(salesHistoryCache)
+                 });
+                 printHistoryButton.addEventListener('click', printHistory);
+                 exportPdfHistoryButton.addEventListener('click', exportHistoryToPDF);
+                // Add listener for Excel if implemented
+
+                // Subscription Modal
+                subscribeButton.addEventListener('click', redirectToSubscription);
+                closeSubscriptionModalButton.addEventListener('click', hideSubscriptionRequiredModal);
+
+                 // Remember Me Checkbox - Clear stored credentials if unchecked
+                 rememberMeCheckbox.addEventListener('change', () => {
+                    if (!rememberMeCheckbox.checked) {
+                        localStorage.removeItem('vendorUsername');
+                        localStorage.removeItem('vendorPassword');
+                        localStorage.removeItem('vendorUsernameTimestamp');
+                        console.log("Cleared remembered credentials.");
+                    }
+                });
+            }
+
+            // --- App Entry Point ---
+            document.addEventListener('DOMContentLoaded', initializeApp);
+
+        })(); // End of IIFE
+    </script>
+
+</body>
+</html>

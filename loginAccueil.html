@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion / Inscription Administrateur</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1a2a6c;
+            --secondary-color: #fdbb2d;
+            --text-light: #fff;
+            --text-dark: #333;
+            --background-gradient: linear-gradient(135deg, #1a2a6c, #fdbb2d);
+            --container-background: rgba(255, 255, 255, 0.95); /* Slightly more opaque */
+            --input-background: rgba(230, 230, 230, 0.8); /* Light background for inputs */
+            --input-border: #ddd;
+            --focus-border: var(--primary-color);
+            --error-color: #e74c3c;
+            --link-color: var(--primary-color);
+            --button-text: var(--text-light);
+            --button-background: var(--primary-color);
+            --button-hover: #0e1639;
+            --loader-background: rgba(255, 255, 255, 0.85);
+            --loader-color: var(--primary-color);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%; /* Ensure body takes full height */
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--text-light);
+            background: var(--background-gradient);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-container {
+            background-color: var(--container-background);
+            padding: 2.5rem; /* Slightly more padding */
+            border-radius: 10px; /* Slightly larger radius */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25); /* Enhanced shadow */
+            width: 100%;
+            max-width: 420px; /* Slightly wider */
+            text-align: center;
+            color: var(--text-dark);
+            display: none; /* Hide by default, shown after loading */
+            transition: opacity 0.5s ease-in-out; /* Smooth appearance */
+        }
+
+        .login-container.visible {
+            display: block;
+            opacity: 1;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+            font-size: 2rem;
+            font-weight: 700; /* Bolder title */
+        }
+
+        .input-group {
+            margin-bottom: 1.2rem; /* Consistent margin */
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.6rem; /* Slightly more space */
+            font-weight: bold;
+            color: var(--text-dark);
+            font-size: 0.9rem; /* Standard label size */
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 0.9rem; /* Comfortable padding */
+            border: 1px solid var(--input-border);
+            border-radius: 5px; /* Slightly softer edges */
+            font-size: 1rem;
+            background-color: var(--input-background);
+            color: var(--text-dark);
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: var(--focus-border);
+            box-shadow: 0 0 0 2px rgba(26, 42, 108, 0.2); /* Subtle focus shadow */
+        }
+
+        button[type="submit"] { /* More specific selector */
+            width: 100%;
+            padding: 1rem;
+            background-color: var(--button-background);
+            color: var(--button-text);
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1rem; /* Slightly larger button text */
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            margin-top: 1rem; /* Space above button */
+        }
+
+        button[type="submit"]:hover {
+            background-color: var(--button-hover);
+        }
+
+        button[type="submit"]:active {
+            transform: scale(0.98); /* Slight press effect */
+        }
+
+         button[type="submit"]:focus {
+             outline: 2px solid var(--secondary-color);
+             outline-offset: 2px;
+         }
+
+        .error-message {
+            color: var(--error-color);
+            text-align: center;
+            margin-top: 1rem;
+            font-weight: bold;
+            min-height: 1.2em; /* Reserve space even when hidden */
+            display: none; /* Hide by default */
+        }
+        .error-message.visible {
+            display: block;
+        }
+
+
+        .form-switcher {
+            margin-top: 1.5rem; /* More space above switcher */
+            text-align: center;
+            color: var(--text-dark);
+            font-size: 0.9rem;
+        }
+
+        .form-switcher a {
+            color: var(--link-color);
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+        .form-switcher a:hover {
+            color: var(--button-hover);
+            text-decoration: underline;
+        }
+
+
+        /* Loader Styles */
+        .loader-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--loader-background);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000; /* Ensure it's on top */
+            transition: opacity 0.3s ease-out; /* Smooth fade out */
+        }
+        .loader-container.hidden {
+            opacity: 0;
+            pointer-events: none; /* Prevent interaction when hidden */
+        }
+
+        .loader {
+            border: 8px solid #f3f3f3; /* Light grey */
+            border-top: 8px solid var(--loader-color); /* Use variable */
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1.5s linear infinite; /* Slightly faster spin */
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Media query for smaller screens */
+        @media (max-width: 480px) { /* Adjusted breakpoint */
+            .login-container {
+                padding: 1.5rem;
+                max-width: 95%; /* Allow slightly wider on small screens */
+                margin: 1rem; /* Add margin on smallest screens */
+            }
+
+            h1 {
+                font-size: 1.6rem; /* Adjust title size */
+                margin-bottom: 1.5rem;
+            }
+
+            input[type="text"],
+            input[type="password"] {
+                padding: 0.8rem;
+                font-size: 0.9rem;
+            }
+
+            button[type="submit"] {
+                padding: 0.9rem;
+                font-size: 1rem;
+            }
+            .form-switcher {
+                margin-top: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loader -->
+    <div class="loader-container" id="loaderContainer">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Login/Signup Container -->
+    <div class="login-container" id="loginContainer">
+        <h1>Connexion / Inscription</h1>
+
+        <!-- Login Form -->
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="username">Nom d'utilisateur</label>
+                <input type="text" id="username" name="username" required autocomplete="username">
+            </div>
+            <div class="input-group">
+                <label for="password">Mot de passe</label>
+                <input type="password" id="password" name="password" required autocomplete="current-password">
+            </div>
+            <button type="submit">Se connecter</button>
+            <div class="form-switcher">
+                Pas encore de compte ? <a href="#" id="switchToSignup">S'inscrire</a>
+            </div>
+        </form>
+
+        <!-- Signup Form -->
+        <form id="signupForm" style="display: none;">
+            <div class="input-group">
+                <label for="signupUsername">Nom d'utilisateur</label>
+                <input type="text" id="signupUsername" name="signupUsername" required autocomplete="username">
+            </div>
+            <div class="input-group">
+                <label for="signupPassword">Mot de passe</label>
+                <input type="password" id="signupPassword" name="signupPassword" required autocomplete="new-password">
+            </div>
+            <button type="submit">S'inscrire</button>
+            <div class="form-switcher">
+                Déjà un compte ? <a href="#" id="switchToLogin">Se connecter</a>
+            </div>
+        </form>
+
+        <!-- Error Message Area -->
+        <div id="errorMessage" class="error-message"></div>
+    </div>
+
+    <script type="module">
+        // --- Firebase Imports ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getDatabase, ref, get, set, push, update, goOffline, goOnline } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+        import { getActiveDatabase } from './firebase-config-manager.js'; // Import from your manager
+
+        // --- Global Variables ---
+        let db; // Will hold the active database instance
+        const targetDatabaseURL = "https://cybertest-be416-default-rtdb.firebaseio.com"; // Your target DB for sync
+        const SYNC_NODE_PATH = "syncStatus"; // Path to track sync status
+        const SYNC_DONE_VALUE = "synced";   // Value indicating sync completion
+
+        // --- DOM Element References ---
+        const loaderContainer = document.getElementById('loaderContainer');
+        const loginContainer = document.getElementById('loginContainer');
+        const loginForm = document.getElementById('loginForm');
+        const signupForm = document.getElementById('signupForm');
+        const errorMessageElement = document.getElementById('errorMessage');
+        const switchToSignupLink = document.getElementById('switchToSignup');
+        const switchToLoginLink = document.getElementById('switchToLogin');
+
+        // --- Utility Functions ---
+
+        function displayError(message) {
+            errorMessageElement.textContent = message;
+            errorMessageElement.classList.add('visible'); // Use class to show
+        }
+
+        function clearError() {
+            errorMessageElement.textContent = '';
+            errorMessageElement.classList.remove('visible'); // Use class to hide
+        }
+
+        function showLoader() {
+            loaderContainer.classList.remove('hidden');
+        }
+
+        function hideLoader() {
+             loaderContainer.classList.add('hidden');
+        }
+
+        function showLoginContainer() {
+            loginContainer.classList.add('visible');
+        }
+
+        // --- Database Synchronization Logic ---
+
+        function initializeTargetApp() {
+            // Initializes the *target* database app specifically for synchronization.
+            // Uses a fixed app name to prevent duplicates.
+            try {
+                const targetApp = initializeApp({ databaseURL: targetDatabaseURL }, "targetApp");
+                return getDatabase(targetApp);
+            } catch (error) {
+                if (error.code === 'app/duplicate-app') {
+                    console.warn("Target app already initialized. Using existing instance.");
+                    // Need to get the existing app instance correctly.
+                    // Assuming the default Firebase namespace might be available if initialized elsewhere,
+                    // otherwise, this part might need adjustment based on how apps are managed globally.
+                    // For modular SDK, getting an existing named app is tricky without the app instance itself.
+                    // A robust solution might involve a global app registry if multiple named apps are common.
+                    // For simplicity here, we'll assume getDatabase(initializeApp(...)) handles it gracefully or error is acceptable.
+                    return getDatabase(initializeApp({ databaseURL: targetDatabaseURL }, "targetApp")); // Attempt re-init (often handles duplicates)
+                } else {
+                    console.error("Failed to initialize target app:", error);
+                    throw error;
+                }
+            }
+        }
+
+        async function synchronizeToTargetDatabase(currentDb) {
+            // Synchronizes data from the current active DB to the target DB.
+            console.log("Starting synchronization to target database...");
+            let targetDb;
+            try {
+                targetDb = initializeTargetApp(); // Get target DB instance
+                goOnline(targetDb); // Ensure target DB connection is active
+            } catch(error) {
+                 console.error("Failed to initialize or connect to target database for sync:", error);
+                 throw new Error("Synchronization failed: Target DB connection error.");
+            }
+
+            const dataPathsToSync = ['users', 'users-data']; // Paths to sync
+
+            for (const path of dataPathsToSync) {
+                try {
+                    const currentDataRef = ref(currentDb, path);
+                    const targetDataRef = ref(targetDb, path);
+
+                    console.log(`Fetching data from current DB path: ${path}`);
+                    const snapshot = await get(currentDataRef);
+                    const dataToSync = snapshot.val();
+
+                    if (dataToSync) {
+                        console.log(`Writing data to target DB path: ${path}`);
+                        await set(targetDataRef, dataToSync);
+                        console.log(`Data synchronized successfully for path: ${path}`);
+                    } else {
+                         console.log(`No data found at path ${path} in current DB. Skipping sync for this path.`);
+                    }
+                } catch (error) {
+                    console.error(`Error synchronizing path ${path}:`, error);
+                    // Consider whether to continue or stop on error
+                    // For critical data, stopping might be better:
+                    throw new Error(`Error during synchronization of path '${path}': ${error.message}`);
+                }
+            }
+            console.log("Database synchronization to target database complete.");
+            goOffline(targetDb); // Disconnect from target DB after sync
+        }
+
+        async function hasSyncOccurred(dbInstance) {
+            // Checks if the sync marker exists in the given database instance.
+            const syncRef = ref(dbInstance, SYNC_NODE_PATH);
+            try {
+                const snapshot = await get(syncRef);
+                return snapshot.exists() && snapshot.val() === SYNC_DONE_VALUE;
+            } catch (error) {
+                console.error("Error checking sync status:", error);
+                // Assume sync hasn't occurred if check fails, to be safe
+                return false;
+            }
+        }
+
+        async function markSyncAsDone(dbInstance) {
+            // Sets the sync marker in the given database instance.
+            const syncRef = ref(dbInstance, SYNC_NODE_PATH);
+            try {
+                await set(syncRef, SYNC_DONE_VALUE);
+                console.log("Marked database as synchronized.");
+            } catch (error) {
+                console.error("Error marking database as synchronized:", error);
+                // Handle error, maybe retry or log persistence failure
+            }
+        }
+
+        // --- Core Initialization ---
+
+        async function initializePage() {
+            // Main initialization function called on DOMContentLoaded.
+            showLoader();
+            try {
+                // 1. Get the active database using the manager
+                db = await getActiveDatabase();
+                goOnline(db); // Ensure connection is active
+
+                // 2. Check if synchronization is needed for *this specific* active database
+                if (!(await hasSyncOccurred(db))) {
+                    console.log("Synchronization needed for this database.");
+                    await synchronizeToTargetDatabase(db); // Perform sync
+                    await markSyncAsDone(db);            // Mark sync complete for this DB
+                } else {
+                    console.log("Database already synchronized.");
+                }
+
+                console.log("Database initialization and sync check complete.");
+
+                // 3. Setup event listeners
+                setupEventListeners();
+
+                // 4. Hide loader and show content
+                hideLoader();
+                showLoginContainer();
+
+            } catch (error) {
+                console.error("Initialization failed:", error);
+                hideLoader(); // Ensure loader is hidden on failure
+                displayError(`Erreur d'initialisation: ${error.message}`);
+                // Optionally show a retry button or more info
+                showLoginContainer(); // Still show the container, but with an error
+            }
+        }
+
+        // --- Event Handlers ---
+
+        function setupEventListeners() {
+            loginForm.addEventListener('submit', handleLogin);
+            signupForm.addEventListener('submit', handleSignup);
+            switchToSignupLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                switchForm('signup');
+            });
+            switchToLoginLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                switchForm('login');
+            });
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            clearError();
+            showLoader(); // Show loader during login attempt
+
+            if (!db) {
+                displayError('Base de données non prête. Veuillez réessayer.');
+                hideLoader();
+                return;
+            }
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            if (!username || !password) {
+                displayError('Veuillez remplir tous les champs.');
+                hideLoader();
+                return;
+            }
+
+            try {
+                const userRef = ref(db, `users/${username}`);
+                const snapshot = await get(userRef);
+
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
+                    // IMPORTANT: In a real app, NEVER store passwords in plain text.
+                    // Use Firebase Authentication or hash passwords securely server-side.
+                    if (userData.password === password) {
+                        console.log("Login successful for user:", username);
+                        // Store login state (client-side only, consider security implications)
+                        sessionStorage.setItem('isLoggedIn', 'true');
+                        sessionStorage.setItem('currentUserId', username); // Store username as ID
+                        window.location.href = 'index.html'; // Redirect to main page
+                        // Loader will be hidden by page transition
+                    } else {
+                        displayError('Nom d\'utilisateur ou mot de passe incorrect.');
+                        hideLoader();
+                    }
+                } else {
+                    displayError('Nom d\'utilisateur ou mot de passe incorrect.');
+                    hideLoader();
+                }
+            } catch (error) {
+                console.error('Erreur de connexion:', error);
+                displayError('Une erreur est survenue lors de la connexion.');
+                hideLoader();
+            }
+        }
+
+        async function handleSignup(event) {
+            event.preventDefault();
+            clearError();
+            showLoader(); // Show loader during signup
+
+            if (!db) {
+                displayError('Base de données non prête. Veuillez réessayer.');
+                hideLoader();
+                return;
+            }
+
+            const username = document.getElementById('signupUsername').value.trim();
+            const password = document.getElementById('signupPassword').value.trim();
+
+            // Basic validation (add more robust validation as needed)
+            if (!username || !password) {
+                displayError('Veuillez remplir tous les champs.');
+                hideLoader();
+                return;
+            }
+            if (password.length < 6) {
+                 displayError('Le mot de passe doit comporter au moins 6 caractères.');
+                 hideLoader();
+                 return;
+             }
+
+
+            try {
+                // 1. Check if username already exists in 'users'
+                const usersRef = ref(db, 'users');
+                const userCheckRef = ref(db, `users/${username}`);
+                const userSnapshot = await get(userCheckRef);
+
+                if (userSnapshot.exists()) {
+                    displayError("Ce nom d'utilisateur est déjà pris.");
+                    hideLoader();
+                    return;
+                }
+
+                // 2. Create user entry in 'users' (for login check)
+                // WARNING: Storing plain text passwords is insecure. Use Firebase Auth.
+                await set(userCheckRef, {
+                    password: password // Store plain password (INSECURE - FOR DEMO ONLY)
+                });
+                console.log("User created in /users node:", username);
+
+                // 3. Initialize user data structure in 'users-data'
+                const userInitialDataRef = ref(db, `users-data/${username}`);
+                await set(userInitialDataRef, {
+                    admin: {
+                        subscription: { status: 'inactive', hasSubscribedBefore: false } // Add hasSubscribedBefore flag
+                    },
+                    portalConfig: { // Default empty portal config
+                        networkName: "Mon Réseau Wifi",
+                        contactNumber: "Votre Numéro",
+                        fedapayApiKey: "",
+                        loginMode: "separate",
+                        tariffs: [],
+                        connections: [],
+                        products: []
+                    },
+                    // Initialize other nodes as empty objects or with defaults
+                    TicketsTotal: {},
+                    TicketsVendus: {},
+                    TicketsTransit: {},
+                    TicketConnecté: {},
+                    Vendors: {},
+                    VendorsHistory: {}
+                    // Removed 'sales: {}' as VendorsHistory seems to cover it
+                });
+                console.log("Initial data structure created in /users-data for:", username);
+
+                alert("Inscription réussie ! Vous pouvez maintenant vous connecter.");
+                switchForm('login'); // Switch to login form after successful signup
+
+            } catch (error) {
+                console.error("Erreur lors de l'inscription:", error);
+                displayError('Erreur lors de l\'inscription. Veuillez réessayer.');
+            } finally {
+                hideLoader(); // Ensure loader is hidden
+            }
+        }
+
+        // --- Form Switching Logic ---
+
+        function switchForm(formToShow) {
+            clearError(); // Clear errors when switching forms
+            if (formToShow === 'login') {
+                loginForm.style.display = 'block';
+                signupForm.style.display = 'none';
+            } else if (formToShow === 'signup') {
+                loginForm.style.display = 'none';
+                signupForm.style.display = 'block';
+            }
+        }
+
+        // --- Page Load ---
+        document.addEventListener('DOMContentLoaded', initializePage);
+
+    </script>
+</body>
+</html>

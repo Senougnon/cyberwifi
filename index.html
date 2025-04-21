@@ -1,0 +1,2394 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADMIN WIFI ZONE</title>
+    <link rel="icon" href="logo.png" type="image/png">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+    <!-- FedaPay -->
+    <script src="https://cdn.fedapay.com/checkout.js?v=1.1.7"></script>
+
+    <style>
+        :root {
+            --primary-color: #1a2a6c;
+            --secondary-color: #fdbb2d;
+            --background-gradient: linear-gradient(135deg, #424242, #073018, #553a01);
+            --text-color: #ffffff;
+            --modal-bg: rgba(255, 255, 255, 0.95);
+            --modal-text: #333;
+            --button-primary-bg: #fdbb2d;
+            --button-primary-text: #1a2a6c;
+            --button-danger-bg: #e74c3c;
+            --button-danger-hover: #c0392b;
+            --input-bg: rgba(255, 255, 255, 0.2);
+            --section-bg: rgba(255, 255, 255, 0.1);
+            --loader-color: #fdbb2d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        html, body {
+            min-height: 100vh;
+        }
+
+        body {
+            background: var(--background-gradient);
+            color: var(--text-color);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between; /* Align title and logout */
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 20px; /* Add some space below header */
+            position: relative; /* For version display positioning */
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2em;
+            color: var(--secondary-color);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        #systemVersionDisplay {
+            position: absolute;
+            top: 5px; /* Adjust positioning */
+            right: 5px;
+            color: var(--secondary-color);
+            font-size: 0.8rem;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+
+        .logout-button {
+            background-color: var(--button-danger-bg);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.3s;
+            display: flex; /* Align icon and text */
+            align-items: center;
+            gap: 5px;
+        }
+
+        .logout-button:hover {
+            background-color: var(--button-danger-hover);
+        }
+
+        /* Subscription Section */
+        #subscriptionSection {
+            text-align: center;
+            margin-bottom: 30px;
+            background-color: var(--section-bg);
+            padding: 20px;
+            border-radius: 8px;
+            backdrop-filter: blur(5px);
+        }
+
+        #subscriptionSection h2 {
+            font-size: 1.5rem; /* Adjusted size */
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+        }
+
+        #subscriptionStatus {
+            font-size: 1.1rem; /* Adjusted size */
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        #subscriptionStatus.active { color: #2ecc71; } /* Green for active */
+        #subscriptionStatus.inactive { color: #e74c3c; } /* Red for inactive/expired */
+
+        .subscription-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+        }
+
+        .subscription-buttons button {
+            background-color: var(--button-primary-bg);
+            color: var(--button-primary-text);
+            border: none;
+            padding: 10px 18px; /* Adjusted padding */
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .subscription-buttons button:hover {
+            background-color: #e6a727;
+            transform: translateY(-2px);
+        }
+
+        /* Config Section */
+        .config-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .config-section button {
+             background-color: var(--primary-color); /* Use primary color */
+            color: var(--text-color);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin: 5px; /* Add margin for spacing */
+        }
+
+        .config-section button:hover {
+            background-color: #0e1639; /* Darker primary */
+            transform: translateY(-2px);
+        }
+
+        /* Main Menu */
+        .menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .menu-item {
+            background-color: var(--section-bg);
+            padding: 25px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--text-color);
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+            backdrop-filter: blur(5px);
+            display: flex; /* Use flexbox for vertical alignment */
+            flex-direction: column; /* Stack elements vertically */
+            justify-content: center; /* Center content vertically */
+            align-items: center; /* Center content horizontally */
+            min-height: 150px; /* Ensure minimum height */
+        }
+
+        .menu-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .menu-item i {
+            font-size: 2.5rem;
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+        }
+
+        .menu-item h2 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            color: var(--text-color); /* Make titles white */
+        }
+
+        .menu-item p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        /* Data Management Section */
+        .data-management {
+            text-align: center;
+            margin-top: 20px; /* Add space above */
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: var(--section-bg);
+            border-radius: 8px;
+            backdrop-filter: blur(5px);
+        }
+
+        .data-management-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .data-management-buttons button {
+            background-color: var(--button-primary-bg);
+            color: var(--button-primary-text);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.3s;
+            /* Animation removed for less visual noise, can be re-added if desired */
+            /* animation: pulse-color 1.5s infinite alternate; */
+        }
+        /* Optional pulse animation */
+        /* @keyframes pulse-color {
+            0% { background-color: #fdbb2d; }
+            100% { background-color: #ffa800; }
+        } */
+
+        .data-management-buttons button:hover {
+            background-color: #e6a727;
+            /* animation: none; */
+        }
+
+        #importDataInput {
+            display: none;
+        }
+
+        .help-button {
+            background-color: #2ecc71 !important; /* Distinct color for help */
+            color: white !important;
+        }
+         .help-button:hover {
+            background-color: #27ae60 !important;
+        }
+
+        /* Modals General */
+        .modal, .payment-modal, .confirmation-modal, #helpModal, #portalFormModal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0, 0, 0, 0.6); /* Dim background */
+            padding-top: 5vh; /* Padding from top */
+            padding-bottom: 5vh;
+        }
+
+        .modal-content, .payment-modal-content, .confirmation-modal-content, .help-modal-content, .portal-form-modal-content {
+            background-color: var(--modal-bg);
+            margin: auto;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 500px; /* Default max-width */
+            color: var(--modal-text);
+            position: relative;
+        }
+
+        .modal-content h2, .payment-modal-content h2, .confirmation-modal-content h2, .help-modal-content h2, .portal-form-modal-content h2 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+         .modal-content p, .payment-modal-content p, .confirmation-modal-content p {
+             color: #666;
+             margin-bottom: 25px;
+             text-align: center;
+         }
+
+        .close-modal, .close-help-modal, .close-portal-form-modal {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .close-modal:hover, .close-help-modal:hover, .close-portal-form-modal:hover {
+            color: #333;
+        }
+
+        /* Payment & Confirmation Modal Buttons */
+        .payment-modal-content .buttons, .confirmation-modal-content .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+         .payment-modal-content button, .confirmation-modal-content button {
+             background-color: var(--button-primary-bg);
+             color: var(--button-primary-text);
+             border: none;
+             padding: 10px 20px;
+             border-radius: 25px;
+             cursor: pointer;
+             transition: background-color 0.3s;
+             font-weight: 600;
+             font-size: 0.9rem;
+         }
+          .payment-modal-content button:hover, .confirmation-modal-content button:hover {
+            background-color: #e6a727;
+        }
+
+        /* Subscription Required Modal */
+        .subscription-required {
+            display: none; /* Hidden by default */
+            /* Styles identical to .modal */
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding-top: 10vh;
+        }
+        .subscription-required-content {
+             /* Styles identical to .modal-content */
+            background-color: var(--modal-bg);
+            margin: auto;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 400px;
+            color: var(--modal-text);
+            position: relative;
+            text-align: center;
+        }
+         .subscription-required-content h2 { color: var(--primary-color); margin-bottom: 20px; }
+         .subscription-required-content p { color: #666; margin-bottom: 30px; }
+         .subscription-required-content button { /* Styles identical to modal buttons */
+            background-color: var(--button-primary-bg);
+            color: var(--button-primary-text);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin: 5px 10px;
+         }
+          .subscription-required-content button:hover { background-color: #e6a727; }
+
+
+        /* Portal Config Modal */
+        #portalFormModal .portal-form-modal-content { /* Use specific class */
+            max-width: 700px; /* Wider for form */
+            background-color: rgb(3, 39, 31); /* Dark background for contrast */
+            max-height: 85vh; /* Limit height */
+            overflow-y: auto; /* Scroll if needed */
+        }
+         #portalForm {
+            display: flex;
+            flex-direction: column;
+            gap: 15px; /* Consistent gap */
+            padding: 10px; /* Padding inside the form */
+        }
+        #portalForm label {
+            color: var(--secondary-color);
+            font-weight: 500;
+            margin-bottom: 3px;
+        }
+        #portalForm input[type="text"],
+        #portalForm input[type="number"],
+        #portalForm textarea,
+        #portalForm select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #555; /* Darker border */
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.1); /* Lighter transparent background */
+            color: var(--text-color);
+            font-size: 0.95rem;
+        }
+        #portalForm input:focus, #portalForm select:focus {
+             outline: none;
+             border-color: var(--secondary-color);
+             background-color: rgba(255, 255, 255, 0.15);
+        }
+        #portalForm select option {
+            background-color: #333; /* Dark options */
+            color: white;
+        }
+        #portalForm button[type="submit"] { /* Style submit button */
+            padding: 12px 20px;
+            background-color: var(--button-primary-bg);
+            color: var(--button-primary-text);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-top: 15px; /* Space above button */
+        }
+        #portalForm button[type="submit"]:hover { background-color: #e6a727; }
+
+        #portalForm .list-input-container {
+            border: 1px solid #555;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 5px; /* Space above list containers */
+        }
+        #portalForm .list-item {
+            display: flex;
+            align-items: center;
+            gap: 8px; /* Space between elements */
+            margin-bottom: 8px;
+        }
+        #portalForm .list-item input {
+            flex-grow: 1; /* Allow inputs to grow */
+            margin-bottom: 0; /* Remove default margin */
+        }
+        #portalForm .list-item button { /* Add/Remove buttons */
+            padding: 5px 10px;
+            background-color: var(--button-danger-bg);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+         #portalForm .list-item button:hover { background-color: var(--button-danger-hover); }
+         #portalForm .list-item button:first-of-type { /* Style Add button differently */
+            background-color: #2ecc71;
+         }
+         #portalForm .list-item button:first-of-type:hover {
+             background-color: #27ae60;
+         }
+
+
+        /* Portal Config - Code Area */
+        .code-area {
+            background-color: rgba(0, 0, 0, 0.3); /* Darker background */
+            border: 1px solid #555;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 4px;
+            position: relative;
+        }
+        .code-area label {
+            display: block; /* Label on its own line */
+            margin-bottom: 10px;
+        }
+        .code-area pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: #eee; /* Lighter text */
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        .copy-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: var(--button-primary-bg);
+            color: var(--button-primary-text);
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .copy-button:hover { background-color: #e6a727; }
+
+        /* Portal Config - Redirect Button */
+        #redirectButtonContainer {
+            margin-top: 10px;
+            text-align: left; /* Align with other form elements */
+        }
+        #redirectButton {
+            padding: 10px 15px;
+            background-color: var(--button-primary-bg);
+            color: var(--button-primary-text);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            display: none; /* Hidden by default */
+        }
+        #redirectButton:hover { background-color: #e6a727; }
+
+
+        /* Help Modal */
+        #helpModal .help-modal-content { /* Use specific class */
+            max-width: 90%; /* Wider for video grid */
+            width: auto; /* Let it size based on content up to max-width */
+        }
+        #helpModal .video-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+        #helpModal .video-item { /* Center video and title */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #helpModal .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 480px; /* Limit video width */
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            height: 0;
+            overflow: hidden;
+            border-radius: 6px; /* Slightly rounded corners */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        #helpModal .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+        #helpModal .video-title {
+            color: var(--primary-color);
+            margin-top: 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        /* Loaders */
+        .loader-wrapper, .page-loader-wrapper {
+            display: none; /* Hidden by default */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1001; /* High z-index */
+            justify-content: center;
+            align-items: center;
+            flex-direction: column; /* For message below loader */
+        }
+        .loader, .page-loader {
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid var(--loader-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1.5s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loader-message {
+            color: white;
+            margin-top: 15px;
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #4CAF50; /* Default success */
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            z-index: 1001;
+            display: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            min-width: 250px;
+            max-width: 400px;
+        }
+        .notification.error { background-color: var(--button-danger-bg); }
+        .notification.info { background-color: var(--primary-color); }
+        .notification .close-btn {
+            margin-left: 15px;
+            color: white;
+            font-weight: bold;
+            float: right;
+            font-size: 22px;
+            line-height: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .notification .close-btn:hover { opacity: 0.7; }
+
+
+        /* WhatsApp Icon */
+        .whatsapp-icon {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1003;
+        }
+        .whatsapp-icon a {
+            display: block;
+            width: 55px; /* Slightly smaller */
+            height: 55px;
+            background-color: #25d366;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 55px;
+            color: white;
+            font-size: 28px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .whatsapp-icon a:hover {
+            background-color: #128c7e;
+            transform: scale(1.1);
+        }
+
+        /* Footer */
+        footer {
+            padding: 15px;
+            text-align: center;
+            margin-top: auto; /* Push footer to bottom */
+            background-color: rgba(0, 0, 0, 0.6);
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .container { padding: 15px; }
+            .header h1 { font-size: 1.6em; }
+            .menu { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+            .menu-item { padding: 20px; min-height: 130px;}
+            .menu-item i { font-size: 2rem; margin-bottom: 10px; }
+            .menu-item h2 { font-size: 1.1rem; }
+            .data-management-buttons { gap: 10px; }
+            .modal-content, .payment-modal-content, .confirmation-modal-content, .help-modal-content, .portal-form-modal-content, .subscription-required-content {
+                 max-width: 95%;
+                 padding: 20px;
+            }
+            #helpModal .video-list { grid-template-columns: 1fr; } /* Stack videos on mobile */
+        }
+
+        @media (max-width: 480px) {
+            .header { flex-direction: column; gap: 10px; text-align: center; }
+            .header h1 { font-size: 1.4em; }
+            #systemVersionDisplay { position: static; margin-top: 5px; font-size: 0.75rem; }
+            .logout-button { padding: 8px 12px; font-size: 0.8rem; }
+            #subscriptionSection h2 { font-size: 1.3rem; }
+            #subscriptionStatus { font-size: 1rem; }
+            .subscription-buttons button, .config-section button, .data-management-buttons button { font-size: 0.8rem; padding: 8px 15px;}
+            .menu { grid-template-columns: 1fr; } /* Single column menu */
+             .whatsapp-icon a { width: 50px; height: 50px; line-height: 50px; font-size: 25px; }
+             .notification { width: calc(100% - 40px); right: 10px; top: 10px; }
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Page Loader (Covers everything initially) -->
+    <div class="page-loader-wrapper" id="pageLoaderWrapper">
+        <div class="page-loader"></div>
+        <div class="loader-message" id="pageLoaderMessage">Initialisation...</div>
+    </div>
+
+    <!-- General Loader (For specific actions) -->
+    <div class="loader-wrapper" id="loaderWrapper">
+        <div class="loader"></div>
+        <div class="loader-message" id="loaderMessage">Chargement...</div>
+    </div>
+
+    <!-- Main Content Container (Hidden until initialized) -->
+    <div class="container" id="contentContainer" style="display:none;">
+        <header class="header">
+            <h1 id="networkNameDisplay">ADMIN WIFI ZONE</h1>
+            <div id="systemVersionDisplay">Version: <span id="versionNumber">N/A</span></div>
+            <button onclick="logout()" class="logout-button">
+                <i class="fas fa-sign-out-alt"></i> Déconnexion
+            </button>
+        </header>
+
+        <main>
+            <!-- Subscription Section -->
+            <div id="subscriptionSection">
+                <h2>Statut de l'Abonnement</h2>
+                <div id="subscriptionStatus" class="inactive">Chargement...</div>
+                <div class="subscription-buttons">
+                    <button id="subscribeMonthly">S'abonner (Mensuel - 1000 FCFA)</button>
+                    <button id="subscribeYearly">S'abonner (Annuel - 10 000 FCFA)</button>
+                </div>
+            </div>
+
+            <!-- Configuration Section -->
+            <div class="config-section">
+                <button onclick="togglePortalForm()" id="togglePortalFormBtn">
+                    <i class="fas fa-wifi"></i> Configurer le portail captif
+                </button>
+                <button onclick="downloadLoginFile()" id="downloadLoginBtn">
+                    <i class="fas fa-download"></i> Télécharger le portail
+                </button>
+            </div>
+
+            <!-- Main Menu -->
+            <div class="menu">
+                <a href="PageVenteTicket.html" class="menu-item" id="vente">
+                    <i class="fas fa-ticket-alt"></i>
+                    <h2>Vente de Tickets</h2>
+                    <p>Procédez à la vente de nouveaux tickets Wifi.</p>
+                </a>
+                <a href="AdminVentePartenaires.html" class="menu-item" id="inventaire">
+                    <i class="fas fa-clipboard-list"></i>
+                    <h2>Inventaire Vendeurs</h2>
+                    <p>Consultez l'état des ventes de vos partenaires.</p>
+                </a>
+                <a href="Stock.html" class="menu-item" id="stock">
+                    <i class="fas fa-boxes"></i>
+                    <h2>Gestion Stocks Partenaire</h2>
+                    <p>Suivez les stocks de tickets de vos partenaires.</p>
+                </a>
+                <a href="a3.html" class="menu-item" id="administration">
+                    <i class="fas fa-cogs"></i>
+                    <h2>Administration Tickets</h2>
+                    <p>Gérez les tickets (ajout, modification, suppression).</p>
+                </a>
+            </div>
+
+            <!-- Data Management Section -->
+            <div class="data-management">
+                <div class="data-management-buttons">
+                    <button onclick="exportData()">
+                        <i class="fas fa-file-export"></i> Exporter Données
+                    </button>
+                    <input type="file" id="importDataInput" accept=".json">
+                    <button onclick="document.getElementById('importDataInput').click()">
+                        <i class="fas fa-file-import"></i> Importer Données
+                    </button>
+                    <button onclick="showHelpModal()" class="help-button">
+                        <i class="fas fa-question-circle"></i> Besoin d'aide ?
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div> <!-- End container -->
+
+    <!-- Footer -->
+    <footer>
+        PROPULSÉ PAR EVISIONS
+    </footer>
+
+    <!-- Modals -->
+    <!-- Notification Modal -->
+    <div id="notification" class="notification">
+        <span id="notificationMessage"></span>
+        <span class="close-btn" onclick="closeNotification()">×</span>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="payment-modal">
+        <div class="payment-modal-content">
+            <span class="close-modal" onclick="closePaymentModal()">×</span>
+            <h2>Paiement de l'Abonnement</h2>
+            <p>Choisissez votre plan et procédez au paiement sécurisé via FedaPay.</p>
+            <!-- Payment buttons added by JS -->
+            <div class="buttons" id="paymentButtonsContainer"></div>
+        </div>
+    </div>
+
+    <!-- Subscription Required Modal -->
+    <div id="subscriptionRequiredModal" class="subscription-required">
+        <div class="subscription-required-content">
+            <h2>Abonnement Requis</h2>
+            <p>Un abonnement actif est nécessaire pour accéder à cette fonctionnalité.</p>
+            <button onclick="redirectToSubscription()">S'abonner</button>
+            <button onclick="hideSubscriptionRequiredModal()">Fermer</button> <!-- Utilise la fonction globale -->
+        </div>
+    </div>
+
+    <!-- Integration Fee Confirmation Modal -->
+    <div id="confirmationModal" class="confirmation-modal">
+        <div class="confirmation-modal-content">
+             <span class="close-modal" onclick="hideConfirmationModal()">×</span> <!-- Added close button -->
+            <h2>Frais d'intégration</h2>
+            <p>Pour votre premier abonnement, des frais uniques d'intégration de 10000 FCFA s'appliquent en plus du coût mensuel/annuel.</p>
+            <div class="buttons">
+                <button id="confirmIntegration">Payer</button>
+                <button id="cancelIntegration" onclick="hideConfirmationModal()">Annuler</button> <!-- Simplified cancel -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Portal Config Modal -->
+    <div id="portalFormModal" class="portal-form-modal">
+         <div class="portal-form-modal-content">
+            <span class="close-portal-form-modal" onclick="closePortalFormModal()">×</span>
+            <h2>Configuration du Portail Captif</h2>
+            <form id="portalForm">
+                <label for="networkName">Nom du réseau:</label>
+                <input type="text" id="networkName" name="networkName" required placeholder="Ex: MonWiFi Super Rapide">
+
+                <label for="contactNumber">Numéro à contacter:</label>
+                <input type="text" id="contactNumber" name="contactNumber" required placeholder="Ex: +229 90000000">
+
+                <label for="fedapayApiKey">Clé API Publique FedaPay Portail Captif:</label>
+                <input type="text" id="fedapayApiKey" name="fedapayApiKey" required placeholder="pk_live_...">
+
+                <label for="loginMode">Mode de connexion par défaut :</label>
+                <select id="loginMode" name="loginMode">
+                    <option value="separate">Login (Utilisateur & Mot de passe)</option>
+                    <option value="same">Log (Identifiant unique)</option>
+                    <option value="pay">Pay (Page de paiement)</option>
+                    <option value="hotspot1">Portail captif par défaut</option>
+                    <option value="hotspot2">Portail captif secondaire 1</option>
+                    <option value="hotspot3">Portail captif secondaire 2</option>
+                    <option value="hotspot4">Portail captif KODA SMART</option>
+                    <option value="hotspot5">Mikhmon Server</option>
+                </select>
+                <div id="redirectButtonContainer">
+                    <button type="button" id="redirectButton">Télécharger le modèle sélectionné</button>
+                </div>
+
+                <div class="list-input-container">
+                    <label>Tarifs (pour page 'Pay' et affichage simple):</label>
+                    <div id="tariffsList">
+                        <!-- Dynamic list items added here -->
+                    </div>
+                     <button type="button" onclick="addListItem('tariffsList')">
+                        <i class="fas fa-plus"></i> Ajouter Tarif
+                    </button>
+                </div>
+
+                 <div class="list-input-container">
+                      <label>Adresses de connexion (points de vente):</label>
+                      <div id="connectionsList">
+                         <!-- Dynamic list items added here -->
+                      </div>
+                      <button type="button" onclick="addListItem('connectionsList')">
+                         <i class="fas fa-plus"></i> Ajouter Adresse
+                      </button>
+                  </div>
+
+                  <div class="list-input-container">
+                      <label>Services et produits proposés:</label>
+                      <div id="productsList">
+                         <!-- Dynamic list items added here -->
+                      </div>
+                      <button type="button" onclick="addListItem('productsList')">
+                         <i class="fas fa-plus"></i> Ajouter Service/Produit
+                      </button>
+                 </div>
+
+                <!-- MikroTik Code Area -->
+                <div class="code-area">
+                    <label>Configuration MikroTik Walled Garden (Copiez/Collez):</label>
+                    <pre id="mikrotikCode">
+/ip hotspot walled-garden add dst-host="*.fedapay.com" comment="FedaPay Access"
+/ip hotspot walled-garden add dst-host="*.firebaseio.com" comment="Firebase DB"
+/ip hotspot walled-garden add dst-host="*.googleapis.com" comment="Google APIs"
+/ip hotspot walled-garden add dst-host="*.cloudflare.com" comment="Cloudflare CDN"
+/ip hotspot walled-garden add dst-host="www.gstatic.com" comment="Google Static Content"
+/ip hotspot walled-garden add dst-host="ssl.gstatic.com" comment="Google Static Content SSL"
+/ip hotspot walled-garden add dst-host="fonts.gstatic.com" comment="Google Fonts"
+/ip hotspot walled-garden add dst-host="*.netlify.app" comment="Hosting Platform (if applicable)"
+/ip hotspot walled-garden add dst-host="firebasejs.com" comment="Firebase JS SDK"
+/ip hotspot walled-garden add dst-host="*.github.io" comment="GitHub Pages (if applicable)"
+                    </pre>
+                   <button type="button" class="copy-button" onclick="copyMikrotikCode()">
+                       <i class="fas fa-copy"></i> Copier
+                    </button>
+                </div>
+
+                 <button type="submit">
+                     <i class="fas fa-save"></i> Enregistrer la configuration
+                </button>
+             </form>
+        </div>
+    </div>
+    <!-- Help Modal -->
+    <div id="helpModal" class="help-modal">
+        <div class="help-modal-content">
+            <span class="close-help-modal" onclick="closeHelpModal()">×</span>
+            <h2><i class="fas fa-question-circle"></i> Centre d'Aide Vidéo</h2>
+            <div class="video-list">
+                <div class="video-item">
+                    <div class="video-container"><iframe src="https://www.youtube.com/embed/J1YUvgHSJaA" allowfullscreen></iframe></div>
+                    <h3 class="video-title">Configurer mikhmon - Démo</h3>
+                </div>
+                <div class="video-item">
+                    <div class="video-container"><iframe src="https://www.youtube.com/embed/AUI-AY_lpV0" allowfullscreen></iframe></div>
+                    <h3 class="video-title">Configurer mikhmon avec le système automatisé Wifi zone</h3>
+                </div>
+                <div class="video-item">
+                    <div class="video-container"><iframe src="https://www.youtube.com/embed/0Giz6mEAG80" allowfullscreen></iframe></div>
+                    <h3 class="video-title">Vente par Mobile Money</h3>
+                </div>
+                <div class="video-item">
+                    <div class="video-container"><iframe src="https://www.youtube.com/embed/oCHla_eCoy8" allowfullscreen></iframe></div>
+                    <h3 class="video-title">Vente Sans Impression Papier</h3>
+                </div>
+                <div class="video-item">
+                    <div class="video-container"><iframe src="https://www.youtube.com/embed/5VYuJf7o3Xo" allowfullscreen></iframe></div>
+                    <h3 class="video-title">Inventaire Automatique</h3>
+                </div>
+                <div class="video-item">
+                    <div class="video-container"><iframe src="https://www.youtube.com/embed/i4e9rrlL5Kg" allowfullscreen></iframe></div>
+                    <h3 class="video-title">Gestion des Stocks</h3>
+                </div>
+                <div class="video-item">
+                    <div class="video-container"><iframe src="https://www.youtube.com/embed/VpbamoAauTw" allowfullscreen></iframe></div>
+                    <h3 class="video-title">Administration des Tickets</h3>
+                </div>
+                <div class="video-item">
+                    <div class="video-container"><iframe src="https://www.youtube.com/embed/8yN1gXT8nSE" allowfullscreen></iframe></div>
+                    <h3 class="video-title">Créer un Portail Captif</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- WhatsApp Floating Icon -->
+    <div class="whatsapp-icon">
+      <a href="https://wa.me/22960374877" target="_blank" rel="noopener noreferrer" title="Contacter sur WhatsApp">
+         <i class="fab fa-whatsapp"></i>
+      </a>
+    </div>
+
+    <!-- JavaScript Module -->
+    <script type="module">
+        import { getActiveDatabase } from './firebase-config-manager.js';
+        import { ref, get, set, push, remove, update, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+        // --- Global Variables ---
+        let db;
+        let adminRef;
+        let fedapayApiKeyGlobal = 'pk_live_xxxxxxxxxxxxx'; // Default global API key for subscriptions
+        let systemVersion = '1.0.0'; // Default version
+        let integrationFee = 10000;
+        let currentPlan = '';
+        let isFirstSubscription = true;
+        let currentUserId = null;
+
+        // --- DOM Elements ---
+        const contentContainer = document.getElementById('contentContainer');
+        const pageLoaderWrapper = document.getElementById('pageLoaderWrapper');
+        const pageLoaderMessage = document.getElementById('pageLoaderMessage');
+        const loaderWrapper = document.getElementById('loaderWrapper');
+        const loaderMessageEl = document.getElementById('loaderMessage');
+        const networkNameDisplay = document.getElementById('networkNameDisplay');
+        const versionNumberDisplay = document.getElementById('versionNumber');
+        const subscriptionStatusEl = document.getElementById('subscriptionStatus');
+        const subscribeMonthlyButton = document.getElementById('subscribeMonthly');
+        const subscribeYearlyButton = document.getElementById('subscribeYearly');
+        const paymentModal = document.getElementById('paymentModal');
+        const paymentButtonsContainer = document.getElementById('paymentButtonsContainer');
+        const subscriptionRequiredModal = document.getElementById('subscriptionRequiredModal'); // Correct ID
+        const portalFormModal = document.getElementById('portalFormModal');
+        const confirmationModal = document.getElementById('confirmationModal');
+        const confirmIntegrationButton = document.getElementById('confirmIntegration');
+        const cancelIntegrationButton = document.getElementById('cancelIntegration');
+        const helpModal = document.getElementById('helpModal');
+        const notificationEl = document.getElementById('notification');
+        const notificationMessageEl = document.getElementById('notificationMessage');
+
+        // --- Initialization ---
+        async function initializeDatabase() {
+            pageLoaderMessage.textContent = "Connexion à la base de données...";
+            try {
+                db = await getActiveDatabase();
+                console.log("Database initialized in index.html");
+            } catch (error) {
+                 console.error("Database initialization failed:", error);
+                 pageLoaderMessage.textContent = "Erreur de connexion à la base de données.";
+                 showNotification("error", "Impossible de se connecter à la base de données.");
+                 throw error; // Re-throw to stop further execution
+            }
+        }
+
+        // --- Fetch Global Config (API Key, Version) ---
+         async function fetchGlobalConfig() {
+             pageLoaderMessage.textContent = "Chargement configuration globale...";
+             try {
+                 const apiRef = ref(db, `users/API`);
+                 const versionRef = ref(db, `users/Version du système`); // Ensure path is correct
+
+                 const [apiSnapshot, versionSnapshot] = await Promise.all([
+                     get(apiRef),
+                     get(versionRef)
+                 ]);
+
+                 if (apiSnapshot.exists()) {
+                     fedapayApiKeyGlobal = apiSnapshot.val();
+                     console.log("Global FedaPay API Key loaded:", fedapayApiKeyGlobal); // Log API Key
+                 } else {
+                     console.warn("Global FedaPay API key not found. Using default.");
+                 }
+
+                 if (versionSnapshot.exists()) {
+                     systemVersion = versionSnapshot.val();
+                     console.log("System Version loaded:", systemVersion);
+                 } else {
+                      console.warn("System Version not found. Using default:", systemVersion);
+                 }
+                 versionNumberDisplay.textContent = systemVersion;
+
+             } catch (error) {
+                  console.error("Erreur chargement config globale:", error);
+                  showNotification("warning", "Erreur chargement configuration globale.");
+                   versionNumberDisplay.textContent = systemVersion; // Show default on error
+             } finally {
+                 console.log("fetchGlobalConfig completed."); // Log completion
+             }
+         }
+
+
+        async function checkLoginStatus() {
+             pageLoaderMessage.textContent = "Vérification de l'authentification...";
+            if (sessionStorage.getItem('isLoggedIn') !== 'true') {
+                redirectToLogin();
+                return false; // Not logged in
+            }
+            currentUserId = sessionStorage.getItem('currentUserId');
+            if (!currentUserId) {
+                console.error("Current user ID is not found in sessionStorage.");
+                redirectToLogin();
+                return false; // User ID missing
+            }
+            adminRef = ref(db, `users-data/${currentUserId}/admin`); // Reference to admin node
+            contentContainer.style.display = 'block';
+            console.log("User logged in:", currentUserId);
+            return true; // Logged in
+        }
+
+        function redirectToLogin() {
+            console.log("Redirecting to login page.");
+            window.location.href = 'loginAccueil.html';
+        }
+
+        window.logout = function() {
+            sessionStorage.clear();
+            currentUserId = null;
+            adminRef = null;
+            console.log("User logged out.");
+            redirectToLogin();
+        }
+
+        // --- UI Helpers ---
+        function showLoader(message = 'Chargement...') { loaderWrapper.style.display = 'flex'; loaderMessageEl.textContent = message; }
+        function hideLoader() { loaderWrapper.style.display = 'none'; }
+        function showPageLoader(message = 'Initialisation...') { pageLoaderWrapper.style.display = 'flex'; pageLoaderMessage.textContent = message; }
+        function hidePageLoader() { pageLoaderWrapper.style.display = 'none'; }
+
+        function showNotification(type, message) {
+            notificationMessageEl.textContent = message;
+            notificationEl.className = `notification ${type}`; // 'success', 'error', 'info'
+            notificationEl.style.display = 'block';
+            setTimeout(closeNotification, 5000); // Auto-hide
+        }
+        window.closeNotification = function() {
+            if (notificationEl) notificationEl.style.display = 'none';
+        }
+
+        // --- Subscription Management ---
+        async function checkSubscriptionStatus() {
+            pageLoaderMessage.textContent = "Vérification de l'abonnement...";
+            if (!adminRef) {
+                 console.error("Admin reference not set. Cannot check subscription.");
+                 return; // Should not happen if checkLoginStatus passed
+            }
+
+             const subscriptionRef = ref(db, `users-data/${currentUserId}/admin/subscription`);
+
+            try {
+                const snapshot = await get(subscriptionRef);
+                const subscription = snapshot.val();
+                const now = new Date();
+
+                isFirstSubscription = !(subscription?.hasSubscribedBefore); // Update flag
+
+                if (subscription && subscription.status === 'active') {
+                    const endDate = new Date(subscription.endDate);
+                    if (endDate < now) {
+                        subscriptionStatusEl.textContent = "Expiré";
+                        subscriptionStatusEl.className = 'inactive';
+                        subscribeMonthlyButton.style.display = 'inline-block';
+                        subscribeYearlyButton.style.display = 'inline-block';
+                        await update(subscriptionRef, { status: 'expired' });
+                        console.log("Subscription expired.");
+                    } else {
+                        subscriptionStatusEl.textContent = `Actif jusqu'au ${endDate.toLocaleDateString()}`;
+                        subscriptionStatusEl.className = 'active';
+                        subscribeMonthlyButton.style.display = 'none';
+                        subscribeYearlyButton.style.display = 'none';
+                         console.log("Subscription active.");
+                    }
+                } else {
+                    subscriptionStatusEl.textContent = "Inactif";
+                    subscriptionStatusEl.className = 'inactive';
+                    subscribeMonthlyButton.style.display = 'inline-block';
+                    subscribeYearlyButton.style.display = 'inline-block';
+                     console.log("Subscription inactive.");
+                }
+            } catch (error) {
+                console.error("Erreur lors de la vérification de l'abonnement:", error);
+                showNotification("error", "Erreur lors de la vérification de l'abonnement.");
+                subscriptionStatusEl.textContent = "Erreur";
+                subscriptionStatusEl.className = 'inactive';
+            }
+        }
+
+        // --- START: MODIFIED SECTION FOR MENU ITEM CLICK HANDLING ---
+
+        // Fonction pour afficher le modal d'abonnement requis
+        function showSubscriptionRequiredModal() {
+            // Vérifier si l'élément existe avant de tenter de le manipuler
+            if (subscriptionRequiredModal) {
+                subscriptionRequiredModal.style.display = 'block';
+            } else {
+                console.error("L'élément modal 'subscriptionRequiredModal' n'a pas été trouvé dans le DOM.");
+                // Afficher une notification d'erreur à l'utilisateur si le modal est manquant
+                showNotification("error", "Erreur interne : Impossible d'afficher la fenêtre d'abonnement.");
+            }
+        }
+
+        // Fonction pour masquer le modal
+        function hideSubscriptionRequiredModal() {
+             if (subscriptionRequiredModal) {
+                subscriptionRequiredModal.style.display = 'none';
+             }
+        }
+         // Expose la fonction globalement pour le bouton "Fermer" du modal
+         window.hideSubscriptionRequiredModal = hideSubscriptionRequiredModal;
+
+
+        // Event listeners for menu items
+        document.getElementById('vente').addEventListener('click', (event) => handleMenuItemClick(event, 'PageVenteTicket.html'));
+        document.getElementById('inventaire').addEventListener('click', (event) => handleMenuItemClick(event, 'AdminVentePartenaires.html'));
+        document.getElementById('stock').addEventListener('click', (event) => handleMenuItemClick(event, 'Stock.html'));
+        document.getElementById('administration').addEventListener('click', (event) => handleMenuItemClick(event, 'a3.html'));
+
+        /**
+         * Gère le clic sur un élément du menu principal.
+         * Vérifie le statut de l'abonnement avant de rediriger ou d'afficher un modal.
+         * @param {Event} event L'événement de clic.
+         * @param {string} targetUrl L'URL de destination si l'abonnement est actif.
+         */
+        async function handleMenuItemClick(event, targetUrl) {
+            event.preventDefault(); // Empêche la navigation par défaut du lien <a>
+
+            pageLoaderMessage.textContent = "Vérification de l'abonnement...";
+            showPageLoader(pageLoaderMessage.textContent); // Affiche le loader pendant la vérification asynchrone
+
+            // Vérification rapide de la connexion (devrait déjà être faite, mais sécurité supplémentaire)
+            if (!currentUserId || !db) {
+                hidePageLoader();
+                showNotification("error", "Utilisateur non connecté ou base de données non prête.");
+                redirectToLogin(); // Redirige vers la page de connexion si nécessaire
+                return;
+            }
+
+            const subscriptionRef = ref(db, `users-data/${currentUserId}/admin/subscription`);
+
+            try {
+                const snapshot = await get(subscriptionRef); // Attend la récupération des données d'abonnement
+                const subscription = snapshot.val();
+                const now = new Date();
+
+                // Détermine si l'abonnement est ACTIF
+                const isActive = subscription &&
+                                 subscription.status === 'active' &&
+                                 subscription.endDate && // Vérifie que endDate existe
+                                 new Date(subscription.endDate) >= now; // Compare les dates
+
+                hidePageLoader(); // Masque le loader APRÈS la fin de la vérification
+
+                if (isActive) {
+                    // Abonnement actif : Procéder à la navigation
+                    console.log(`Abonnement actif. Redirection vers ${targetUrl}`);
+
+                    // Logique spécifique pour ajouter adminId à PageVenteTicket.html et a3.html
+                    if (targetUrl === 'PageVenteTicket.html' || targetUrl === 'a3.html') {
+                         window.location.href = `${targetUrl}?adminId=${currentUserId}`;
+                    } else {
+                         window.location.href = targetUrl; // Redirection standard
+                    }
+                } else {
+                    // Abonnement inactif, expiré ou inexistant : Afficher le modal
+                    console.log(`Abonnement inactif ou expiré. Accès à ${targetUrl} refusé. Affichage du modal.`);
+                    showSubscriptionRequiredModal(); // Affiche le modal demandant de s'abonner
+                }
+
+            } catch (error) {
+                // Gestion des erreurs lors de la récupération des données depuis Firebase
+                hidePageLoader(); // Assure que le loader est masqué en cas d'erreur
+                console.error("Erreur lors de la vérification de l'abonnement avant navigation:", error);
+                showNotification("error", "Erreur lors de la vérification de l'abonnement. Veuillez réessayer.");
+                // Important : Ne pas rediriger et ne pas montrer le modal d'abonnement ici,
+                // car l'erreur pourrait être autre chose (ex: problème réseau).
+            }
+        }
+
+        // --- END: MODIFIED SECTION FOR MENU ITEM CLICK HANDLING ---
+
+
+        // Subscription Payment Logic
+        subscribeMonthlyButton.addEventListener('click', () => handleSubscriptionClick('monthly'));
+        subscribeYearlyButton.addEventListener('click', () => handleSubscriptionClick('yearly'));
+
+        function handleSubscriptionClick(plan) {
+            currentPlan = plan;
+            if (isFirstSubscription) {
+                showConfirmationModal();
+            } else {
+                initiatePayment(currentPlan, 0); // No integration fee for renewals
+            }
+        }
+
+        function showConfirmationModal() {
+            confirmationModal.style.display = 'block';
+        }
+        function hideConfirmationModal() {
+            confirmationModal.style.display = 'none';
+        }
+         window.hideConfirmationModal = hideConfirmationModal; // Expose for cancel button if needed
+
+        confirmIntegrationButton.addEventListener('click', () => {
+            hideConfirmationModal();
+            initiatePayment(currentPlan, integrationFee);
+        });
+        cancelIntegrationButton.addEventListener('click', hideConfirmationModal);
+
+
+        async function initiatePayment(plan, additionalFee) {
+            const baseAmount = plan === 'monthly' ? 1000 : 10000;
+            const totalAmount = baseAmount + additionalFee;
+            const planDescription = plan === 'monthly' ? 'Abonnement mensuel' : 'Abonnement annuel';
+            const fullDescription = planDescription + (additionalFee > 0 ? ` + Frais d'intégration (${integrationFee} FCFA)` : '');
+
+            if (!currentUserId) {
+                showNotification("error", "Erreur: Utilisateur non identifié. Reconnexion nécessaire.");
+                return;
+            }
+
+             // Fetch user email if available (optional but good for FedaPay)
+            let userEmail = 'admin@example.com'; // Default
+            try {
+                 const emailRef = ref(db, `users/${currentUserId}/email`); // Assuming email is stored here
+                 const emailSnap = await get(emailRef);
+                 if (emailSnap.exists()) {
+                     userEmail = emailSnap.val();
+                 }
+            } catch (emailError) {
+                 console.warn("Could not fetch user email for payment:", emailError);
+            }
+
+            console.log(`Initiating FedaPay payment for ${currentUserId}: Plan=${plan}, Amount=${totalAmount}, Desc=${fullDescription}`);
+
+            FedaPay.init({
+                public_key: fedapayApiKeyGlobal, // Use the global key fetched earlier
+                transaction: {
+                    amount: totalAmount,
+                    description: fullDescription,
+                },
+                customer: {
+                    email: userEmail,
+                    // lastname: 'Admin', // Add more customer details if available
+                    // firstname: 'User',
+                },
+                onComplete: async function(response) {
+                    console.log("FedaPay response:", response);
+                    if (response.reason === FedaPay.DIALOG_DISMISSED) {
+                        showNotification("info", "Paiement annulé.");
+                    } else if (response.reason === FedaPay.CHECKOUT_COMPLETED) {
+                        showNotification("success", "Paiement en cours de traitement..."); // Initial feedback
+                         await handleSuccessfulPayment(plan, response, additionalFee > 0);
+                    } else {
+                        // Handle other statuses like 'declined', 'pending', 'canceled'
+                        showNotification("error", `Paiement échoué ou annulé (${response.status}).`);
+                         console.error("FedaPay payment failed or was not approved:", response);
+                    }
+                }
+            }).open();
+        }
+
+
+        async function handleSuccessfulPayment(plan, response, isIntegration) {
+             console.log(`Processing successful payment: Plan=${plan}, TxID=${response.transaction.id}, Integration=${isIntegration}`);
+             showLoader(); // Show loader during DB update
+             loaderMessageEl.textContent = "Mise à jour de l'abonnement...";
+
+            const startDate = new Date();
+            const endDate = new Date(startDate);
+            if (plan === 'monthly') {
+                endDate.setMonth(endDate.getMonth() + 1);
+            } else {
+                endDate.setFullYear(endDate.getFullYear() + 1);
+            }
+
+            const subscriptionData = {
+                status: 'active',
+                startDate: startDate.toISOString(),
+                endDate: endDate.toISOString(),
+                transactionId: response.transaction.id,
+                plan: plan,
+                hasSubscribedBefore: true, // Mark as having subscribed
+                lastPaymentAmount: response.transaction.amount,
+                lastPaymentDate: new Date().toISOString(),
+            };
+
+            if (isIntegration) {
+                subscriptionData.integrationFeePaid = true;
+            }
+
+            try {
+                const subscriptionRef = ref(db, `users-data/${currentUserId}/admin/subscription`);
+                await set(subscriptionRef, subscriptionData); // Overwrite with new active subscription
+                await checkSubscriptionStatus(); // Update UI immediately
+                 hideLoader();
+                showNotification("success", `Abonnement ${plan === 'monthly' ? 'mensuel' : 'annuel'} activé avec succès!`);
+            } catch (error) {
+                hideLoader();
+                console.error('Erreur lors de la mise à jour de l\'abonnement après paiement:', error);
+                showNotification("error", "Erreur lors de la mise à jour de l'abonnement. Veuillez contacter le support.");
+            }
+        }
+
+        // --- Connected Ticket Processing (from Captive Portal, moves to VendorHistory) ---
+        async function processConnectedTickets() {
+            pageLoaderMessage.textContent = "Traitement des connexions en attente...";
+            if (!currentUserId) {
+                console.error("User ID missing, cannot process connected tickets.");
+                return;
+            }
+            const connectedTicketsRef = ref(db, `users-data/${currentUserId}/TicketConnecté`);
+            try {
+                const snapshot = await get(connectedTicketsRef);
+                let connectedTickets = snapshot.val() || {};
+                if (Object.keys(connectedTickets).length === 0) {
+                     console.log("Aucun ticket connecté à traiter.");
+                     return;
+                }
+
+                console.log(`Processing ${Object.keys(connectedTickets).length} connected ticket entries...`);
+
+                const uniqueUsernames = new Set();
+                const ticketsToProcess = [];
+
+                // Filtrer pour traiter chaque nom d'utilisateur unique une seule fois
+                for (const ticketId in connectedTickets) {
+                    const user = connectedTickets[ticketId].username;
+                    if (user && !uniqueUsernames.has(user)) {
+                        uniqueUsernames.add(user);
+                        ticketsToProcess.push({ ...connectedTickets[ticketId], firebaseId: ticketId }); // Inclure l'ID Firebase
+                    }
+                }
+                 console.log(`Found ${ticketsToProcess.length} unique users from TicketConnecté to process:`, Array.from(uniqueUsernames));
+
+
+                // Fetch all necessary data upfront for processing
+                pageLoaderMessage.textContent = "Chargement des données de vente pour traitement...";
+                 const [vendorsHistorySnapshot, ticketsVendusSnapshot, totalSnapshot, transitSnapshot] = await Promise.all([
+                    get(ref(db, `users-data/${currentUserId}/VendorsHistory`)),
+                    get(ref(db, `users-data/${currentUserId}/TicketsVendus`)), // Mobile Money sales
+                    get(ref(db, `users-data/${currentUserId}/TicketsTotal`)),
+                    get(ref(db, `users-data/${currentUserId}/TicketsTransit`))
+                ]);
+
+                const vendorsHistory = vendorsHistorySnapshot.val() || {};
+                const ticketsVendus = ticketsVendusSnapshot.val() || {};
+                const totalTickets = totalSnapshot.val() || {}; // Needed to find source of Total tickets
+                const transitTickets = transitSnapshot.val() || {}; // Needed to find source of Transit tickets
+
+                 pageLoaderMessage.textContent = `Traitement de ${ticketsToProcess.length} tickets connectés...`;
+                 let processedCount = 0;
+                 const promises = ticketsToProcess.map(async (ticket) => {
+                    try {
+                        await processSingleConnectedTicket(ticket, vendorsHistory, ticketsVendus, totalTickets, transitTickets);
+                        processedCount++;
+                         pageLoaderMessage.textContent = `Traitement (${processedCount}/${ticketsToProcess.length})...`;
+                    } catch (error) {
+                        console.error(`Failed to process connected ticket for user ${ticket.username}:`, error);
+                         showNotification("error", `Erreur lors du traitement du ticket connecté ${ticket.username}.`);
+                    }
+                 });
+
+                 await Promise.all(promises); // Attendre que tous les traitements soient terminés
+
+                // Clear the TicketConnecté node only after attempting to process all entries
+                // This prevents re-processing on next load, even if some failed
+                pageLoaderMessage.textContent = "Nettoyage des tickets connectés traités...";
+                console.log("Removing processed entries from TicketConnecté...");
+                try {
+                     await remove(connectedTicketsRef);
+                     console.log("TicketConnecté node cleared.");
+                } catch(error) {
+                     console.error("Error clearing TicketConnecté node:", error);
+                     showNotification("error", "Erreur lors du nettoyage des tickets connectés.");
+                }
+
+
+            } catch (error) {
+                console.error("Erreur majeure lors du traitement des tickets connectés :", error);
+                showNotification("error", "Une erreur majeure est survenue lors du traitement des tickets connectés.");
+            } finally {
+                 // Final page loader message will be set by the function that calls this one
+                 console.log("processConnectedTickets completed.");
+            }
+        }
+
+        // Handles a single ticket found in TicketConnecté
+        async function processSingleConnectedTicket(ticket, vendorsHistory, ticketsVendus, totalTickets, transitTickets) {
+            const username = ticket.username;
+             console.log(`Processing connected user: ${username}`);
+
+            // 1. Check if already processed (in VendorsHistory) - Important to avoid duplicates
+             console.log(` -> Checking VendorsHistory for ${username}...`);
+            let alreadyProcessed = false;
+            for (const vendorId in vendorsHistory) {
+                for (const saleId in vendorsHistory[vendorId]) {
+                    // Assuming 'user' is the username field in VendorsHistory entries
+                    if (vendorsHistory[vendorId][saleId]?.user === username) {
+                        alreadyProcessed = true;
+                        console.log(` -> User ${username} from TicketConnecté already processed (found in history of ${vendorId}). Skipping.`);
+                        break;
+                    }
+                }
+                if (alreadyProcessed) break;
+            }
+            if (alreadyProcessed) return; // Do not re-process if already in history
+
+
+            // 2. Check Mobile Money Sales (TicketsVendus) - Does this ticket match a *pending* Mobile Money sale?
+             console.log(` -> Checking TicketsVendus (Mobile Money) for ${username}...`);
+            let mobileMoneySale = null;
+            let mobileMoneySaleId = null;
+            for (const saleId in ticketsVendus) {
+                const sale = ticketsVendus[saleId];
+                 // Check if it's a Mobile Money sale entry matching the user
+                if (sale?.user === username && sale.nature === "Ticket vendu Mobile Money") {
+                    mobileMoneySale = sale;
+                    mobileMoneySaleId = saleId;
+                    console.log(` -> User ${username} from TicketConnecté matches a Mobile Money sale entry in TicketsVendus. Sale ID: ${saleId}`);
+                    break;
+                }
+            }
+
+            if (mobileMoneySale) {
+                // Found as a Mobile Money sale entry in TicketsVendus.
+                // This means the ticket was generated/transferred *before* the MM sale was confirmed
+                // and it is now being used. We record it in history under the "Vendeur Mobile Money".
+                 console.log(` -> Handling Mobile Money sale completion for ${username}...`);
+                await finalizeSaleAndRemoveSource(
+                    { // Ticket details derived from the MM sale entry or TicketConnecté
+                        category: mobileMoneySale.category ?? ticket.category ?? 'Unknown', // Prefer MM category
+                        user: username,
+                        password: mobileMoneySale.password ?? ticket.password ?? '', // Prefer MM password
+                        price: mobileMoneySale.price ?? ticket.price ?? 0, // Prefer MM price
+                    },
+                    "Vendeur Mobile Money", // Fixed vendor ID for MM
+                    "Ticket vendu Mobile Money", // Fixed nature for MM
+                     ticketsVendusIdToRemove = mobileMoneySaleId, // Mark the MM sale entry for removal from TicketsVendus
+                     sourceTicketLocation = null, // The source ticket (in Total/Transit) will be handled by the Mikrotik sync later
+                     sourceTicketIndex = -1
+                );
+                return; // Processed this connected ticket entry
+
+            }
+
+
+            // 3. If not a confirmed MM sale (in TicketsVendus), check if it came from TicketsTotal or TicketsTransit (Vendeur automatique)
+            // This handles tickets generated directly or imported into Total/Transit and used by a client.
+             console.log(` -> User ${username} from TicketConnecté does NOT match a pending Mobile Money sale. Checking TicketsTotal/Transit...`);
+            let sourceTicketDetails = null; // Details found in Total or Transit
+            let sourceTicketLocation = null; // Path in Total or Transit
+            let sourceTicketIndex = -1; // Index if from TicketsTotal (needed for splice)
+
+            // Search in TicketsTotal first
+            for (const category in totalTickets) {
+                const categoryData = totalTickets[category];
+                 if (categoryData && Array.isArray(categoryData.utilisateur)) {
+                    const index = categoryData.utilisateur.indexOf(username);
+                    if (index > -1) {
+                        sourceTicketDetails = {
+                            category: category,
+                            user: username,
+                            password: categoryData.motDePasse?.[index] ?? '',
+                            price: categoryData.prix?.[index] ?? 0
+                        };
+                        sourceTicketLocation = `users-data/${currentUserId}/TicketsTotal/${category}`;
+                        sourceTicketIndex = index;
+                        console.log(` -> Found ${username} in TicketsTotal, category ${category}.`);
+                        break; // Found it, stop searching Total
+                    }
+                 }
+            }
+
+            // Search in TicketsTransit if not found in Total
+            if (!sourceTicketDetails) {
+                for (const transitId in transitTickets) {
+                    const transitTicket = transitTickets[transitId];
+                    if (transitTicket?.user === username) {
+                        sourceTicketDetails = {
+                            category: transitTicket.category ?? 'Unknown',
+                            user: username,
+                            password: transitTicket.password ?? '',
+                            price: transitTicket.price ?? 0
+                        };
+                        sourceTicketLocation = `users-data/${currentUserId}/TicketsTransit/${transitId}`;
+                        sourceTicketIndex = -1; // Indicates it's from Transit (no index needed for removal)
+                        console.log(` -> Found ${username} in TicketsTransit, ID ${transitId}.`);
+                        break; // Found it, stop searching Transit
+                    }
+                }
+            }
+
+             // 4. If found in Total or Transit, finalize as an "Automatique" sale
+            if (sourceTicketDetails && sourceTicketLocation) {
+                 console.log(` -> Handling 'Vendeur automatique' sale for ${username} from source: ${sourceTicketLocation}...`);
+                await finalizeSaleAndRemoveSource(
+                    sourceTicketDetails,
+                    "Vendeur automatique", // Fixed vendor ID for automatic sales
+                    "Ticket vendu Automatique", // Fixed nature for automatic sales
+                     null, // No Mobile Money sale entry to remove
+                     sourceTicketLocation, // Pass the source location for removal
+                     sourceTicketIndex // Pass index for Total removal
+                );
+            } else {
+                // This case should ideally not happen if all generated tickets start in Total/Transit/TicketsVendus.
+                // It might indicate a user manually created on the router without going through the Firebase flow,
+                // or a data inconsistency. Log a warning.
+                console.warn(` -> User ${username} from TicketConnecté was not found in TicketsTotal, TicketsTransit, OR TicketsVendus. Cannot process as a sale.`);
+                // No further action needed for this specific TicketConnecté entry, it will be cleared by the main processing loop.
+            }
+        }
+
+        // Function to record the sale in VendorsHistory and remove the source ticket
+        async function finalizeSaleAndRemoveSource(ticketDetails, vendorId, saleNature, ticketsVendusIdToRemove = null, sourceTicketLocation = null, sourceTicketIndex = -1) {
+            const username = ticketDetails.user;
+            const updates = {}; // Use a single object for batch update
+
+            // --- Prepare Vendor History Update ---
+            console.log(`   -> Preparing history update for vendor ${vendorId} for user ${username}`);
+            const newHistoryKey = push(ref(db, `users-data/${currentUserId}/VendorsHistory/${vendorId}`)).key;
+            const historyPath = `users-data/${currentUserId}/VendorsHistory/${vendorId}/${newHistoryKey}`;
+            updates[historyPath] = {
+                category: ticketDetails.category,
+                user: username,
+                password: ticketDetails.password,
+                price: ticketDetails.price,
+                soldAt: Date.now(), // Use server timestamp if possible, or Date.now()
+                nature: saleNature
+            };
+            console.log(`   -> Staged history entry at ${historyPath}`);
+
+
+            // --- (Optional) Prepare TicketsVendus Removal if Mobile Money ---
+            if (ticketsVendusIdToRemove && saleNature === "Ticket vendu Mobile Money") {
+                const vendusPath = `users-data/${currentUserId}/TicketsVendus/${ticketsVendusIdToRemove}`;
+                updates[vendusPath] = null; // Mark for removal
+                console.log(`   -> Staged removal from TicketsVendus/${ticketsVendusIdToRemove}`);
+            }
+
+            // --- Prepare Source Ticket Removal/Update (from Total or Transit) ---
+            // NOTE: The new syncWithMikrotik function will also clean up tickets NOT found in Mikrotik.
+            // We *could* remove it here immediately, but letting the sync handle it is also an option
+            // and might be simpler to avoid race conditions if both functions run concurrently.
+            // For now, let's keep this removal logic here as it's specific to a ticket being *used* by a client.
+            // Removing it here means it won't be picked up by the syncWithMikrotik as an unused ticket.
+             console.log(`   -> Preparing source update/removal for user ${username} at location: ${sourceTicketLocation}, index: ${sourceTicketIndex}`);
+            if (sourceTicketLocation) {
+                if (sourceTicketLocation.includes('/TicketsTransit/')) {
+                    // For transit tickets, simply remove the node
+                    updates[sourceTicketLocation] = null; // Mark for removal
+                    console.log(`   -> Staged removal: ${sourceTicketLocation}`);
+                } else if (sourceTicketLocation.includes('/TicketsTotal/')) {
+                     // For TicketsTotal, remove the specific user entry from arrays
+                     // This requires fetching the current category data to perform the splice correctly.
+                     // This complicates the batch update slightly as it requires a read *before* preparing the update.
+                     // A simpler approach for batch updates is to build the *new state* of the category *without* the removed ticket.
+                     // Let's fetch the category data now to build the updated arrays.
+                     const categoryPath = sourceTicketLocation;
+                     const categoryRef = ref(db, categoryPath);
+                     const categorySnapshot = await get(categoryRef); // Get fresh data
+
+                     if (categorySnapshot.exists()) {
+                         const currentCategoryData = categorySnapshot.val();
+                         // Create copies and remove the element at sourceTicketIndex
+                         const updatedMotDePasse = [...(currentCategoryData.motDePasse || [])];
+                         const updatedPrix = [...(currentCategoryData.prix || [])];
+                         const updatedUtilisateur = [...(currentCategoryData.utilisateur || [])]; // Ensure order matches
+
+                          if (sourceTicketIndex > -1 && sourceTicketIndex < updatedUtilisateur.length && updatedUtilisateur[sourceTicketIndex] === username) { // Double-check index and username match
+                             updatedMotDePasse.splice(sourceTicketIndex, 1);
+                             updatedPrix.splice(sourceTicketIndex, 1);
+                             updatedUtilisateur.splice(sourceTicketIndex, 1);
+
+                             updates[categoryPath] = { // Update the whole category node with the modified arrays
+                                 motDePasse: updatedMotDePasse,
+                                 prix: updatedPrix,
+                                 utilisateur: updatedUtilisateur,
+                                 // Keep other potential properties of the category node if any
+                                 ...(Object.keys(currentCategoryData)
+                                      .filter(key => !['motDePasse', 'prix', 'utilisateur'].includes(key))
+                                      .reduce((obj, key) => { obj[key] = currentCategoryData[key]; return obj; }, {}))
+                             };
+                             console.log(`   -> Staged update for ${categoryPath} after removing index ${sourceTicketIndex}`);
+                         } else {
+                             console.warn(`   -> Invalid index ${sourceTicketIndex} or username mismatch for category ${categoryPath}. Skipping removal from TicketsTotal.`);
+                         }
+                     } else {
+                         console.warn(`   -> Category data at ${categoryPath} not found during removal preparation. Skipping removal.`);
+                     }
+                }
+            } else {
+                 console.warn(`   -> Source ticket location for user ${username} was not provided or found. Cannot explicitly remove source.`);
+            }
+
+
+            // --- Execute Batch Update ---
+            if (Object.keys(updates).length > 0) {
+                 try {
+                     console.log(`   -> Executing batch update for user ${username}...`, updates);
+                    await update(ref(db), updates);
+                     console.log(`   -> Successfully finalized sale and removal/update for user ${username}.`);
+                } catch (error) {
+                    console.error(`   -> Error executing batch update for user ${username}:`, error);
+                    showNotification("error", `Erreur technique lors de la finalisation de la vente pour ${username}.`);
+                }
+            } else {
+                console.log(`   -> No update operations prepared for user ${username}. Skipping batch update.`);
+            }
+        }
+
+
+// --- NEW: Synchronize Firebase nodes with TicketsMikhmon
+async function synchronizeFirebaseWithMikrotik() {
+             pageLoaderMessage.textContent = "Synchronisation des données avec MikroTik...";
+             if (!currentUserId) {
+                 console.error("User ID missing, cannot synchronize Firebase nodes.");
+                 return;
+             }
+             console.log("Starting Firebase synchronization with TicketsMikhmon...");
+
+             try {
+                 // 1. Fetch current state of all relevant nodes
+                 const [mikhmonSnapshot, totalSnapshot, transitSnapshot, archiveSnapshot] = await Promise.all([
+                    get(ref(db, `users-data/${currentUserId}/TicketsMikhmon`)),
+                    get(ref(db, `users-data/${currentUserId}/TicketsTotal`)),
+                    get(ref(db, `users-data/${currentUserId}/TicketsTransit`)),
+                    get(ref(db, `users-data/${currentUserId}/TicketsArchive`))
+                 ]);
+
+                 const mikhmonUsersData = mikhmonSnapshot.val() || {};
+
+                 // --- AJOUT IMPORTANT : Vérification de TicketsMikhmon ---
+                 if (!mikhmonSnapshot.exists() || Object.keys(mikhmonUsersData).length === 0) {
+                     console.warn("TicketsMikhmon est absent ou vide. La synchronisation ne peut pas être effectuée.");
+                     showNotification("warning", "TicketsMikhmon est absent ou vide. Synchronisation annulée.");
+                     hidePageLoader(); // S'assurer de masquer le loader si la synchro est annulée
+                     return; // Arrêter la fonction ici
+                 }
+                 // --- FIN DE L'AJOUT IMPORTANT ---
+
+
+                 const totalTicketsData = totalSnapshot.val() || {};
+                 const transitTicketsData = transitSnapshot.val() || {};
+                 const archiveTicketsData = archiveSnapshot.val() || {};
+
+                 // 2. Build set of usernames currently in TicketsMikhmon
+                 const mikhmonUsernames = new Set(Object.values(mikhmonUsersData).map(ticket => ticket.username).filter(username => username));
+                 console.log(`Found ${mikhmonUsernames.size} unique usernames in TicketsMikhmon.`);
+
+                 const updates = {}; // Object to hold all changes for a batch update
+                 const dbPathPrefix = `users-data/${currentUserId}`;
+
+                 let totalDeletedCount = 0;
+
+                 // 3. Process TicketsTotal
+                 console.log("Checking TicketsTotal for cleanup...");
+                 for (const category in totalTicketsData) {
+                    const categoryPath = `${dbPathPrefix}/TicketsTotal/${category}`;
+                    const categoryData = totalTicketsData[category];
+
+                     // Ensure structure is valid before processing
+                    if (categoryData && Array.isArray(categoryData.motDePasse) && Array.isArray(categoryData.utilisateur) && categoryData.motDePasse.length === categoryData.utilisateur.length) {
+                         const updatedMotDePasse = [];
+                         const updatedPrix = []; // Assuming prix array also exists and matches length
+                         const updatedUtilisateur = [];
+                         let categoryChanged = false;
+
+                        for (let i = 0; i < categoryData.utilisateur.length; i++) {
+                            const username = categoryData.utilisateur[i];
+                            // Only keep the ticket if its username is in the Mikhmon list
+                            if (username && mikhmonUsernames.has(username)) {
+                                updatedUtilisateur.push(username);
+                                updatedMotDePasse.push(categoryData.motDePasse[i] ?? '');
+                                updatedPrix.push(categoryData.prix?.[i] ?? 0); // Use optional chaining for safety
+                            } else {
+                                // Username not found in Mikhmon, this ticket will be removed
+                                console.log(` -> Removing ticket "${username}" from TicketsTotal/${category} (not found in Mikhmon).`);
+                                categoryChanged = true;
+                                totalDeletedCount++;
+                            }
+                        }
+
+                        if (categoryChanged) {
+                            // If the category is now empty, mark the category node for deletion
+                            if (updatedUtilisateur.length === 0) {
+                                updates[categoryPath] = null;
+                                console.log(` -> Category ${category} in TicketsTotal is now empty, marking for deletion.`);
+                            } else {
+                                // Otherwise, update the category with the remaining tickets
+                                updates[categoryPath] = {
+                                    motDePasse: updatedMotDePasse,
+                                    prix: updatedPrix,
+                                    utilisateur: updatedUtilisateur,
+                                     // Preserve other properties if any
+                                     ...(Object.keys(categoryData)
+                                      .filter(key => !['motDePasse', 'prix', 'utilisateur'].includes(key))
+                                      .reduce((obj, key) => { obj[key] = categoryData[key]; return obj; }, {}))
+                                };
+                                console.log(` -> Updated category ${category} in TicketsTotal.`);
+                            }
+                        }
+                    } else {
+                        console.warn(`Skipping invalid structure for category "${category}" in TicketsTotal.`);
+                    }
+                 }
+
+                 // 4. Process TicketsTransit
+                 console.log("Checking TicketsTransit for cleanup...");
+                 for (const key in transitTicketsData) {
+                    const ticket = transitTicketsData[key];
+                    const transitPath = `${dbPathPrefix}/TicketsTransit/${key}`;
+                    const username = ticket?.user; // Use optional chaining
+
+                    if (username && !mikhmonUsernames.has(username)) {
+                        // Username not found in Mikhmon, mark for deletion
+                        updates[transitPath] = null;
+                        console.log(` -> Removing ticket "${username}" (ID: ${key}) from TicketsTransit (not found in Mikhmon).`);
+                        totalDeletedCount++;
+                    } else if (!username) {
+                         console.warn(`Skipping entry with missing username in TicketsTransit, key: ${key}.`);
+                    }
+                 }
+
+                 // 5. Process TicketsArchive
+                 // Note: Archiving means it has been used. Removing from archive if not in Mikrotik might be too aggressive?
+                 // The request is to clean up based on Mikhmon presence. Let's proceed with removing from Archive if not in Mikhmon.
+                 // CONSIDER: Maybe Archive should *not* be cleaned up this way, as it's a historical record?
+                 // Assuming the request means ALL nodes except VendorsHistory should reflect current/pending Mikrotik users + sold MM tickets.
+                 console.log("Checking TicketsArchive for cleanup...");
+                 for (const key in archiveTicketsData) {
+                     const ticket = archiveTicketsData[key];
+                     const archivePath = `${dbPathPrefix}/TicketsArchive/${key}`;
+                     const username = ticket?.user; // Use optional chaining
+
+                     if (username && !mikhmonUsernames.has(username)) {
+                          // Username not found in Mikhmon, mark for deletion
+                          updates[archivePath] = null;
+                          console.log(` -> Removing ticket "${username}" (ID: ${key}) from TicketsArchive (not found in Mikhmon).`);
+                          totalDeletedCount++;
+                     } else if (!username) {
+                          console.warn(`Skipping entry with missing username in TicketsArchive, key: ${key}.`);
+                     }
+                 }
+
+
+               // 6. Execute Batch Update
+               if (Object.keys(updates).length > 0) {
+                     console.log(`Executing batch update for Firebase synchronization. Total ${Object.keys(updates).length} operations (${totalDeletedCount} deletions)...`);
+                     await update(ref(db), updates);
+                     console.log("Firebase synchronization batch update completed.");
+                     if (totalDeletedCount > 0) {
+                         showNotification("success", `Synchronisation terminée. ${totalDeletedCount} tickets non trouvés sur MikroTik supprimés de vos bases.`);
+                     } else {
+                          showNotification("info", "Synchronisation terminée. Aucune anomalie détectée.");
+                     }
+                 } else {
+                     console.log("Firebase synchronization: No changes needed.");
+                     showNotification("info", "Synchronisation Firebase terminée. Aucune anomalie détectée.");
+                 }
+
+             } catch (error) {
+                 console.error("Erreur majeure lors de la synchronisation Firebase :", error);
+                 showNotification("error", `Erreur lors de la synchronisation Firebase: ${error.message}`);
+             } finally {
+                 console.log("synchronizeFirebaseWithMikrotik completed.");
+             }
+        }
+
+
+        // --- Portal Configuration ---
+        window.togglePortalForm = function() {
+            portalFormModal.style.display = 'block';
+        }
+        window.closePortalFormModal = function() {
+            portalFormModal.style.display = 'none';
+        }
+
+        window.addListItem = function(listId) {
+            const listContainer = document.getElementById(listId);
+            const newItem = document.createElement('div');
+            newItem.className = 'list-item';
+
+            if (listId === 'tariffsList') {
+                newItem.innerHTML = `
+                    <input type="text" placeholder="Nom du tarif (ex: 1 Heure)" data-type="tariffName">
+                    <input type="number" placeholder="Prix (FCFA)" data-type="tariffPrice">
+                    <button type="button" onclick="removeListItem(this)"><i class="fas fa-trash"></i></button>`;
+            } else {
+                let placeholder = listId === 'connectionsList' ? "Adresse/Lieu" : "Service/Produit";
+                let dataType = listId.replace('List', '').slice(0, -1); // e.g., 'connection', 'product'
+                newItem.innerHTML = `
+                    <input type="text" placeholder="${placeholder}" data-type="${dataType}">
+                    <button type="button" onclick="removeListItem(this)"><i class="fas fa-trash"></i></button>`;
+            }
+             listContainer.appendChild(newItem); // Append to the end of the list div
+        }
+
+
+        window.removeListItem = function(button) {
+            button.closest('.list-item').remove(); // Use closest to be safer
+        }
+
+        document.getElementById('portalForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            showLoader("Sauvegarde configuration...");
+
+            if (!currentUserId) {
+                hideLoader();
+                showNotification("error", "Utilisateur non identifié. Reconnexion nécessaire.");
+                return;
+            }
+
+            const portalConfig = {
+                networkName: document.getElementById('networkName').value.trim(),
+                contactNumber: document.getElementById('contactNumber').value.trim(),
+                fedapayApiKey: document.getElementById('fedapayApiKey').value.trim(),
+                loginMode: document.getElementById('loginMode').value,
+                tariffs: [],
+                connections: [],
+                products: []
+            };
+
+            // Collect Tariffs
+            document.querySelectorAll('#tariffsList .list-item').forEach(item => {
+                const nameInput = item.querySelector('[data-type="tariffName"]');
+                const priceInput = item.querySelector('[data-type="tariffPrice"]');
+                const name = nameInput?.value.trim();
+                const price = parseFloat(priceInput?.value);
+                if (name && !isNaN(price) && price >= 0) {
+                    portalConfig.tariffs.push({ name, price });
+                }
+            });
+
+            // Collect Connections
+            document.querySelectorAll('#connectionsList .list-item input').forEach(input => {
+                const value = input.value.trim();
+                if (value) portalConfig.connections.push(value);
+            });
+
+             // Collect Products
+            document.querySelectorAll('#productsList .list-item input').forEach(input => {
+                const value = input.value.trim();
+                if (value) portalConfig.products.push(value);
+            });
+
+             // Basic Validation
+             if (!portalConfig.networkName || !portalConfig.contactNumber || !portalConfig.fedapayApiKey) {
+                 hideLoader();
+                 showNotification("error", "Veuillez remplir les champs Nom, Contact et Clé API FedaPay.");
+                 return;
+             }
+
+
+            try {
+                const configRef = ref(db, `users-data/${currentUserId}/portalConfig`);
+                await set(configRef, portalConfig);
+                networkNameDisplay.textContent = portalConfig.networkName; // Update display
+                hideLoader();
+                showNotification("success", 'Configuration du portail enregistrée !');
+                closePortalFormModal();
+            } catch (error) {
+                hideLoader();
+                console.error("Erreur sauvegarde config portail:", error);
+                showNotification("error", "Erreur lors de l'enregistrement.");
+            }
+        });
+
+        async function loadPortalConfig() {
+             pageLoaderMessage.textContent = "Chargement de la configuration...";
+             if (!currentUserId) return; // Wait for user ID
+
+            try {
+                const configRef = ref(db, `users-data/${currentUserId}/portalConfig`);
+                const snapshot = await get(configRef);
+
+                if (snapshot.exists()) {
+                    const config = snapshot.val();
+                    networkNameDisplay.textContent = config.networkName || 'ADMIN WIFI ZONE';
+                    document.getElementById('networkName').value = config.networkName || '';
+                    document.getElementById('contactNumber').value = config.contactNumber || '';
+                    document.getElementById('fedapayApiKey').value = config.fedapayApiKey || '';
+                    document.getElementById('loginMode').value = config.loginMode || 'separate';
+
+                    // Clear and fill lists
+                    document.getElementById('tariffsList').innerHTML = '';
+                    document.getElementById('connectionsList').innerHTML = '';
+                    document.getElementById('productsList').innerHTML = '';
+
+                    (config.tariffs || []).forEach(item => addListItemWithValue('tariffsList', item));
+                    (config.connections || []).forEach(item => addListItemWithValue('connectionsList', item));
+                    (config.products || []).forEach(item => addListItemWithValue('productsList', item));
+
+                    // Trigger change event to show/hide redirect button correctly
+                    document.getElementById('loginMode').dispatchEvent(new Event('change'));
+
+                     console.log("Portal config loaded:", config);
+
+                } else {
+                    console.log("Aucune configuration de portail trouvée pour cet utilisateur.");
+                    networkNameDisplay.textContent = 'ADMIN WIFI ZONE'; // Default
+                    // Optionally clear lists if no config exists
+                    document.getElementById('tariffsList').innerHTML = '';
+                    document.getElementById('connectionsList').innerHTML = '';
+                    document.getElementById('productsList').innerHTML = '';
+                }
+            } catch (error) {
+                console.error("Erreur chargement config portail:", error);
+                showNotification("error", "Erreur chargement configuration portail.");
+            }
+        }
+
+         // Helper to add list items with pre-filled values during load
+         function addListItemWithValue(listId, itemValue) {
+             const listContainer = document.getElementById(listId);
+             const newItem = document.createElement('div');
+             newItem.className = 'list-item';
+
+             if (listId === 'tariffsList' && typeof itemValue === 'object') {
+                 newItem.innerHTML = `
+                     <input type="text" placeholder="Nom du tarif" data-type="tariffName" value="${itemValue.name || ''}">
+                     <input type="number" placeholder="Prix (FCFA)" data-type="tariffPrice" value="${itemValue.price || ''}">
+                     <button type="button" onclick="removeListItem(this)"><i class="fas fa-trash"></i></button>`;
+             } else if (typeof itemValue === 'string') {
+                 let placeholder = listId === 'connectionsList' ? "Adresse/Lieu" : "Service/Produit";
+                 let dataType = listId.replace('List', '').slice(0, -1);
+                 newItem.innerHTML = `
+                     <input type="text" placeholder="${placeholder}" data-type="${dataType}" value="${itemValue}">
+                     <button type="button" onclick="removeListItem(this)"><i class="fas fa-trash"></i></button>`;
+             }
+             listContainer.appendChild(newItem);
+         }
+
+        // --- Portal Download Logic ---
+        window.downloadLoginFile = async function() {
+            showLoader("Téléchargement des fichiers...");
+            if (!currentUserId) {
+                hideLoader();
+                showNotification("error", "Vous devez être connecté pour télécharger.");
+                return;
+            }
+
+            try {
+                // 1. Fetch Current Portal Configuration
+                const configRef = ref(db, `users-data/${currentUserId}/portalConfig`);
+                const snapshot = await get(configRef);
+                if (!snapshot.exists()) {
+                    hideLoader();
+                    showNotification("error", "Veuillez d'abord configurer le portail via le bouton 'Configurer le portail captif'.");
+                    return;
+                }
+                const config = snapshot.val();
+                const selectedMode = config.loginMode || 'separate'; // Default to 'separate' if not set
+
+                // 2. Determine Base HTML File and Target Filename
+                let baseFileName = "";
+                let targetFileName = "";
+                const validModes = {
+                    'separate': { base: 'login.html', target: 'login.html' },
+                    'same':     { base: 'log.html', target: 'log.html' },
+                    'pay':      { base: 'pay.html', target: 'pay.html' }
+                };
+
+                if (validModes[selectedMode]) {
+                    baseFileName = validModes[selectedMode].base;
+                    targetFileName = validModes[selectedMode].target;
+                    console.log(`Selected mode: ${selectedMode}. Using base file: ${baseFileName}, target: ${targetFileName}`);
+                } else if (selectedMode.startsWith('hotspot')) {
+                    // Handle hotspot modes requiring external download
+                    hideLoader();
+                    showNotification("info", `Le mode '${selectedMode}' nécessite un téléchargement externe via le bouton 'Télécharger le modèle sélectionné'.`);
+                    const redirectButton = document.getElementById('redirectButton');
+                    if(redirectButton.style.display !== 'none') {
+                         // Find the specific download button and trigger its click
+                         document.getElementById('redirectButton').click();
+                    } else {
+                        console.warn("Redirect button not visible for hotspot mode download.");
+                    }
+                    return; // Stop execution for hotspot modes
+                } else {
+                    hideLoader();
+                    showNotification("error", "Mode de connexion invalide sélectionné dans la configuration.");
+                    return;
+                }
+
+                // 3. Fetch the Base HTML Content
+                console.log(`Fetching content of ${baseFileName}...`);
+                const response = await fetch(baseFileName); // Fetch the correct base file
+                if (!response.ok) {
+                    throw new Error(`Impossible de charger le fichier de base: ${baseFileName} (Status: ${response.status})`);
+                }
+                let htmlContent = await response.text();
+                console.log(`Successfully fetched content of ${baseFileName}.`);
+
+                // Fetch status.html content
+                console.log(`Fetching content of status.html...`);
+                const statusResponse = await fetch('status.html');
+                if (!statusResponse.ok) {
+                    throw new Error(`Impossible de charger le fichier status.html (Status: ${statusResponse.status})`);
+                }
+                let statusHtmlContent = await statusResponse.text();
+                console.log(`Successfully fetched content of status.html.`);
+
+
+                // 4. Inject Configuration Data into Placeholders
+
+                // Admin User ID (Crucial for Firebase connection in portal)
+                htmlContent = htmlContent.replaceAll('<!-- ADMIN_USER_ID -->', currentUserId);
+                statusHtmlContent = statusHtmlContent.replaceAll('<!-- ADMIN_USER_ID -->', currentUserId);
+
+
+                // Network Name (Displayed in header)
+                htmlContent = htmlContent.replaceAll('<!-- NETWORK_NAME -->', config.networkName || 'CYBER CAMPUS WIFI ZONE');
+                statusHtmlContent = statusHtmlContent.replaceAll('<!-- NETWORK_NAME -->', config.networkName || 'CYBER CAMPUS WIFI ZONE');
+
+                // Contact Number (Displayed in header/info sections)
+                htmlContent = htmlContent.replaceAll('<!-- CONTACT_NUMBER -->', config.contactNumber || '+229 XXXXXXXX');
+                statusHtmlContent = statusHtmlContent.replaceAll('<!-- CONTACT_NUMBER -->', config.contactNumber || '+229 XXXXXXXX');
+
+
+                 // FedaPay Public API Key (Used in login.html, log.html, pay.html for payments)
+                 htmlContent = htmlContent.replaceAll('<!-- FEDAPAY_API_KEY -->', config.fedapayApiKey || '');
+
+                // --- Generate HTML Snippets for Lists ---
+
+                // Generates a simple table for display purposes (e.g., "Nos Tarifs" section)
+                function generateSimpleTariffsTableHTML(tariffs) {
+                     if (!tariffs || tariffs.length === 0) return '<p>Aucun tarif configuré.</p>';
+                    let table = '<table style="width:100%; border-collapse:collapse; color: inherit; background: rgba(255,255,255,0.05); border-radius: 5px;"><thead><tr style="border-bottom: 1px solid rgba(255,255,255,0.2);"><th style="padding: 10px; text-align: left;">Catégorie</th><th style="padding: 10px; text-align: left;">Prix (FCFA)</th></tr></thead><tbody>';
+                    tariffs.forEach(t => {
+                        const escapedName = (t.name || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                        table += `<tr style="border-bottom: 1px solid rgba(255,255,255,0.1);"><td style="padding: 8px 10px;">${escapedName}</td><td style="padding: 8px 10px;">${t.price || '0'}</td></tr>`; // Add default for price
+                    });
+                    return table + '</tbody></table>';
+                }
+
+                // Generates a simple <ul> list (for Connection Locations, Products)
+                function generateListHTML(items) {
+                     if (!items || items.length === 0) return '<p>Non spécifié.</p>';
+                     return '<ul>' + items.map(item => `<li>${(item || '').replace(/</g, "&lt;").replace(/>/g, "&gt;")}</li>`).join('') + '</ul>';
+                }
+
+                // --- Replace Placeholders in HTML Content ---
+                console.log("Injecting configuration into HTML content...");
+
+                 // Placeholder for the *simple display* rates table
+                htmlContent = htmlContent.replace('<!-- TARIFFS_TABLE_SIMPLE -->', generateSimpleTariffsTableHTML(config.tariffs || []));
+                statusHtmlContent = statusHtmlContent.replace('<!-- TARIFFS_TABLE_SIMPLE -->', generateSimpleTariffsTableHTML(config.tariffs || []));
+
+
+                // Placeholder for connection locations list
+                htmlContent = htmlContent.replace('<!-- CONNECTION_LOCATIONS -->', generateListHTML(config.connections || []));
+                statusHtmlContent = statusHtmlContent.replace('<!-- CONNECTION_LOCATIONS -->', generateListHTML(config.connections || []));
+
+
+                // Placeholder for products/services list
+                htmlContent = htmlContent.replace('<!-- PRODUCTS_LIST -->', generateListHTML(config.products || []));
+                statusHtmlContent = statusHtmlContent.replace('<!-- PRODUCTS_LIST -->', generateListHTML(config.products || []));
+
+
+                // Note: <!-- TARIFFS_TABLE --> with payment button is generated dynamically by JS within the portal files.
+
+                console.log("Configuration injection complete.");
+
+                // 5. Create Blob and Initiate Download for the HTML File
+                const blob = new Blob([htmlContent], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = targetFileName; // Use the target filename (login.html, log.html, pay.html)
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                console.log(`Download initiated for ${targetFileName}`);
+
+                // 5.1. Create Blob and Initiate Download for status.html
+                const statusBlob = new Blob([statusHtmlContent], { type: 'text/html' });
+                const statusUrl = URL.createObjectURL(statusBlob);
+                const statusA = document.createElement('a');
+                statusA.href = statusUrl;
+                statusA.download = 'status.html';
+                document.body.appendChild(statusA);
+                statusA.click();
+                document.body.removeChild(statusA);
+                URL.revokeObjectURL(statusUrl);
+                console.log(`Download initiated for status.html`);
+
+
+                // 6. Automatically Download firebase-config-manager.js
+                 try {
+                     const managerResponse = await fetch('firebase-config-manager.js');
+                     if (!managerResponse.ok) {
+                         throw new Error('firebase-config-manager.js not found or accessible.');
+                     }
+                     const managerLink = document.createElement('a');
+                     managerLink.href = 'firebase-config-manager.js'; // Relative path
+                     managerLink.download = 'firebase-config-manager.js';
+                     document.body.appendChild(managerLink);
+                     managerLink.click();
+                     document.body.removeChild(managerLink);
+                     console.log("Download initiated for firebase-config-manager.js");
+                 } catch (managerError) {
+                     console.error("Could not download firebase-config-manager.js:", managerError);
+                     showNotification("warning", "Le fichier firebase-config-manager.js n'a pas pu être téléchargé automatiquement. Assurez-vous de l'avoir.");
+                 }
+
+                hideLoader();
+                 showNotification("success", `Téléchargement de ${targetFileName}, status.html et du gestionnaire terminé.`);
+
+            } catch (error) {
+                hideLoader();
+                console.error("Erreur lors du téléchargement du portail:", error);
+                showNotification("error", `Erreur téléchargement: ${error.message}`);
+            }
+        }
+
+
+         // Show/Hide Redirect Button based on Login Mode
+         document.getElementById('loginMode').addEventListener('change', function() {
+    const selectedMode = this.value;
+    const redirectButton = document.getElementById('redirectButton');
+    // Show button for separate, same, pay AND hotspot modes
+    if (['separate', 'same', 'pay', 'hotspot1', 'hotspot2', 'hotspot3', 'hotspot4','hotspot5'].includes(selectedMode)) {
+        redirectButton.style.display = 'inline-block';
+    } else {
+        redirectButton.style.display = 'none';
+    }
+});
+
+// Redirect Button Logic - Modified to include download and redirect for all modes
+document.getElementById('redirectButton').addEventListener('click', async function() {
+    const loginMode = document.getElementById('loginMode').value;
+    let redirectUrl = '';
+    // Map modes to their download URLs - ADD URLS FOR separate, same, pay
+    const urls = {
+        'separate': 'https://firebasestorage.googleapis.com/v0/b/eduque-moi-bada8.appspot.com/o/Template.zip?alt=media&token=3cdeab1f-4ccf-4eb7-9079-79702938b2dd', // Placeholder URL - REPLACE WITH YOUR DEMO URL
+        'same': 'https://firebasestorage.googleapis.com/v0/b/eduque-moi-bada8.appspot.com/o/Template.zip?alt=media&token=3cdeab1f-4ccf-4eb7-9079-79702938b2dd',     // Placeholder URL - REPLACE WITH YOUR DEMO URL
+        'pay': 'https://firebasestorage.googleapis.com/v0/b/eduque-moi-bada8.appspot.com/o/Template.zip?alt=media&token=3cdeab1f-4ccf-4eb7-9079-79702938b2dd',       // Placeholder URL - REPLACE WITH YOUR DEMO URL
+        'hotspot1': 'https://firebasestorage.googleapis.com/v0/b/eduque-moi-bada8.appspot.com/o/Portail%20par%20d%C3%A9faut.zip?alt=media&token=9f200c87-a577-4d51-ae08-8324c17b58e9',
+        'hotspot2': 'https://firebasestorage.googleapis.com/v0/b/eduque-moi-bada8.appspot.com/o/hotspot1.zip?alt=media&token=d1e7b9b5-102a-42c5-ab36-9b1764e995ff',
+        'hotspot3': 'https://firebasestorage.googleapis.com/v0/b/eduque-moi-bada8.appspot.com/o/Partail%20capitf%20secondaire.zip?alt=media&token=7bf96399-b991-40db-af64-48b41ef9fd71',
+        'hotspot4': 'https://firebasestorage.googleapis.com/v0/b/eduque-moi-bada8.appspot.com/o/hotspot15.zip?alt=media&token=76dfc03c-056e-460f-b711-48e1418092df',
+        'hotspot5': 'https://firebasestorage.googleapis.com/v0/b/eduque-moi-bada8.appspot.com/o/Mikhmon%20Server.zip?alt=media&token=d62c4d36-b726-4566-bc51-a1f8f9a49785'
+
+    };
+
+    redirectUrl = urls[loginMode];
+
+    if (redirectUrl) {
+        if (['separate', 'same', 'pay'].includes(loginMode)) {
+            // For separate, same, pay modes, first trigger the download function
+            // await downloadLoginFile(); // Wait for download to complete (important if downloadLoginFile is async) - Decide if needed or just open demo? Opening demo seems more like what the button implies.
+             console.log(`Simulating download for mode ${loginMode}. Opening demo URL.`);
+        }
+        console.log(`Redirecting to demo URL for mode ${loginMode}: ${redirectUrl}`);
+        window.open(redirectUrl, '_blank'); // Open demo URL in new tab for all modes
+        showNotification("info", `Redirection vers la démo du modèle '${loginMode}' dans un nouvel onglet.`);
+    } else {
+        showNotification("error", 'Mode de connexion inconnu pour la redirection.');
+    }
+});
+
+        // --- Data Export/Import ---
+        window.exportData = async function() {
+             showLoader("Exportation des données...");
+            if (!currentUserId) {
+                hideLoader();
+                showNotification("error", "Connectez-vous pour exporter.");
+                return;
+            }
+            try {
+                const userRef = ref(db, `users-data/${currentUserId}`);
+                const snapshot = await get(userRef);
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    const jsonData = JSON.stringify(data, null, 2);
+                    const blob = new Blob([jsonData], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `backup-data-${currentUserId}-${new Date().toISOString().slice(0,10)}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    showNotification("success", "Données exportées avec succès.");
+                } else {
+                    showNotification("info", "Aucune donnée à exporter.");
+                }
+            } catch (error) {
+                console.error("Erreur exportation:", error);
+                showNotification("error", "Erreur lors de l'exportation.");
+            } finally {
+                hideLoader();
+            }
+        }
+
+        async function importData(event) {
+             const file = event.target.files[0];
+            if (!file) return;
+
+             showLoader("Importation des données...");
+            if (!currentUserId) {
+                hideLoader();
+                showNotification("error", "Connectez-vous pour importer.");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const jsonData = JSON.parse(e.target.result);
+                     if (typeof jsonData !== 'object' || jsonData === null) {
+                        throw new Error("Fichier JSON invalide.");
+                    }
+                    // Add a confirmation step
+                     if (!confirm("ATTENTION : L'importation écrasera toutes vos données actuelles (TicketsTotal, TicketsTransit, TicketsArchive, VendorsHistory, TicketsMikhmon, TicketConnecte). Continuer ?")) {
+                          hideLoader();
+                          event.target.value = ''; // Clear file input
+                          return;
+                     }
+
+                    const userRef = ref(db, `users-data/${currentUserId}`);
+                    await set(userRef, jsonData); // Overwrite user data
+                    hideLoader();
+                    showNotification("success", 'Données importées avec succès ! Rechargement...');
+                    // Reload to reflect changes everywhere
+                     setTimeout(() => window.location.reload(), 1500);
+
+                } catch (error) {
+                    hideLoader();
+                    console.error("Erreur importation:", error);
+                    showNotification("error", `Erreur importation: ${error.message}`);
+                } finally {
+                    event.target.value = ''; // Clear file input
+                }
+            };
+            reader.onerror = (error) => {
+                hideLoader();
+                console.error("Erreur lecture fichier:", error);
+                showNotification("error", "Erreur de lecture du fichier.");
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+        // Attach listener to the input *after* DOM is ready
+         document.getElementById('importDataInput').addEventListener('change', importData);
+
+
+        // --- Help Modal ---
+        window.showHelpModal = function() { helpModal.style.display = 'block'; }
+        window.closeHelpModal = function() { helpModal.style.display = 'none'; }
+
+        // --- MikroTik Code Copy ---
+        window.copyMikrotikCode = function() {
+            const codeElement = document.getElementById('mikrotikCode');
+            navigator.clipboard.writeText(codeElement.textContent.trim())
+                .then(() => showNotification("success", "Code MikroTik copié !"))
+                .catch(err => {
+                     console.error('Erreur copie code:', err);
+                     showNotification("error", "Erreur copie code.");
+                     // Fallback for older browsers (less reliable)
+                     try {
+                         const textArea = document.createElement('textarea');
+                         textArea.value = codeElement.textContent.trim();
+                         document.body.appendChild(textArea);
+                         textArea.select();
+                         document.execCommand('copy');
+                         document.body.removeChild(textArea);
+                          showNotification("success", "Code MikroTik copié (fallback) !");
+                     } catch (fallbackErr) {
+                         console.error('Fallback copy failed:', fallbackErr);
+                     }
+                });
+        }
+
+         // --- Modal Closers ---
+         window.closePaymentModal = function() { paymentModal.style.display = 'none'; }
+         // window.hideSubscriptionRequiredModal is already defined and exposed globally
+
+         // Action for the "S'abonner" button inside the subscription required modal
+          window.redirectToSubscription = function() {
+             hideSubscriptionRequiredModal(); // Close the modal first
+             document.getElementById('subscriptionSection').scrollIntoView({ behavior: 'smooth' }); // Scroll to the relevant section
+          }
+
+
+        // --- DOMContentLoaded ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            showPageLoader();
+            try {
+                await initializeDatabase();
+                await fetchGlobalConfig(); // Fetch API key and version
+                const loggedIn = await checkLoginStatus();
+
+                if (loggedIn) {
+                     // These run asynchronously after login/config loading
+                     loadPortalConfig(); // Load user-specific portal configuration
+                     processConnectedTickets(); // Process any tickets connected via portal since last visit
+                     synchronizeFirebaseWithMikrotik(); // NEW: Clean up Firebase nodes based on Mikhmon list
+                     checkSubscriptionStatus(); // Check and display initial status (runs after processing and sync start)
+                }
+                // If not loggedIn, redirection happens in checkLoginStatus
+
+            } catch (error) {
+                console.error("Initialization failed:", error);
+                showNotification("error", "Erreur critique lors de l'initialisation.");
+                // Keep loader potentially, or show error message in main content area
+                pageLoaderMessage.textContent = "Échec de l'initialisation.";
+                 // Optional: Hide content container if critical error
+                 // contentContainer.style.display = 'none';
+                 return; // Stop further execution in this block
+            } finally {
+                 // Hide page loader only after all essential async setup (checkLoginStatus, initial loads) is done or failed
+                 // Note: processConnectedTickets and synchronizeFirebaseWithMikrotik run *after* this,
+                 // so they might still show their own loaders if implemented, but the main page loader is gone.
+                 hidePageLoader();
+                 pageLoaderMessage.textContent = "Initialisation terminée."; // Final message
+            }
+        });
+
+    </script>
+
+</body>
+</html>

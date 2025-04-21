@@ -1,0 +1,2229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des tickets</title>
+    <!-- Font Awesome - Ensure you have internet or use local files -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* ... (vos variables CSS) ... */
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --background-color: #00637c;
+            --text-color: #34495e;
+            --edit-color: #f39c12;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: rgb(0, 48, 16);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            color: #f0f0f0; /* Lighter text for dark container */
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            gap: 10px; /* Add gap between elements */
+        }
+
+        .category-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h1 {
+             color: #ecf0f1; /* Lighter color for H1 */
+             margin-bottom: 20px;
+             display: flex;
+             justify-content: space-between;
+             align-items: center;
+        }
+
+        h2 {
+            color: #bdc3c7; /* Slightly less bright for H2 */
+            margin-bottom: 10px; /* Reduced margin */
+            display: flex;
+            align-items: center; /* Keep icon alignment */
+            gap: 8px;
+        }
+
+        .logout-button {
+            background-color: var(--danger-color);
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logout-button:hover {
+            background-color: #c0392b;
+        }
+
+
+        .pin-icon {
+            cursor: pointer;
+            color: var(--primary-color);
+            font-size: 1.1em; /* Slightly smaller */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 15px; /* Reduced margin */
+            background-color: rgb(244, 255, 143);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            color: var(--text-color); /* Ensure text color contrasts with yellow */
+        }
+
+        th, td {
+            padding: 12px 15px; /* Slightly reduced padding */
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.9em;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+         tr:hover {
+            background-color: #f1f8e9; /* Light green hover */
+         }
+
+        button, .file-input-label {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 8px 15px; /* Adjusted padding */
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 8px; /* Adjusted margin */
+            margin-bottom: 8px; /* Adjusted margin */
+            display: inline-flex; /* Use inline-flex for alignment */
+            align-items: center; /* Vertically center icon and text */
+            gap: 6px; /* Space between icon and text */
+            transition: background-color 0.3s ease;
+            font-size: 13px; /* Slightly smaller font */
+            white-space: nowrap; /* Prevent text wrapping */
+        }
+
+
+        button:hover, .file-input-label:hover {
+            background-color: #2980b9;
+        }
+
+        .delete-btn {
+            background-color: var(--danger-color);
+        }
+
+        .delete-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .edit-btn {
+            background-color: var(--edit-color);
+        }
+
+        .edit-btn:hover {
+            background-color: #d68910;
+        }
+
+        .add-ticket-btn {
+            background-color: var(--secondary-color);
+        }
+
+        .add-ticket-btn:hover {
+            background-color: #27ae60;
+        }
+
+        #searchBar {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+            background-color: #ecf0f1; /* Light background for search */
+            color: var(--text-color);
+        }
+
+        #searchBar:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .highlight {
+            background-color: #fff176;
+            padding: 1px 3px;
+            border-radius: 2px;
+            color: #333; /* Darker text on yellow highlight */
+            font-weight: bold;
+        }
+
+        #importFile { /* Hide the main generic import input */
+            display: none;
+        }
+
+        .action-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7); /* Darker loading overlay */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading::after {
+            content: "";
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            overflow-y: auto; /* Allow scrolling if content overflows */
+            padding-top: 5vh; /* Add some padding from the top */
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: white;
+            margin: 5% auto; /* Adjusted margin */
+            padding: 25px;
+            border-radius: 8px;
+            width: 90%; /* More responsive width */
+            max-width: 500px;
+            color: var(--text-color); /* Ensure text color inside modal */
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+         .modal-content h2 {
+             color: var(--primary-color);
+             margin-bottom: 15px;
+         }
+
+        .modal input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0 15px 0; /* Adjusted margin */
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .action-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            button, .file-input-label {
+                width: 100%;
+                margin-right: 0;
+                justify-content: center; /* Center content in full-width buttons */
+            }
+
+             .category-header {
+                flex-direction: column;
+                align-items: flex-start;
+             }
+        }
+
+      .database-selector {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+             color: #ecf0f1; /* Lighter text for label */
+        }
+
+        .database-selector select {
+            padding: 10px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 16px;
+            background-color: white;
+            color: var(--text-color);
+            cursor: pointer;
+        }
+
+        .database-selector select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        /* Styles pour la notification */
+       .notification {
+           position: fixed;
+           top: 20px;
+           right: 20px;
+           background-color: #4CAF50; /* Default success */
+           color: white;
+           padding: 15px 20px;
+           border-radius: 5px;
+           z-index: 1001;
+           display: none;
+           box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+           min-width: 250px;
+           max-width: 400px;
+        }
+       .notification.error {
+           background-color: var(--danger-color); /* Use danger color for errors */
+       }
+        .notification.info {
+             background-color: var(--primary-color); /* Use primary color for info */
+        }
+
+        .close-btn {
+           margin-left: 15px;
+           color: white;
+           font-weight: bold;
+           float: right;
+           font-size: 22px;
+           line-height: 20px;
+           cursor: pointer;
+           transition: 0.3s;
+        }
+
+        .close-btn:hover {
+           opacity: 0.7;
+        }
+         .category-section {
+            background-color: rgba(0, 71, 21, 0.8); /* Slightly transparent darker green */
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+         }
+    </style>
+</head>
+<body>
+    <div id="loadingIndicator" class="loading" style="display: none;"></div>
+    <div class="container" id="contentContainer" style="display:none;">
+        <h1>Gestion des tickets <button onclick="logout()" class="logout-button">
+            <i class="fas fa-sign-out-alt"></i> Déconnexion
+        </button></h1>
+
+
+        <div class="database-selector">
+            <label for="databaseSelect">Choisir la base de données : </label>
+            <select id="databaseSelect" onchange="changeDatabase()">
+                <option value="TicketsTotal">TicketsTotal</option>
+                <option value="TicketsTransit">TicketsTransit</option>
+            </select>
+        </div>
+
+        <div class="action-row">
+             <div>
+                <!-- Generic Import Button (Now less prominent as category-specific exist) -->
+                <label for="importFileGeneral" class="file-input-label">
+                     <i class="fas fa-file-import"></i> Importer (Général)
+                </label>
+                <input type="file" id="importFileGeneral" accept=".json,.csv,.txt" style="display: none;" onchange="importTickets(event, null)"> <!-- Pass null for category -->
+
+                <button onclick="exportTickets()"><i class="fas fa-file-export"></i> Exporter tout</button>
+            </div>
+             <div>
+                 <button onclick="exportFilteredTickets()"><i class="fas fa-filter"></i> Exporter filtrés</button>
+                 <button onclick="deleteSearchResults()" class="delete-btn"><i class="fas fa-trash-alt"></i> Supprimer recherche</button>
+            </div>
+        </div>
+        <input type="text" id="searchBar" placeholder="Rechercher (ID, Catégorie, Mot de passe, Prix, Utilisateur)">
+
+        <div id="ticketCategories">
+            <!-- Ticket categories will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Modale de notification -->
+    <div id="notification" class="notification">
+        <span id="notificationMessage"></span>
+        <span class="close-btn" onclick="closeNotification()">×</span>
+    </div>
+
+
+    <!-- Modal pour les prix -->
+    <div id="priceModal" class="modal">
+        <div class="modal-content">
+            <h2>Définir le prix</h2>
+            <p>Veuillez entrer le prix pour la catégorie/import : <strong id="categoryName"></strong></p>
+            <input type="text" id="priceInput" placeholder="Entrer le prix">
+            <div class="modal-buttons">
+                <button onclick="confirmPrice()" class="add-ticket-btn">Confirmer</button>
+                <button onclick="cancelImport()" class="delete-btn">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pour modifier un ticket -->
+    <div id="editTicketModal" class="modal">
+        <div class="modal-content">
+            <h2>Modifier le ticket</h2>
+            <label>ID:</label>
+            <input type="text" id="editId" placeholder="ID (non modifiable si Transit)" disabled>
+            <label>Catégorie:</label>
+            <input type="text" id="editCategory" placeholder="Catégorie">
+            <label>Mot de passe:</label>
+            <input type="text" id="editPassword" placeholder="Mot de passe">
+            <label>Prix:</label>
+            <input type="text" id="editPrice" placeholder="Prix">
+            <label>Utilisateur:</label>
+            <input type="text" id="editUser" placeholder="Utilisateur">
+            <div class="modal-buttons">
+                <button onclick="saveTicketEdit()" class="edit-btn">Enregistrer</button>
+                <button onclick="closeEditModal()" class="delete-btn">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pour modifier une catégorie -->
+    <div id="editCategoryModal" class="modal">
+        <div class="modal-content">
+            <h2>Modifier la catégorie</h2>
+             <p>Catégorie actuelle : <strong id="currentCategoryName"></strong></p>
+            <label>Nouveau nom:</label>
+            <input type="text" id="editCategoryName" placeholder="Nouveau nom de la catégorie">
+            <div class="modal-buttons">
+                <button onclick="saveCategoryEdit()" class="edit-btn">Enregistrer</button>
+                <button onclick="closeEditCategoryModal()" class="delete-btn">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pour ajouter un ticket -->
+    <div id="addTicketModal" class="modal">
+        <div class="modal-content">
+            <h2>Ajouter un nouveau ticket</h2>
+            <label>Catégorie:</label>
+            <input type="text" id="newCategory" placeholder="Catégorie (obligatoire)">
+            <label>Mot de passe:</label>
+            <input type="text" id="newPassword" placeholder="Mot de passe (obligatoire)">
+            <label>Prix:</label>
+            <input type="text" id="newPrice" placeholder="Prix (obligatoire)">
+            <label>Utilisateur:</label>
+            <input type="text" id="newUser" placeholder="Utilisateur (obligatoire)">
+            <div class="modal-buttons">
+                <button onclick="saveNewTicket()" class="add-ticket-btn">Ajouter</button>
+                <button onclick="closeAddTicketModal()" class="delete-btn">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pour la modification groupée -->
+    <div id="bulkEditModal" class="modal">
+        <div class="modal-content">
+            <h2>Modifier les tickets sélectionnés</h2>
+             <p>Laissez un champ vide pour ne pas le modifier.</p>
+            <label>Catégorie:</label>
+            <input type="text" id="bulkEditCategory" placeholder="Nouvelle catégorie">
+            <label>Mot de passe:</label>
+            <input type="text" id="bulkEditPassword" placeholder="Nouveau mot de passe">
+            <label>Prix:</label>
+            <input type="text" id="bulkEditPrice" placeholder="Nouveau prix">
+            <label>Utilisateur:</label>
+            <input type="text" id="bulkEditUser" placeholder="Nouvel utilisateur">
+            <div class="modal-buttons">
+                <button onclick="saveBulkEdit()" class="edit-btn">Enregistrer</button>
+                <button onclick="closeBulkEditModal()" class="delete-btn">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { getActiveDatabase } from './firebase-config-manager.js';
+        import { getDatabase, ref, onValue, set, update, push, remove, off, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+
+        let db;
+        let allTickets = {};
+        let tempImportData = null; // Holds parsed data from TXT/CSV before price confirmation
+        let tempCategoryQueue = []; // Holds categories needing price from TXT/CSV
+        let currentImportTargetCategory = null; // Holds category if importing via specific button
+        let currentEditingTicket = null; // Holds info for single ticket edit
+        let currentEditingCategory = null; // Holds name for category rename
+        let currentDatabase = 'TicketsTotal';
+        let currentUserId;
+        let initializationPromise;
+        let firebaseListenerRef = null; // To store the reference for the listener
+
+        // --- Initialization and Auth ---
+
+        async function initializeDatabase() {
+            if (!initializationPromise) {
+                initializationPromise = getActiveDatabase();
+            }
+            db = await initializationPromise;
+            console.log("Database initialized in a3.html");
+        }
+
+        async function checkLoginAndSubscription() {
+            console.log("Checking login and subscription status...");
+            if (sessionStorage.getItem('isLoggedIn') !== 'true') {
+                 console.log("User not logged in.");
+                redirectToLogin();
+                return false;
+            }
+
+            currentUserId = sessionStorage.getItem('currentUserId');
+            if (!currentUserId) {
+                console.error("Current user ID is not found in sessionStorage.");
+                redirectToLogin();
+                return false;
+            }
+             console.log("User ID found:", currentUserId);
+
+             // Ensure DB is initialized before checking subscription
+             await initializeDatabase();
+
+            const userAdminRef = ref(db, `users-data/${currentUserId}/admin/subscription`);
+            try {
+                const snapshot = await get(userAdminRef);
+                const subscription = snapshot.val();
+                 console.log("Subscription data:", subscription);
+
+                if (!subscription || subscription.status !== 'active') {
+                    console.log("Subscription not active or missing.");
+                    showNotification("error", "Abonnement requis. Veuillez vous abonner pour accéder à cette page.");
+                    document.getElementById('contentContainer').style.display = 'none'; // Hide content
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 4000); // Longer delay for reading
+                    return false;
+                }
+
+                console.log("Subscription active. Access granted.");
+                document.getElementById('contentContainer').style.display = 'block'; // Show content
+                return true;
+
+            } catch (error) {
+                console.error("Erreur lors de la vérification de l'abonnement:", error);
+                showNotification("error", "Erreur lors de la vérification de l'abonnement.");
+                document.getElementById('contentContainer').style.display = 'none'; // Hide content
+                return false;
+            }
+        }
+
+        function redirectToLogin() {
+            window.location.href = 'loginAccueil.html';
+        }
+
+        window.logout = function() {
+            sessionStorage.clear();
+            // Detach Firebase listener before logging out
+            if (firebaseListenerRef && db) {
+                 const currentUserIdForDetach = sessionStorage.getItem('currentUserId'); // Get it before clearing
+                 if (currentUserIdForDetach) {
+                    const path = `users-data/${currentUserIdForDetach}/${currentDatabase}`;
+                    console.log("Detaching listener from:", path);
+                    off(ref(db, path), 'value', firebaseListenerRef);
+                 }
+            }
+            console.log("User logged out, redirecting to login.");
+            redirectToLogin();
+        };
+
+        // --- UI Helpers ---
+
+        function showLoading() {
+            document.getElementById('loadingIndicator').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingIndicator').style.display = 'none';
+        }
+
+        function showNotification(type, message) {
+            const notification = document.getElementById('notification');
+            const notificationMessage = document.getElementById('notificationMessage');
+
+            notificationMessage.textContent = message;
+            notification.className = `notification ${type}`; // 'success', 'error', 'info'
+            notification.style.display = 'block';
+
+             // Auto-hide after 5 seconds
+            setTimeout(closeNotification, 5000);
+        }
+
+        window.closeNotification = function() {
+            const notification = document.getElementById('notification');
+             if (notification) {
+                 notification.style.display = 'none';
+             }
+        }
+
+         // --- Core Data Loading and Display ---
+
+        async function loadTickets() {
+            showLoading();
+            if (!currentUserId) {
+                console.error("User ID missing, cannot load tickets.");
+                hideLoading();
+                 showNotification("error", "Utilisateur non identifié. Reconnexion nécessaire.");
+                 setTimeout(redirectToLogin, 3000);
+                return;
+            }
+
+            await initializeDatabase();
+
+            // Detach previous listener if exists
+             if (firebaseListenerRef && db) {
+                 // Use the path that was listened to previously
+                 const previousPath = firebaseListenerRef.pathString; // Hypothetical, need actual path stored
+                 if (previousPath) {
+                    console.log("Detaching previous listener from:", previousPath);
+                    off(ref(db, previousPath), 'value'); // Detach using the actual ref if possible
+                 }
+             }
+
+
+            const ticketsPath = `users-data/${currentUserId}/${currentDatabase}`;
+            console.log("Setting up listener for path:", ticketsPath);
+            const ticketsRef = ref(db, ticketsPath);
+
+            // Store the listener function to remove it later
+            firebaseListenerRef = onValue(ticketsRef, (snapshot) => {
+                console.log("Data received from Firebase for", currentDatabase);
+                allTickets = snapshot.val() || {};
+                displayTickets(allTickets);
+                hideLoading();
+            }, (error) => {
+                console.error(`Erreur lors du chargement des tickets (${currentDatabase}):`, error);
+                hideLoading();
+                showNotification("error", `Erreur lors du chargement des tickets. Code: ${error.code}`);
+            });
+             // Store the path string for potential detachment later
+             // firebaseListenerRef.pathString = ticketsPath; // Note: This is conceptual, onValue doesn't directly return the path string easily. Storing ticketsRef might be better if needed for detachment by ref.
+        }
+
+        function displayTickets(tickets, searchTerm = '') {
+            const categoriesContainer = document.getElementById('ticketCategories');
+            categoriesContainer.innerHTML = ''; // Clear previous display
+             console.log(`Displaying tickets for ${currentDatabase} with search term: "${searchTerm}"`);
+
+            if (Object.keys(tickets).length === 0) {
+                 categoriesContainer.innerHTML = `<p style="color: #ecf0f1; text-align: center;">Aucun ticket trouvé dans ${currentDatabase}.</p>`;
+                 return;
+            }
+
+
+            if (currentDatabase === 'TicketsTotal') {
+                displayTicketsTotal(tickets, searchTerm);
+            } else if (currentDatabase === 'TicketsTransit') {
+                displayTicketsTransit(tickets, searchTerm);
+            }
+        }
+
+        function displayTicketsTotal(tickets, searchTerm = '') {
+            const categoriesContainer = document.getElementById('ticketCategories');
+            let contentHtml = '';
+            const sortedCategories = Object.keys(tickets).sort(); // Sort categories alphabetically
+
+            for (let category of sortedCategories) {
+                const categoryTickets = tickets[category];
+                // Basic validation: ensure structure is somewhat correct
+                if (!categoryTickets || !Array.isArray(categoryTickets.motDePasse) || !Array.isArray(categoryTickets.prix) || !Array.isArray(categoryTickets.utilisateur)) {
+                    console.warn(`Skipping category "${category}" due to invalid data structure.`);
+                    continue;
+                }
+
+                const ticketRows = generateTicketRowsTotal(category, categoryTickets, searchTerm);
+                const ticketCount = categoryTickets.motDePasse.length;
+                const filteredCount = (ticketRows.match(/<tr/g) || []).length; // Count displayed rows
+
+                contentHtml += `
+                    <div class="category-section">
+                        <div class="category-header">
+                            <div class="category-title">
+                                <h2>${category} (${filteredCount}/${ticketCount})</h2>
+                                <i class="fas fa-edit pin-icon" onclick="window.editCategory('${category}')" title="Renommer la catégorie"></i>
+                            </div>
+                            <div>
+                                <button class="add-ticket-btn" onclick="window.showAddTicketModal('${category}')">
+                                    <i class="fas fa-plus"></i> Ajouter
+                                </button>
+                                <label for="importFile_${category}" class="file-input-label">
+                                    <i class="fas fa-file-import"></i> Importer dans ${category}
+                                </label>
+                                <!-- Input specific to this category -->
+                                <input type="file" id="importFile_${category}"
+                                    accept=".json,.csv,.txt"
+                                    style="display: none;"
+                                    onchange="importTickets(event, '${category}')"> <!-- Pass category name -->
+                            </div>
+                        </div>
+                         <div style="margin-bottom: 10px;"> <!-- Action buttons for category -->
+                            <button onclick="window.editSelectedTickets('${category}')" class="edit-btn" title="Modifier les tickets cochés dans cette catégorie">
+                                <i class="fas fa-pencil-alt"></i> Modifier Sélection
+                            </button>
+                             <button onclick="window.deleteSelectedTickets('${category}')" class="delete-btn" title="Supprimer les tickets cochés dans cette catégorie">
+                                <i class="fas fa-check-square"></i> Supprimer Sélection
+                            </button>
+                            <button onclick="window.deleteAllTicketsInCategory('${category}')" class="delete-btn" title="Supprimer TOUS les tickets de cette catégorie">
+                                <i class="fas fa-trash"></i> Tout Supprimer
+                            </button>
+                        </div>
+                        ${ticketCount > 0 ? `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" onchange="window.toggleSelectAll(this, '${category}')" title="Sélectionner/Désélectionner tout"></th>
+                                    <th>Mot de passe</th>
+                                    <th>Prix</th>
+                                    <th>Utilisateur</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ticketsBody_${category}">
+                                ${ticketRows}
+                            </tbody>
+                        </table>
+                        ` : `<p style="color: #bdc3c7;">Aucun ticket dans cette catégorie.</p>`}
+                    </div>
+                `;
+            }
+             categoriesContainer.innerHTML = contentHtml || `<p style="color: #ecf0f1; text-align: center;">Aucune catégorie trouvée.</p>`;;
+        }
+
+        function generateTicketRowsTotal(category, categoryTickets, searchTerm) {
+            let rows = '';
+            if (!categoryTickets.motDePasse) return ''; // Safety check
+
+            for (let i = 0; i < categoryTickets.motDePasse.length; i++) {
+                 // Ensure data exists for the index to avoid errors
+                 const password = categoryTickets.motDePasse[i] ?? '';
+                 const price = categoryTickets.prix[i] ?? '';
+                 const user = categoryTickets.utilisateur[i] ?? '';
+
+                if (searchTerm && !matchesSearchTotal(password, price, user, searchTerm)) continue;
+
+                rows += `
+                    <tr>
+                        <td><input type="checkbox" name="ticketSelect_${category}" value="${i}"></td>
+                        <td>${highlightMatch(password, searchTerm)}</td>
+                        <td>${highlightMatch(price, searchTerm)}</td>
+                        <td>${highlightMatch(user, searchTerm)}</td>
+                        <td>
+                            <button class="edit-btn" onclick="window.editTicketTotal('${category}', ${i})">
+                                <i class="fas fa-edit"></i> Modifier
+                            </button>
+                            <button class="delete-btn" onclick="window.deleteTicket('${category}', ${i}, null)">
+                                <i class="fas fa-trash"></i> Supprimer
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }
+            return rows;
+        }
+
+         function displayTicketsTransit(tickets, searchTerm = '') {
+            const categoriesContainer = document.getElementById('ticketCategories');
+            categoriesContainer.innerHTML = ''; // Clear previous
+
+            const ticketRows = generateTicketRowsTransit(tickets, searchTerm);
+            const ticketCount = Object.keys(tickets).length;
+             const filteredCount = (ticketRows.match(/<tr/g) || []).length;
+
+            const categoryHtml = `
+                <div class="category-section">
+                    <div class="category-header">
+                        <div class="category-title">
+                            <h2>Tickets en transit (${filteredCount}/${ticketCount})</h2>
+                             <!-- No edit icon needed for Transit itself -->
+                        </div>
+                        <div>
+                            <button class="add-ticket-btn" onclick="window.showAddTicketModal(null)"> <!-- Pass null for category -->
+                                <i class="fas fa-plus"></i> Ajouter Ticket
+                            </button>
+                            <label for="importFile_Transit" class="file-input-label">
+                                <i class="fas fa-file-import"></i> Importer dans Transit
+                            </label>
+                            <!-- Input specific to Transit -->
+                            <input type="file" id="importFile_Transit"
+                                accept=".txt,.json"
+                                style="display: none;"
+                                onchange="importTickets(event, 'Transit')"> <!-- Pass 'Transit' identifier -->
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 10px;"> <!-- Action buttons for Transit -->
+                         <button onclick="window.editSelectedTickets(null)" class="edit-btn" title="Modifier les tickets cochés">
+                             <i class="fas fa-pencil-alt"></i> Modifier Sélection
+                         </button>
+                         <button onclick="window.deleteSelectedTickets(null)" class="delete-btn" title="Supprimer les tickets cochés">
+                             <i class="fas fa-check-square"></i> Supprimer Sélection
+                         </button>
+                         <button onclick="window.deleteAllTicketsInCategory(null)" class="delete-btn" title="Supprimer TOUS les tickets en Transit">
+                            <i class="fas fa-trash"></i> Tout Supprimer
+                         </button>
+                    </div>
+                     ${ticketCount > 0 ? `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" onchange="window.toggleSelectAll(this, 'Transit')" title="Sélectionner/Désélectionner tout"></th>
+                                <th>ID</th>
+                                <th>Catégorie</th>
+                                <th>Mot de passe</th>
+                                <th>Prix</th>
+                                <th>Utilisateur</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ticketsBody_Transit">
+                            ${ticketRows}
+                        </tbody>
+                    </table>
+                    ` : `<p style="color: #bdc3c7;">Aucun ticket en transit.</p>`}
+                </div>
+            `;
+            categoriesContainer.innerHTML = categoryHtml;
+        }
+
+        function generateTicketRowsTransit(tickets, searchTerm) {
+            let rows = '';
+             const sortedIds = Object.keys(tickets).sort(); // Sort by ID
+
+            for (let id of sortedIds) {
+                const ticket = tickets[id];
+                 if (!ticket) continue; // Safety check
+
+                if (searchTerm && !matchesSearchTransit(ticket, id, searchTerm)) continue;
+
+                 // Use empty strings as fallback for missing properties
+                 const category = ticket.category ?? '';
+                 const password = ticket.password ?? '';
+                 const price = ticket.price ?? '';
+                 const user = ticket.user ?? '';
+
+                rows += `
+                    <tr>
+                        <td><input type="checkbox" name="ticketSelect_Transit" value="${id}"></td>
+                        <td>${highlightMatch(id, searchTerm)}</td>
+                        <td>${highlightMatch(category, searchTerm)}</td>
+                        <td>${highlightMatch(password, searchTerm)}</td>
+                        <td>${highlightMatch(price, searchTerm)}</td>
+                        <td>${highlightMatch(user, searchTerm)}</td>
+                        <td>
+                            <button class="edit-btn" onclick="window.editTicketTransit('${id}')">
+                                <i class="fas fa-edit"></i> Modifier
+                            </button>
+                            <button class="delete-btn" onclick="window.deleteTicket(null, null, '${id}')">
+                                <i class="fas fa-trash"></i> Supprimer
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }
+            return rows;
+        }
+
+         // --- Search and Highlight ---
+
+        function matchesSearchTotal(password, price, user, searchTerm) {
+            const lowerSearchTerm = searchTerm.toLowerCase();
+            return (password?.toLowerCase().includes(lowerSearchTerm)) ||
+                   (price?.toLowerCase().includes(lowerSearchTerm)) ||
+                   (user?.toLowerCase().includes(lowerSearchTerm));
+        }
+
+        function matchesSearchTransit(ticket, id, searchTerm) {
+            const lowerSearchTerm = searchTerm.toLowerCase();
+            return (id?.toLowerCase().includes(lowerSearchTerm)) ||
+                   (ticket.category?.toLowerCase().includes(lowerSearchTerm)) ||
+                   (ticket.password?.toLowerCase().includes(lowerSearchTerm)) ||
+                   (ticket.price?.toLowerCase().includes(lowerSearchTerm)) ||
+                   (ticket.user?.toLowerCase().includes(lowerSearchTerm));
+        }
+
+        function highlightMatch(text, searchTerm) {
+            if (!searchTerm || !text) return text; // Handle null/undefined text
+            try {
+                // Escape special regex characters in searchTerm
+                const escapedSearchTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const regex = new RegExp(escapedSearchTerm, 'gi');
+                return text.toString().replace(regex, match => `<span class="highlight">${match}</span>`);
+            } catch (e) {
+                 console.warn("Error creating regex for highlighting:", e);
+                 return text; // fallback to original text if regex fails
+            }
+        }
+
+        function searchTickets() {
+            const searchTerm = document.getElementById('searchBar').value.trim();
+            displayTickets(allTickets, searchTerm);
+        }
+
+        // --- CRUD Operations ---
+
+        // Edit Single Ticket (Total)
+        function editTicketTotal(category, index) {
+            currentEditingTicket = { type: 'Total', category, index };
+            const ticketData = allTickets[category];
+
+            document.getElementById('editId').value = `Index: ${index}`; // Display index for info
+            document.getElementById('editCategory').value = category;
+             document.getElementById('editCategory').disabled = false; // Allow category change for Total
+            document.getElementById('editPassword').value = ticketData.motDePasse[index] ?? '';
+            document.getElementById('editPrice').value = ticketData.prix[index] ?? '';
+            document.getElementById('editUser').value = ticketData.utilisateur[index] ?? '';
+
+            document.getElementById('editTicketModal').style.display = 'block';
+        }
+
+        // Edit Single Ticket (Transit)
+         function editTicketTransit(id) {
+            currentEditingTicket = { type: 'Transit', id };
+            const ticket = allTickets[id];
+            if (ticket) {
+                document.getElementById('editId').value = id;
+                document.getElementById('editCategory').value = ticket.category ?? '';
+                document.getElementById('editCategory').disabled = false; // Allow category change for Transit too
+                document.getElementById('editPassword').value = ticket.password ?? '';
+                document.getElementById('editPrice').value = ticket.price ?? '';
+                document.getElementById('editUser').value = ticket.user ?? '';
+                document.getElementById('editTicketModal').style.display = 'block';
+            } else {
+                 showNotification("error", "Ticket introuvable pour modification.");
+            }
+        }
+
+        // Save Single Ticket Edit
+        async function saveTicketEdit() {
+            if (!currentUserId || !currentEditingTicket) return;
+
+            const newPassword = document.getElementById('editPassword').value.trim();
+            const newPrice = document.getElementById('editPrice').value.trim();
+            const newUser = document.getElementById('editUser').value.trim();
+            const newCategory = document.getElementById('editCategory').value.trim(); // New category from input
+
+            if (!newPassword || !newPrice || !newUser || !newCategory) {
+                showNotification("error", 'Tous les champs (Catégorie, Mot de passe, Prix, Utilisateur) sont obligatoires.');
+                return;
+            }
+
+            showLoading();
+            await initializeDatabase();
+            const updates = {};
+            const dbPathPrefix = `users-data/${currentUserId}/${currentDatabase}`;
+
+            try {
+                if (currentEditingTicket.type === 'Total') {
+                     const oldCategory = currentEditingTicket.category;
+                     const index = currentEditingTicket.index;
+                     const categoryData = JSON.parse(JSON.stringify(allTickets[oldCategory])); // Deep copy to avoid modifying original before update
+
+                     if (newCategory === oldCategory) {
+                        // Update in place
+                        categoryData.motDePasse[index] = newPassword;
+                        categoryData.prix[index] = newPrice;
+                        categoryData.utilisateur[index] = newUser;
+                        updates[`${dbPathPrefix}/${oldCategory}`] = categoryData;
+                     } else {
+                        // Move ticket to new category
+                        const ticketToMove = {
+                             motDePasse: categoryData.motDePasse.splice(index, 1)[0],
+                             prix: categoryData.prix.splice(index, 1)[0],
+                             utilisateur: categoryData.utilisateur.splice(index, 1)[0]
+                        };
+                         // Update old category (ticket removed)
+                        updates[`${dbPathPrefix}/${oldCategory}`] = categoryData;
+
+                         // Add to new category (fetch existing or create new)
+                        const newCategoryDataRef = ref(db, `${dbPathPrefix}/${newCategory}`);
+                        const newCategorySnapshot = await get(newCategoryDataRef);
+                        const newCategoryData = newCategorySnapshot.val() || { motDePasse: [], prix: [], utilisateur: [] };
+
+                         newCategoryData.motDePasse.push(ticketToMove.motDePasse);
+                         newCategoryData.prix.push(ticketToMove.prix);
+                         newCategoryData.utilisateur.push(ticketToMove.utilisateur);
+                         updates[`${dbPathPrefix}/${newCategory}`] = newCategoryData;
+                     }
+
+                } else if (currentEditingTicket.type === 'Transit') {
+                     const id = currentEditingTicket.id;
+                    updates[`${dbPathPrefix}/${id}`] = { // Update entire object
+                         // id: id, // ID doesn't change
+                         category: newCategory,
+                         password: newPassword,
+                         price: newPrice,
+                         user: newUser
+                    };
+                }
+
+                await update(ref(db), updates);
+                hideLoading();
+                closeEditModal();
+                showNotification("success", 'Ticket modifié avec succès!');
+
+            } catch (error) {
+                 console.error("Erreur lors de la modification du ticket:", error);
+                 hideLoading();
+                 showNotification("error", `Erreur lors de la modification: ${error.message}`);
+            }
+        }
+
+        // Rename Category (TicketsTotal only)
+        function editCategory(category) {
+            if (currentDatabase !== 'TicketsTotal') return;
+            currentEditingCategory = category;
+            document.getElementById('currentCategoryName').textContent = category;
+            document.getElementById('editCategoryName').value = category; // Pre-fill with current name
+            document.getElementById('editCategoryModal').style.display = 'block';
+        }
+
+        async function saveCategoryEdit() {
+            if (!currentUserId || !currentEditingCategory || currentDatabase !== 'TicketsTotal') return;
+
+            const newCategoryName = document.getElementById('editCategoryName').value.trim();
+
+            if (!newCategoryName) {
+                showNotification("error", 'Le nom de la catégorie ne peut pas être vide.');
+                return;
+            }
+
+            if (newCategoryName === currentEditingCategory) {
+                 closeEditCategoryModal(); // No change needed
+                 return;
+            }
+
+             // Check if new category name already exists
+             if (allTickets[newCategoryName]) {
+                 showNotification("error", `La catégorie "${newCategoryName}" existe déjà.`);
+                 return;
+             }
+
+
+            showLoading();
+            await initializeDatabase();
+            const categoryData = allTickets[currentEditingCategory]; // Get data before deleting
+             const dbPathPrefix = `users-data/${currentUserId}/${currentDatabase}`;
+
+            const updates = {
+                [`${dbPathPrefix}/${currentEditingCategory}`]: null, // Delete old category node
+                [`${dbPathPrefix}/${newCategoryName}`]: categoryData  // Create new category node with old data
+            };
+
+            try {
+                await update(ref(db), updates);
+                hideLoading();
+                closeEditCategoryModal();
+                showNotification("success", 'Catégorie renommée avec succès!');
+            } catch (error) {
+                console.error("Erreur lors du renommage de la catégorie:", error);
+                hideLoading();
+                showNotification("error", `Erreur lors du renommage: ${error.message}`);
+            }
+        }
+
+        // Add New Ticket
+        function showAddTicketModal(category = null) {
+            // Store the target category if provided (for TicketsTotal)
+            currentEditingCategory = category;
+
+            document.getElementById('newCategory').value = category || ''; // Pre-fill if category known
+             // Make category editable only if adding to Transit or if no category specified for Total
+            document.getElementById('newCategory').disabled = (currentDatabase === 'TicketsTotal' && category);
+
+            document.getElementById('newPassword').value = '';
+            document.getElementById('newPrice').value = '';
+            document.getElementById('newUser').value = '';
+            document.getElementById('addTicketModal').style.display = 'block';
+        }
+
+        async function saveNewTicket() {
+            showLoading();
+            if (!currentUserId) {
+                 hideLoading();
+                 showNotification("error", 'Utilisateur non identifié.');
+                 return;
+            }
+
+             const category = document.getElementById('newCategory').value.trim();
+             const password = document.getElementById('newPassword').value.trim();
+             const price = document.getElementById('newPrice').value.trim();
+             const user = document.getElementById('newUser').value.trim();
+
+             if (!category || !password || !price || !user) {
+                 hideLoading();
+                 showNotification("error", 'Tous les champs sont obligatoires.');
+                 return;
+             }
+
+
+            await initializeDatabase();
+             const dbPathPrefix = `users-data/${currentUserId}/${currentDatabase}`;
+
+            try {
+                if (currentDatabase === 'TicketsTransit') {
+                    const newTicketRef = push(ref(db, dbPathPrefix)); // Let Firebase generate unique ID
+                    const newTicketId = newTicketRef.key;
+                    await set(newTicketRef, {
+                        // id: newTicketId, // Storing ID within object is optional with generated keys
+                        category: category,
+                        password: password,
+                        price: price,
+                        user: user
+                    });
+                    showNotification("success", 'Ticket ajouté avec succès dans TicketsTransit!');
+
+                } else { // TicketsTotal
+                    const targetCategory = category; // Use the entered category
+
+                     // Get current data for the category or initialize if new
+                     const categoryRef = ref(db, `${dbPathPrefix}/${targetCategory}`);
+                     const snapshot = await get(categoryRef);
+                     const categoryData = snapshot.val() || { motDePasse: [], prix: [], utilisateur: [] };
+
+                     // Append new ticket data
+                     categoryData.motDePasse.push(password);
+                     categoryData.prix.push(price);
+                     categoryData.utilisateur.push(user);
+
+                     // Set the updated data back
+                     await set(categoryRef, categoryData);
+                    showNotification("success", `Ticket ajouté avec succès dans ${targetCategory}!`);
+                }
+                hideLoading();
+                closeAddTicketModal();
+
+            } catch (error) {
+                console.error("Erreur lors de l'ajout du ticket:", error);
+                hideLoading();
+                showNotification("error", `Erreur lors de l'ajout: ${error.message}`);
+            }
+        }
+
+        // Delete Single Ticket
+        async function deleteTicket(category, index, id) {
+             console.log(`Attempting delete: category=${category}, index=${index}, id=${id}, db=${currentDatabase}`);
+             if (!currentUserId) {
+                 showNotification("error", "Utilisateur non identifié.");
+                 return;
+             }
+
+            if (!confirm('Êtes-vous sûr de vouloir supprimer ce ticket ? Cette action est irréversible.')) {
+                return;
+            }
+
+            showLoading();
+            await initializeDatabase();
+            const dbPathPrefix = `users-data/${currentUserId}/${currentDatabase}`;
+
+            try {
+                if (currentDatabase === 'TicketsTransit' && id) {
+                    const path = `${dbPathPrefix}/${id}`;
+                    console.log("Deleting Transit path:", path);
+                    await remove(ref(db, path));
+                    showNotification("success", 'Ticket (Transit) supprimé avec succès!');
+
+                } else if (currentDatabase === 'TicketsTotal' && category !== null && index !== null) {
+                    const path = `${dbPathPrefix}/${category}`;
+                    console.log("Updating Total path for delete:", path);
+
+                    // Need to fetch current data, modify, then set back
+                     const categoryRef = ref(db, path);
+                     const snapshot = await get(categoryRef);
+                     const categoryData = snapshot.val();
+
+                    if (categoryData && Array.isArray(categoryData.motDePasse) && index >= 0 && index < categoryData.motDePasse.length) {
+                        categoryData.motDePasse.splice(index, 1);
+                        categoryData.prix.splice(index, 1);
+                        categoryData.utilisateur.splice(index, 1);
+
+                        // Set the modified data back
+                        // If category becomes empty, remove it entirely? Optional, for now keep empty structure.
+                        // if (categoryData.motDePasse.length === 0) {
+                        //     await remove(categoryRef);
+                        // } else {
+                           await set(categoryRef, categoryData);
+                        // }
+                         showNotification("success", 'Ticket (Total) supprimé avec succès!');
+                    } else {
+                        throw new Error("Données de catégorie invalides ou index hors limites.");
+                    }
+                } else {
+                     throw new Error("Paramètres de suppression invalides.");
+                }
+
+                hideLoading();
+                 // No need to manually call loadTickets, Firebase listener should update UI.
+
+            } catch (error) {
+                console.error("Erreur lors de la suppression du ticket:", error);
+                hideLoading();
+                showNotification("error", `Erreur de suppression: ${error.message}`);
+            }
+        }
+
+        // Delete Selected Tickets
+        async function deleteSelectedTickets(categoryIdentifier) { // null for Transit, category name for Total
+             console.log(`Attempting delete selected for: ${categoryIdentifier ?? 'Transit'}`);
+             if (!currentUserId) {
+                 showNotification("error", "Utilisateur non identifié.");
+                 return;
+             }
+
+            const selectorName = (currentDatabase === 'TicketsTransit') ? 'ticketSelect_Transit' : `ticketSelect_${categoryIdentifier}`;
+            const selectedCheckboxes = document.querySelectorAll(`input[name="${selectorName}"]:checked`);
+
+            if (selectedCheckboxes.length === 0) {
+                showNotification("info", 'Veuillez sélectionner au moins un ticket à supprimer.');
+                return;
+            }
+
+            if (!confirm(`Êtes-vous sûr de vouloir supprimer les ${selectedCheckboxes.length} ticket(s) sélectionné(s) ?`)) {
+                return;
+            }
+
+            showLoading();
+            await initializeDatabase();
+            const updates = {};
+            const dbPathPrefix = `users-data/${currentUserId}/${currentDatabase}`;
+
+            try {
+                if (currentDatabase === 'TicketsTransit') {
+                    selectedCheckboxes.forEach(checkbox => {
+                        const ticketId = checkbox.value;
+                         updates[`${dbPathPrefix}/${ticketId}`] = null; // Mark for deletion
+                    });
+                     console.log("Transit delete updates:", updates);
+
+                } else { // TicketsTotal
+                    const category = categoryIdentifier;
+                    const categoryPath = `${dbPathPrefix}/${category}`;
+                    // Fetch current data first to modify it correctly
+                     const categoryRef = ref(db, categoryPath);
+                     const snapshot = await get(categoryRef);
+                     const categoryData = snapshot.val();
+
+                     if (!categoryData || !categoryData.motDePasse) {
+                         throw new Error(`Données de catégorie ${category} non trouvées.`);
+                     }
+
+                     // Get indices to delete, sort descending to avoid index shifting issues during splice
+                     const indicesToDelete = Array.from(selectedCheckboxes)
+                        .map(checkbox => parseInt(checkbox.value))
+                        .sort((a, b) => b - a);
+
+                    indicesToDelete.forEach(index => {
+                         if (index >= 0 && index < categoryData.motDePasse.length) {
+                             categoryData.motDePasse.splice(index, 1);
+                             categoryData.prix.splice(index, 1);
+                             categoryData.utilisateur.splice(index, 1);
+                         } else {
+                              console.warn(`Index ${index} invalide pour la catégorie ${category} lors de la suppression groupée.`);
+                         }
+                    });
+
+                    // Prepare update for the entire modified category
+                    updates[categoryPath] = categoryData;
+                    console.log("Total delete update for path:", categoryPath);
+                }
+
+                // Apply all deletions/updates at once
+                await update(ref(db), updates);
+                hideLoading();
+                showNotification("success", 'Tickets sélectionnés supprimés avec succès!');
+                 // UI will update via listener
+
+            } catch (error) {
+                console.error("Erreur lors de la suppression des tickets sélectionnés:", error);
+                hideLoading();
+                showNotification("error", `Erreur de suppression groupée: ${error.message}`);
+            }
+        }
+
+        // Delete ALL Tickets In Category / Transit
+        async function deleteAllTicketsInCategory(categoryIdentifier) { // null for Transit, category name for Total
+             console.log(`Attempting delete ALL for: ${categoryIdentifier ?? 'Transit'}`);
+             if (!currentUserId) {
+                 showNotification("error", "Utilisateur non identifié.");
+                 return;
+             }
+
+            const targetName = (currentDatabase === 'TicketsTransit') ? 'Tickets en Transit' : `la catégorie "${categoryIdentifier}"`;
+            if (!confirm(`ATTENTION ! Êtes-vous sûr de vouloir supprimer TOUS les tickets de ${targetName} ? Cette action est irréversible.`)) {
+                return;
+            }
+
+            showLoading();
+            await initializeDatabase();
+            const dbPathPrefix = `users-data/${currentUserId}/${currentDatabase}`;
+            let pathToDelete;
+
+            if (currentDatabase === 'TicketsTransit') {
+                 pathToDelete = dbPathPrefix; // Path to the entire Transit node
+            } else {
+                 pathToDelete = `${dbPathPrefix}/${categoryIdentifier}`; // Path to the specific category node
+            }
+
+             console.log("Deleting ALL at path:", pathToDelete);
+            try {
+                await remove(ref(db, pathToDelete)); // Use remove to delete the node
+                hideLoading();
+                showNotification("success", `Tous les tickets de ${targetName} ont été supprimés.`);
+                 // Listener will update UI
+            } catch (error) {
+                console.error(`Erreur lors de la suppression de tous les tickets (${targetName}):`, error);
+                hideLoading();
+                showNotification("error", `Erreur lors de la suppression totale: ${error.message}`);
+            }
+        }
+
+        // Delete Search Results
+        async function deleteSearchResults() {
+            const searchTerm = document.getElementById('searchBar').value.trim();
+             if (!currentUserId) {
+                 showNotification("error", "Utilisateur non identifié.");
+                 return;
+             }
+            if (!searchTerm) {
+                showNotification("info", 'Veuillez entrer un terme de recherche avant de supprimer.');
+                return;
+            }
+
+            if (!confirm(`Êtes-vous sûr de vouloir supprimer tous les tickets correspondant à la recherche "${searchTerm}" ?`)) {
+                return;
+            }
+
+            showLoading();
+            await initializeDatabase();
+            const updates = {};
+            const dbPathPrefix = `users-data/${currentUserId}/${currentDatabase}`;
+             let deletedCount = 0;
+
+            try {
+                if (currentDatabase === 'TicketsTransit') {
+                     for (const id in allTickets) {
+                         const ticket = allTickets[id];
+                         if (matchesSearchTransit(ticket, id, searchTerm)) {
+                             updates[`${dbPathPrefix}/${id}`] = null;
+                             deletedCount++;
+                         }
+                     }
+
+                } else { // TicketsTotal
+                    for (const category in allTickets) {
+                         const categoryPath = `${dbPathPrefix}/${category}`;
+                         // MUST fetch current data, modify, then set back
+                         const categoryRef = ref(db, categoryPath);
+                         const snapshot = await get(categoryRef);
+                         const originalCategoryData = snapshot.val();
+
+                         if (!originalCategoryData || !originalCategoryData.motDePasse) continue; // Skip if empty or invalid
+
+                         // Create a new structure keeping only non-matching tickets
+                         const keptCategoryData = { motDePasse: [], prix: [], utilisateur: [] };
+                         let categoryChanged = false;
+
+                         for (let i = 0; i < originalCategoryData.motDePasse.length; i++) {
+                             const password = originalCategoryData.motDePasse[i] ?? '';
+                             const price = originalCategoryData.prix[i] ?? '';
+                             const user = originalCategoryData.utilisateur[i] ?? '';
+
+                             if (matchesSearchTotal(password, price, user, searchTerm)) {
+                                 // This ticket matches the search, so DON'T add it to keptCategoryData
+                                 deletedCount++;
+                                 categoryChanged = true;
+                             } else {
+                                 // This ticket does NOT match, keep it
+                                 keptCategoryData.motDePasse.push(password);
+                                 keptCategoryData.prix.push(price);
+                                 keptCategoryData.utilisateur.push(user);
+                             }
+                         }
+
+                         // If any tickets were removed from this category, stage the update
+                         if (categoryChanged) {
+                              // If the category becomes empty, we remove it; otherwise, we update it.
+                              if (keptCategoryData.motDePasse.length === 0) {
+                                  updates[categoryPath] = null; // Mark category for deletion
+                              } else {
+                                  updates[categoryPath] = keptCategoryData; // Update with kept tickets
+                              }
+                         }
+                    }
+                } // End TicketsTotal logic
+
+                if (Object.keys(updates).length === 0) {
+                     hideLoading();
+                     showNotification("info", "Aucun ticket correspondant à la recherche n'a été trouvé.");
+                     return;
+                }
+
+                 console.log("Deleting search results with updates:", updates);
+                await update(ref(db), updates);
+                hideLoading();
+                showNotification("success", `${deletedCount} ticket(s) correspondant à la recherche ont été supprimés.`);
+                 document.getElementById('searchBar').value = ''; // Clear search bar after deletion
+                 // UI updates via listener
+
+            } catch (error) {
+                 console.error("Erreur lors de la suppression des résultats de recherche:", error);
+                 hideLoading();
+                 showNotification("error", `Erreur lors de la suppression par recherche: ${error.message}`);
+            }
+        }
+
+
+        // --- Bulk Edit ---
+        let bulkEditData = { categoryIdentifier: null, selectedIdsOrIndices: [] };
+
+        function editSelectedTickets(categoryIdentifier) { // null for Transit, category name for Total
+             const selectorName = (currentDatabase === 'TicketsTransit') ? 'ticketSelect_Transit' : `ticketSelect_${categoryIdentifier}`;
+            const selectedCheckboxes = document.querySelectorAll(`input[name="${selectorName}"]:checked`);
+
+            if (selectedCheckboxes.length === 0) {
+                showNotification("info", 'Veuillez sélectionner au moins un ticket à modifier.');
+                return;
+            }
+
+            bulkEditData.categoryIdentifier = categoryIdentifier;
+            bulkEditData.selectedIdsOrIndices = Array.from(selectedCheckboxes).map(cb => cb.value);
+
+            // Clear modal fields
+             document.getElementById('bulkEditCategory').value = '';
+             document.getElementById('bulkEditPassword').value = '';
+             document.getElementById('bulkEditPrice').value = '';
+             document.getElementById('bulkEditUser').value = '';
+
+             // Disable category change if editing within a specific TicketsTotal category
+             document.getElementById('bulkEditCategory').disabled = (currentDatabase === 'TicketsTotal' && categoryIdentifier !== null);
+
+
+            document.getElementById('bulkEditModal').style.display = 'block';
+        }
+
+        async function saveBulkEdit() {
+             if (!currentUserId || bulkEditData.selectedIdsOrIndices.length === 0) return;
+
+             const newCategory = document.getElementById('bulkEditCategory').value.trim();
+             const newPassword = document.getElementById('bulkEditPassword').value.trim();
+             const newPrice = document.getElementById('bulkEditPrice').value.trim();
+             const newUser = document.getElementById('bulkEditUser').value.trim();
+
+             // Check if at least one field is filled for modification
+             if (!newCategory && !newPassword && !newPrice && !newUser) {
+                 showNotification("info", "Veuillez remplir au moins un champ à modifier.");
+                 return;
+             }
+
+            showLoading();
+            await initializeDatabase();
+            const updates = {};
+            const dbPathPrefix = `users-data/${currentUserId}/${currentDatabase}`;
+             let modifiedCount = 0;
+
+            try {
+                if (currentDatabase === 'TicketsTransit') {
+                     for (const ticketId of bulkEditData.selectedIdsOrIndices) {
+                         const ticketRef = ref(db, `${dbPathPrefix}/${ticketId}`);
+                         const snapshot = await get(ticketRef);
+                         const currentTicketData = snapshot.val();
+                         if (currentTicketData) {
+                             updates[`${dbPathPrefix}/${ticketId}`] = {
+                                 category: newCategory || currentTicketData.category,
+                                 password: newPassword || currentTicketData.password,
+                                 price: newPrice || currentTicketData.price,
+                                 user: newUser || currentTicketData.user
+                             };
+                              modifiedCount++;
+                         } else {
+                              console.warn(`Ticket ${ticketId} non trouvé pendant la modification groupée.`);
+                         }
+                     }
+                } else { // TicketsTotal
+                    const category = bulkEditData.categoryIdentifier;
+                    const categoryPath = `${dbPathPrefix}/${category}`;
+                    const categoryRef = ref(db, categoryPath);
+                    const snapshot = await get(categoryRef);
+                    const categoryData = snapshot.val();
+
+                     if (!categoryData || !categoryData.motDePasse) {
+                         throw new Error(`Données de la catégorie ${category} non trouvées pour modification groupée.`);
+                     }
+
+                     // Modify the categoryData directly based on selected indices
+                     bulkEditData.selectedIdsOrIndices.forEach(indexStr => {
+                        const index = parseInt(indexStr);
+                        if (index >= 0 && index < categoryData.motDePasse.length) {
+                             // Note: Category change is disabled for bulk edit in TicketsTotal via UI
+                            if (newPassword) categoryData.motDePasse[index] = newPassword;
+                            if (newPrice) categoryData.prix[index] = newPrice;
+                            if (newUser) categoryData.utilisateur[index] = newUser;
+                            modifiedCount++;
+                        } else {
+                            console.warn(`Index ${index} invalide pour ${category} lors de la modification groupée.`);
+                        }
+                    });
+
+                    // Stage the update for the entire modified category
+                    updates[categoryPath] = categoryData;
+                }
+
+                 if (modifiedCount === 0 && Object.keys(updates).length > 0) {
+                     // This might happen if tickets were deleted between selection and saving
+                     hideLoading();
+                     showNotification("warning", "Aucun des tickets sélectionnés n'a pu être trouvé pour modification.");
+                     closeBulkEditModal();
+                     return;
+                 } else if (modifiedCount === 0) {
+                    // Should not happen if validation passed, but as a safeguard
+                     hideLoading();
+                     showNotification("info", "Aucune modification à appliquer.");
+                     closeBulkEditModal();
+                     return;
+                 }
+
+                await update(ref(db), updates);
+                hideLoading();
+                closeBulkEditModal();
+                showNotification("success", `${modifiedCount} ticket(s) modifié(s) avec succès!`);
+                 // UI updates via listener
+
+            } catch (error) {
+                 console.error("Erreur lors de la modification groupée:", error);
+                 hideLoading();
+                 showNotification("error", `Erreur modification groupée: ${error.message}`);
+            }
+        }
+
+        // --- Import / Export ---
+
+        function exportTickets() {
+            if (Object.keys(allTickets).length === 0) {
+                showNotification("info", "Il n'y a aucun ticket à exporter.");
+                return;
+            }
+            try {
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allTickets, null, 2));
+                const downloadAnchorNode = document.createElement('a');
+                downloadAnchorNode.setAttribute("href", dataStr);
+                downloadAnchorNode.setAttribute("download", `tickets_export_${currentDatabase}_${new Date().toISOString().slice(0,10)}.json`);
+                document.body.appendChild(downloadAnchorNode);
+                downloadAnchorNode.click();
+                downloadAnchorNode.remove();
+                showNotification("success", "Exportation de tous les tickets terminée.");
+            } catch (error) {
+                 console.error("Erreur d'exportation:", error);
+                 showNotification("error", "Erreur lors de la préparation de l'exportation.");
+            }
+        }
+
+        function exportFilteredTickets() {
+            const searchTerm = document.getElementById('searchBar').value.trim();
+            if (!searchTerm) {
+                showNotification("info", "Veuillez effectuer une recherche avant d'exporter les résultats filtrés.");
+                return;
+            }
+
+            const filteredTickets = {};
+            let filteredCount = 0;
+
+             try {
+                if (currentDatabase === 'TicketsTransit') {
+                    for (let id in allTickets) {
+                        if (matchesSearchTransit(allTickets[id], id, searchTerm)) {
+                            filteredTickets[id] = allTickets[id];
+                            filteredCount++;
+                        }
+                    }
+                } else { // TicketsTotal
+                    for (let category in allTickets) {
+                        const categoryTickets = allTickets[category];
+                         if (!categoryTickets || !categoryTickets.motDePasse) continue;
+
+                         const filteredCategory = { motDePasse: [], prix: [], utilisateur: [] };
+                        for (let i = 0; i < categoryTickets.motDePasse.length; i++) {
+                            const password = categoryTickets.motDePasse[i] ?? '';
+                             const price = categoryTickets.prix[i] ?? '';
+                             const user = categoryTickets.utilisateur[i] ?? '';
+                            if (matchesSearchTotal(password, price, user, searchTerm)) {
+                                 filteredCategory.motDePasse.push(password);
+                                 filteredCategory.prix.push(price);
+                                 filteredCategory.utilisateur.push(user);
+                                 filteredCount++;
+                            }
+                        }
+                         // Only include category in export if it has filtered tickets
+                         if (filteredCategory.motDePasse.length > 0) {
+                             filteredTickets[category] = filteredCategory;
+                         }
+                    }
+                }
+
+                 if (filteredCount === 0) {
+                     showNotification("info", "Aucun ticket ne correspond à votre recherche pour l'exportation.");
+                     return;
+                 }
+
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(filteredTickets, null, 2));
+                const downloadAnchorNode = document.createElement('a');
+                downloadAnchorNode.setAttribute("href", dataStr);
+                downloadAnchorNode.setAttribute("download", `filtered_tickets_${currentDatabase}_${new Date().toISOString().slice(0,10)}.json`);
+                document.body.appendChild(downloadAnchorNode);
+                downloadAnchorNode.click();
+                downloadAnchorNode.remove();
+                showNotification("success", `Exportation de ${filteredCount} ticket(s) filtré(s) terminée.`);
+
+            } catch (error) {
+                 console.error("Erreur d'exportation filtrée:", error);
+                 showNotification("error", "Erreur lors de la préparation de l'exportation filtrée.");
+            }
+        }
+
+        // --- Import Logic ---
+
+        function importTickets(event, targetCategory) { // targetCategory is null for general, 'Transit', or category name
+            const file = event.target.files[0];
+            if (!file) return;
+
+             // Reset temporary import data
+             tempImportData = null;
+             tempCategoryQueue = [];
+             currentImportTargetCategory = targetCategory; // Store the target for this import session
+
+            console.log(`Import triggered. Target: ${targetCategory ?? 'General'}, File: ${file.name}`);
+
+            // Basic file type validation based on current DB and target
+            const allowedExtensions = getAllowedExtensions(targetCategory);
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+
+             if (!allowedExtensions.includes(fileExtension)) {
+                 showNotification("error", `Type de fichier .${fileExtension} non autorisé pour ${targetCategory ? targetCategory : currentDatabase}. Types autorisés: ${allowedExtensions.join(', ')}`);
+                 event.target.value = ''; // Clear the file input
+                 return;
+             }
+
+
+            showLoading();
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const content = e.target.result;
+                    if (fileExtension === 'json') {
+                        handleJsonImport(content, targetCategory);
+                    } else if (fileExtension === 'csv') {
+                        handleCsvOrTxtImport(content, targetCategory, 'csv');
+                    } else if (fileExtension === 'txt') {
+                        handleCsvOrTxtImport(content, targetCategory, 'txt');
+                    } else {
+                        // Should have been caught earlier, but as a fallback
+                        throw new Error('Format de fichier non supporté');
+                    }
+                } catch (error) {
+                    console.error('Erreur de lecture ou parsing du fichier:', error);
+                    hideLoading();
+                    showNotification("error", `Erreur d'importation: ${error.message}. Vérifiez le format du fichier.`);
+                    event.target.value = ''; // Clear the file input
+                } finally {
+                     // Ensure loading is hidden unless price modal is shown
+                     if (document.getElementById('priceModal').style.display !== 'block') {
+                         hideLoading();
+                     }
+                }
+            };
+             reader.onerror = function() {
+                 console.error("Erreur de lecture du fichier.");
+                 hideLoading();
+                 showNotification("error", "Impossible de lire le fichier sélectionné.");
+                 event.target.value = ''; // Clear the file input
+             };
+            reader.readAsText(file);
+        }
+
+        function getAllowedExtensions(targetCategory) {
+             if (currentDatabase === 'TicketsTransit' || targetCategory === 'Transit') {
+                 return ['txt', 'json'];
+             } else { // TicketsTotal (specific category or general)
+                 return ['json', 'csv', 'txt'];
+             }
+        }
+
+
+         async function handleJsonImport(jsonContent, targetCategory) {
+             if (!currentUserId) {
+                 showNotification("error", "Utilisateur non identifié.");
+                 hideLoading();
+                 return;
+             }
+             const importedData = JSON.parse(jsonContent); // Can throw error if invalid JSON
+
+             if (Object.keys(importedData).length === 0) {
+                  showNotification("info", "Le fichier JSON importé est vide ou invalide.");
+                  hideLoading();
+                  return;
+             }
+
+
+             if (!confirm('Confirmer l\'importation JSON ? Les tickets seront ajoutés/fusionnés.')) {
+                 hideLoading();
+                 return;
+             }
+
+             showLoading(); // Ensure loading is shown during DB operations
+             await initializeDatabase();
+             const updates = {};
+             const dbPathPrefix = `users-data/${currentUserId}/${currentDatabase}`;
+
+             try {
+                 if (currentDatabase === 'TicketsTransit') {
+                     // Add all items from JSON, generating new unique IDs
+                     for (const key in importedData) { // Iterate over keys in imported JSON
+                         const ticketData = importedData[key];
+                          // Basic validation of ticket structure? Optional.
+                          if (ticketData && typeof ticketData === 'object') {
+                             const newTicketRef = push(ref(db, dbPathPrefix)); // Generate new ID
+                             updates[`${dbPathPrefix}/${newTicketRef.key}`] = {
+                                 category: ticketData.category ?? 'Imported',
+                                 password: ticketData.password ?? '',
+                                 price: ticketData.price ?? '0', // Default price if missing
+                                 user: ticketData.user ?? ''
+                             };
+                          } else {
+                             console.warn(`Skipping invalid entry in JSON import (Transit): Key=${key}`);
+                          }
+                     }
+                 } else { // TicketsTotal
+                     if (targetCategory) {
+                         // Importing into a SPECIFIC category
+                         const categoryDataToImport = importedData[targetCategory];
+                         if (!categoryDataToImport || !Array.isArray(categoryDataToImport.motDePasse)) {
+                             throw new Error(`Le fichier JSON ne contient pas de données valides pour la catégorie cible "${targetCategory}" ou la structure est incorrecte.`);
+                         }
+                         // Fetch existing data for merging
+                         const categoryRef = ref(db, `${dbPathPrefix}/${targetCategory}`);
+                         const snapshot = await get(categoryRef);
+                         const existingData = snapshot.val() || { motDePasse: [], prix: [], utilisateur: [] };
+
+                         // Merge
+                         updates[`${dbPathPrefix}/${targetCategory}`] = {
+                             motDePasse: [...existingData.motDePasse, ...(categoryDataToImport.motDePasse ?? [])],
+                             prix: [...existingData.prix, ...(categoryDataToImport.prix ?? [])],
+                             utilisateur: [...existingData.utilisateur, ...(categoryDataToImport.utilisateur ?? [])]
+                         };
+                     } else {
+                         // General import - merge all categories found in JSON
+                         for (const category in importedData) {
+                              const categoryDataToImport = importedData[category];
+                               if (!categoryDataToImport || !Array.isArray(categoryDataToImport.motDePasse)) {
+                                 console.warn(`Skipping category "${category}" in JSON import due to invalid structure.`);
+                                 continue;
+                             }
+
+                             // Fetch existing data for merging
+                             const categoryRef = ref(db, `${dbPathPrefix}/${category}`);
+                             const snapshot = await get(categoryRef);
+                             const existingData = snapshot.val() || { motDePasse: [], prix: [], utilisateur: [] };
+
+                             // Merge
+                             updates[`${dbPathPrefix}/${category}`] = {
+                                 motDePasse: [...existingData.motDePasse, ...(categoryDataToImport.motDePasse ?? [])],
+                                 prix: [...existingData.prix, ...(categoryDataToImport.prix ?? [])],
+                                 utilisateur: [...existingData.utilisateur, ...(categoryDataToImport.utilisateur ?? [])]
+                             };
+                         }
+                     }
+                 }
+
+                 if (Object.keys(updates).length === 0) {
+                     hideLoading();
+                     showNotification("info", "Aucune donnée valide à importer depuis le fichier JSON.");
+                     return;
+                 }
+
+                 await update(ref(db), updates);
+                 hideLoading();
+                 showNotification("success", "Importation JSON terminée avec succès !");
+                 // UI updates via listener
+
+             } catch (error) {
+                 console.error("Erreur lors de l'importation JSON:", error);
+                 hideLoading();
+                 showNotification("error", `Erreur d'importation JSON: ${error.message}`);
+             } finally {
+                  // Clear file input regardless of success/failure
+                  const generalInput = document.getElementById('importFileGeneral');
+                  if (generalInput) generalInput.value = '';
+                  if (targetCategory) {
+                      const specificInput = document.getElementById(`importFile_${targetCategory}`);
+                      if (specificInput) specificInput.value = '';
+                  }
+             }
+         }
+
+         // Handles both CSV and TXT parsing, then triggers price modal if needed
+         function handleCsvOrTxtImport(content, targetCategory, format) {
+            let parsedTickets = {}; // Structure depends on DB/target
+            let categoriesFound = new Set();
+
+            if (currentDatabase === 'TicketsTransit' || targetCategory === 'Transit') {
+                 // Expecting structure like { 'tempId1': { category: 'X', password: 'Y', user: 'Z', price: '' }, ... }
+                 parsedTickets = {}; // Flat structure for Transit
+                 const lines = content.split('\n');
+                 const regex = format === 'txt' ? /add name="([^"]+)" password="([^"]+)" profile="([^"]+)"/ : null;
+
+                 for (let i = (format === 'csv' ? 1 : 0); i < lines.length; i++) { // Skip header for CSV
+                    const line = lines[i].trim();
+                    if (!line) continue;
+
+                    let category, password, user;
+                    if (format === 'txt' && regex) {
+                        const match = line.match(regex);
+                        if (match) {
+                            [, user, password, category] = match;
+                        } else {
+                             console.warn("Skipping invalid TXT line:", line); continue;
+                        }
+                    } else if (format === 'csv') {
+                         const values = line.split(',');
+                         if (values.length >= 3) { // Expecting at least user, password, category
+                            user = values[0]?.trim() ?? '';
+                            password = values[1]?.trim() ?? '';
+                            category = values[2]?.trim() ?? 'Imported'; // Default category if missing
+                         } else {
+                             console.warn("Skipping invalid CSV line:", line); continue;
+                         }
+                    } else { continue; } // Should not happen
+
+                    const tempId = `temp-${Date.now()}-${Math.random().toString(16).substring(2, 8)}`;
+                    parsedTickets[tempId] = {
+                         category: category,
+                         password: password,
+                         user: user,
+                         price: '' // Price to be filled later
+                     };
+                 }
+                 if (Object.keys(parsedTickets).length > 0) {
+                     tempImportData = parsedTickets; // Store the flat structure
+                     tempCategoryQueue = ['Transit']; // Single "category" for price prompt
+                     showPriceModal('Tickets Transit');
+                 } else {
+                     throw new Error("Aucun ticket valide trouvé dans le fichier importé.");
+                 }
+
+            } else { // TicketsTotal
+                 // Expecting structure like { 'CategoryA': { motDePasse: [...], utilisateur: [...], prix: [] }, ... }
+                 parsedTickets = {};
+                 const lines = content.split('\n');
+                 const regex = format === 'txt' ? /add name="([^"]+)" password="([^"]+)" profile="([^"]+)"/ : null;
+
+                 for (let i = (format === 'csv' ? 1 : 0); i < lines.length; i++) { // Skip header for CSV
+                    const line = lines[i].trim();
+                    if (!line) continue;
+
+                    let category, password, user;
+                    if (targetCategory) {
+                         // If importing into a specific category, use that category name
+                         category = targetCategory;
+                         if (format === 'txt' && regex) {
+                             const match = line.match(regex);
+                             if (match) [, user, password] = match; // Ignore profile from file
+                             else { console.warn("Skipping invalid TXT line:", line); continue; }
+                         } else if (format === 'csv') {
+                             const values = line.split(',');
+                             if (values.length >= 2) [user, password] = values.map(v => v.trim()); // Take first 2 cols
+                             else { console.warn("Skipping invalid CSV line:", line); continue; }
+                         } else { continue; }
+                    } else {
+                         // General import, determine category from file
+                         if (format === 'txt' && regex) {
+                             const match = line.match(regex);
+                             if (match) [, user, password, category] = match;
+                             else { console.warn("Skipping invalid TXT line:", line); continue; }
+                         } else if (format === 'csv') {
+                             const values = line.split(',');
+                              if (values.length >= 3) { // user, password, category
+                                 user = values[0]?.trim() ?? '';
+                                 password = values[1]?.trim() ?? '';
+                                 category = values[2]?.trim() ?? 'Imported';
+                              } else { console.warn("Skipping invalid CSV line:", line); continue; }
+                         } else { continue; }
+                    }
+
+
+                     if (!category) {
+                          console.warn("Skipping line due to missing category:", line); continue;
+                     }
+                     if (!parsedTickets[category]) {
+                         parsedTickets[category] = { motDePasse: [], utilisateur: [], prix: [] };
+                     }
+                     parsedTickets[category].motDePasse.push(password ?? '');
+                     parsedTickets[category].utilisateur.push(user ?? '');
+                     categoriesFound.add(category);
+                 }
+
+                 if (Object.keys(parsedTickets).length > 0) {
+                     tempImportData = parsedTickets;
+                     tempCategoryQueue = Array.from(categoriesFound).sort(); // Queue of categories needing price
+                     showPriceModal(tempCategoryQueue[0]); // Show modal for the first category
+                 } else {
+                     throw new Error("Aucun ticket valide trouvé dans le fichier importé.");
+                 }
+            }
+         }
+
+
+         function showPriceModal(categoryOrIdentifier) {
+             document.getElementById('categoryName').textContent = categoryOrIdentifier;
+             document.getElementById('priceInput').value = ''; // Clear previous price
+             document.getElementById('priceModal').style.display = 'block';
+             document.getElementById('priceInput').focus();
+             // Loading indicator should be hidden by caller or here
+             hideLoading();
+         }
+
+        function confirmPrice() {
+             const price = document.getElementById('priceInput').value.trim();
+             if (price === '' || isNaN(parseFloat(price))) { // Basic price validation
+                 showNotification("error", 'Veuillez entrer un prix numérique valide.');
+                 return;
+             }
+
+             if (!tempImportData || tempCategoryQueue.length === 0) {
+                  console.error("Import data or category queue missing during price confirmation.");
+                  cancelImport(); // Abort
+                  return;
+             }
+
+             const currentCategory = tempCategoryQueue[0]; // The category we are setting price for
+
+             if (currentDatabase === 'TicketsTransit' || currentImportTargetCategory === 'Transit') {
+                 // Apply price to all tickets in the flat tempImportData structure
+                 for (const tempId in tempImportData) {
+                     tempImportData[tempId].price = price;
+                 }
+                 tempCategoryQueue.shift(); // Remove 'Transit' from queue
+
+             } else { // TicketsTotal
+                 // Apply price to all tickets within the specific category in tempImportData
+                 if (tempImportData[currentCategory]) {
+                     const numTickets = tempImportData[currentCategory].motDePasse.length;
+                     tempImportData[currentCategory].prix = Array(numTickets).fill(price);
+                     tempCategoryQueue.shift(); // Remove this category from queue
+                 } else {
+                      console.warn(`Category ${currentCategory} not found in tempImportData during price setting.`);
+                      tempCategoryQueue.shift(); // Remove anyway to avoid infinite loop
+                 }
+             }
+
+             // Check if more categories need price
+             if (tempCategoryQueue.length > 0) {
+                 showPriceModal(tempCategoryQueue[0]); // Show modal for next category
+             } else {
+                 // All prices set, finalize the import
+                 document.getElementById('priceModal').style.display = 'none';
+                 finishImport();
+             }
+         }
+
+         async function finishImport() {
+             if (!currentUserId || !tempImportData) {
+                  showNotification("error", "Erreur interne lors de la finalisation de l'import.");
+                  cancelImport();
+                  return;
+             }
+
+             showLoading(); // Show loading during DB update
+             await initializeDatabase();
+             const updates = {};
+             const dbPathPrefix = `users-data/${currentUserId}/${currentDatabase}`;
+             let importedCount = 0;
+
+             try {
+                 if (currentDatabase === 'TicketsTransit' || currentImportTargetCategory === 'Transit') {
+                     // Add tickets from the flat tempImportData structure
+                     for (const tempId in tempImportData) {
+                         const ticketData = tempImportData[tempId];
+                         const newTicketRef = push(ref(db, dbPathPrefix)); // Generate new ID
+                         updates[`${dbPathPrefix}/${newTicketRef.key}`] = {
+                              category: ticketData.category,
+                              password: ticketData.password,
+                              price: ticketData.price,
+                              user: ticketData.user
+                         };
+                         importedCount++;
+                     }
+                 } else { // TicketsTotal
+                     // tempImportData is structured by category { CatA: { motDePasse: [], ... }, ... }
+                     for (const category in tempImportData) {
+                         const categoryDataToImport = tempImportData[category];
+                         if (!categoryDataToImport || categoryDataToImport.motDePasse.length === 0) continue; // Skip empty
+
+                         // Fetch existing data for merging
+                         const categoryRef = ref(db, `${dbPathPrefix}/${category}`);
+                         const snapshot = await get(categoryRef);
+                         const existingData = snapshot.val() || { motDePasse: [], prix: [], utilisateur: [] };
+
+                         // Merge arrays
+                         updates[`${dbPathPrefix}/${category}`] = {
+                             motDePasse: [...existingData.motDePasse, ...categoryDataToImport.motDePasse],
+                             prix: [...existingData.prix, ...categoryDataToImport.prix],
+                             utilisateur: [...existingData.utilisateur, ...categoryDataToImport.utilisateur]
+                         };
+                          importedCount += categoryDataToImport.motDePasse.length;
+                     }
+                 }
+
+                 if (Object.keys(updates).length === 0) {
+                     hideLoading();
+                     showNotification("info", "Aucun ticket à finaliser pour l'importation.");
+                     cancelImport(); // Clean up
+                     return;
+                 }
+
+                 await update(ref(db), updates);
+                 hideLoading();
+                 showNotification("success", `${importedCount} ticket(s) importé(s) avec succès !`);
+
+             } catch (error) {
+                 console.error("Erreur lors de la finalisation de l'importation:", error);
+                 hideLoading();
+                 showNotification("error", `Erreur de finalisation d'import: ${error.message}`);
+             } finally {
+                  cancelImport(); // Clean up temporary data and file inputs
+             }
+         }
+
+
+         function cancelImport() {
+             document.getElementById('priceModal').style.display = 'none';
+             // Clear temporary data
+             tempImportData = null;
+             tempCategoryQueue = [];
+             const targetCategory = currentImportTargetCategory; // Get before resetting
+             currentImportTargetCategory = null;
+
+             // Clear the relevant file input
+             const generalInput = document.getElementById('importFileGeneral');
+             if (generalInput) generalInput.value = '';
+              const transitInput = document.getElementById('importFile_Transit');
+             if (transitInput) transitInput.value = '';
+
+             // Attempt to clear specific category inputs if they exist
+             if (targetCategory && targetCategory !== 'Transit') {
+                 const specificInput = document.getElementById(`importFile_${targetCategory}`);
+                 if (specificInput) specificInput.value = '';
+             } else {
+                 // If general import, try to clear all category inputs (might be overkill)
+                 document.querySelectorAll('input[id^="importFile_"]').forEach(input => {
+                     if (input.id !== 'importFile_Transit' && input.id !== 'importFileGeneral') {
+                         input.value = '';
+                     }
+                 });
+             }
+
+             hideLoading(); // Ensure loading is hidden
+             console.log("Import cancelled.");
+         }
+
+
+        // --- Database Selection ---
+
+        function changeDatabase() {
+            const selectedDb = document.getElementById('databaseSelect').value;
+             if (selectedDb === currentDatabase) return; // No change
+
+            console.log(`Changing database from ${currentDatabase} to ${selectedDb}`);
+            currentDatabase = selectedDb;
+
+            // Update UI elements related to DB type if necessary (e.g., allowed import types)
+            updateImportFileAcceptability();
+
+            // Detach old listener and load data for new DB
+            loadTickets(); // loadTickets now handles detaching the old listener
+        }
+
+        function updateImportFileAcceptability() {
+            // Update accept attributes for file inputs based on the NEWLY selected currentDatabase
+            const allowedExtGeneral = getAllowedExtensions(null); // Allowed for general import
+            const allowedExtTransit = getAllowedExtensions('Transit'); // Allowed for Transit import
+
+             const generalInput = document.getElementById('importFileGeneral');
+             if (generalInput) generalInput.accept = allowedExtGeneral.map(ext => `.${ext}`).join(',');
+
+             const transitInput = document.getElementById('importFile_Transit');
+             if (transitInput) transitInput.accept = allowedExtTransit.map(ext => `.${ext}`).join(',');
+
+             // Update category-specific inputs (only relevant for TicketsTotal view)
+            if (currentDatabase === 'TicketsTotal') {
+                 document.querySelectorAll('input[id^="importFile_"]').forEach(input => {
+                     if (input.id !== 'importFileGeneral' && input.id !== 'importFile_Transit') {
+                         const categoryName = input.id.substring('importFile_'.length);
+                         const allowedExtCategory = getAllowedExtensions(categoryName);
+                         input.accept = allowedExtCategory.map(ext => `.${ext}`).join(',');
+                     }
+                 });
+            }
+            console.log("Updated file input accept attributes for", currentDatabase);
+        }
+
+        // --- Modal Closers ---
+        function closeEditModal() {
+            document.getElementById('editTicketModal').style.display = 'none';
+            currentEditingTicket = null;
+        }
+        function closeEditCategoryModal() {
+            document.getElementById('editCategoryModal').style.display = 'none';
+            currentEditingCategory = null;
+        }
+        function closeAddTicketModal() {
+            document.getElementById('addTicketModal').style.display = 'none';
+            currentEditingCategory = null; // Clear stored category for add modal
+        }
+        function closeBulkEditModal() {
+            document.getElementById('bulkEditModal').style.display = 'none';
+            bulkEditData = { categoryIdentifier: null, selectedIdsOrIndices: [] }; // Reset data
+        }
+
+         // --- Utility ---
+         function toggleSelectAll(masterCheckbox, categoryIdentifier) {
+            const selectorName = (currentDatabase === 'TicketsTransit') ? 'ticketSelect_Transit' : `ticketSelect_${categoryIdentifier}`;
+            const checkboxes = document.querySelectorAll(`input[name="${selectorName}"]`);
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = masterCheckbox.checked;
+            });
+         }
+
+        // --- Global Access & Initialization ---
+
+        // Make functions globally accessible via window object
+         window.toggleSelectAll = toggleSelectAll;
+        window.editCategory = editCategory;
+        window.saveCategoryEdit = saveCategoryEdit;
+        window.showAddTicketModal = showAddTicketModal;
+        window.saveNewTicket = saveNewTicket;
+        window.deleteAllTicketsInCategory = deleteAllTicketsInCategory;
+        window.editSelectedTickets = editSelectedTickets;
+        window.saveBulkEdit = saveBulkEdit;
+        window.deleteSelectedTickets = deleteSelectedTickets;
+        window.editTicketTotal = editTicketTotal;
+        window.editTicketTransit = editTicketTransit;
+        window.saveTicketEdit = saveTicketEdit;
+        window.deleteTicket = deleteTicket; // Ensure deleteTicket is globally accessible
+        window.closeEditModal = closeEditModal;
+        window.closeEditCategoryModal = closeEditCategoryModal;
+        window.closeAddTicketModal = closeAddTicketModal;
+        window.closeBulkEditModal = closeBulkEditModal;
+        window.exportTickets = exportTickets;
+        window.exportFilteredTickets = exportFilteredTickets;
+        window.confirmPrice = confirmPrice;
+        window.cancelImport = cancelImport;
+        window.importTickets = importTickets; // Assign the main import trigger
+        window.deleteSearchResults = deleteSearchResults;
+        window.searchTickets = searchTickets; // Explicitly expose if needed, though listener handles it
+        window.changeDatabase = changeDatabase;
+        window.logout = logout; // Already assigned but confirm
+
+        // Initial Load Sequence
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log("DOM Content Loaded. Initializing...");
+            try {
+                const hasAccess = await checkLoginAndSubscription();
+                if (hasAccess) {
+                    console.log("Access confirmed. Loading initial data...");
+                    updateImportFileAcceptability(); // Set initial accept attributes
+                    loadTickets(); // Load data for the default database
+                } else {
+                    console.log("Access denied or requires subscription.");
+                    // Notification and redirection are handled within checkLoginAndSubscription
+                }
+            } catch (error) {
+                console.error("Initialization failed:", error);
+                showNotification("error", "Erreur critique lors de l'initialisation.");
+                // Optionally redirect to login or an error page
+                 document.getElementById('contentContainer').style.display = 'none';
+                 document.getElementById('loadingIndicator').style.display = 'none';
+            }
+             // Add listener for search bar *after* DOM is loaded
+             const searchBar = document.getElementById('searchBar');
+             if (searchBar) {
+                searchBar.addEventListener('input', searchTickets);
+             } else {
+                 console.error("Search bar element not found!");
+             }
+        });
+
+    </script>
+
+</body>
+</html>
