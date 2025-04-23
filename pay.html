@@ -1,71 +1,607 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Widget FedaPay</title>
+    <title>Paiement Cyber Campus</title>
+    <!--  Le même CSS que login.html et log.html -->
+    <style>
+        /* ... (Le CSS de login.html/log.html, copié ici) ... */
+                        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
 
-    <!-- 1. Inclure le SDK FedaPay -->
-    <!--    (Nécessaire pour que le widget puisse initialiser FedaPay) -->
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #36ff03, #1900ff, #a7ff03);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+        }
+
+        header {
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+
+        .img1 {
+            animation: slide1 10s linear infinite;
+        }
+
+        .img2 {
+            animation: slide2 10s linear infinite;
+        }
+
+        .logo {
+            font-size: 2.5em;
+            color: white;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 2;
+        }
+
+        .logo::before {
+            content: '';
+            font-size: 0.8em;
+            margin-right: 10px;
+            animation: rotate 5s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .moon {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 2em;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 0 10px;
+            flex-wrap: wrap;
+        }
+
+        .nav-button {
+            background-color: rgba(0, 0, 0, 0.952);
+            color: rgb(255, 255, 255);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            width: auto;
+            min-width: 150px;
+            text-align: center;
+            margin: 5px;
+        }
+
+        .nav-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background-color: rgb(0, 0, 0);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.5s, height 0.5s;
+        }
+
+        .nav-button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        @keyframes buttonPulse {
+            0% { background-color: #020202; color: #ffffff; }
+            50% { background-color: #1a2a6c; color: #c8ff00; }
+            100% { background-color: #000000; color: #ffffff; }
+        }
+
+        .nav-button.animate-pay {
+            animation: buttonPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes textChange {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        main {
+            display: flex;
+            flex-direction: column;
+            padding: 20px 10px;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .login-section,
+        .rates-section,
+        .locations-section,
+        .products-section {
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .login-section {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        h2 {
+            color: rgb(0, 0, 0);
+            margin-bottom: 15px;
+            position: relative;
+            display: inline-block;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: #fdbb2d;
+            transition: width 0.3s;
+        }
+
+        section:hover h2::after {
+            width: 100%;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        input {
+            margin-bottom: 10px;
+            padding: 12px;
+            border: none;
+            border-radius: 25px;
+            background-color: rgb(255, 253, 250);
+            color: rgb(0, 0, 0);
+            transition: background-color 0.3s;
+        }
+
+        input:focus {
+            background-color: rgba(255, 255, 255, 0.3);
+            outline: none;
+        }
+
+        button {
+            background-color: #000000;
+            color: #ffffff;
+            border: none;
+            padding: 10px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #1a2a6c;
+            color: #fdbb2d;
+        }
+
+        .rates-section {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .rates-section table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 10px 0;
+        }
+
+        .rates-section th,
+        .rates-section td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .rates-section th:first-child,
+        .rates-section td:first-child {
+            padding-left: 20px;
+        }
+
+        .rates-section th:last-child,
+        .rates-section td:last-child {
+            padding-right: 20px;
+        }
+
+        .rates-section .loading-message {
+            text-align: center;
+            padding: 20px;
+        }
+
+        ul {
+            list-style-type: none;
+        }
+
+        li {
+            margin-bottom: 10px;
+            position: relative;
+            padding-left: 20px;
+        }
+
+        li::before {
+            content: '➤';
+            position: absolute;
+            left: 0;
+            color: #fdbb2d;
+        }
+
+        footer {
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            text-align: center;
+            margin-top: auto;
+        }
+
+        .notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            display: none;
+            color: #1a2a6c;
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .notification h2 {
+            color: #1a2a6c;
+            margin-bottom: 20px;
+        }
+
+        .notification p {
+            margin-bottom: 15px;
+        }
+
+        .close-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .notification .ticket-info {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .notification .ticket-info p {
+            margin-bottom: 5px;
+        }
+
+        .notification .login-button,
+        .notification .delete-button {
+            display: inline-block;
+            margin: 0 10px;
+        }
+
+        .notification .login-button {
+            background-color: #fdbb2d;
+            color: #1a2a6c;
+        }
+
+        .delete-button {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .delete-button:hover {
+            background-color: #d32f2f;
+        }
+
+        .notification.error {
+            background-color: #fdd;
+            border: 1px solid #faa;
+            color: #f00;
+        }
+
+        /* Footer Popup Styles */
+        .footer-popup {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translate(-50%, 200%);
+            width: 95%;
+            max-width: 600px;
+            padding: 2rem;
+            border-radius: 25px;
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(135deg, rgba(129, 0, 0, 0.95) 0%, rgba(0, 60, 150, 0.95) 100%);
+            backdrop-filter: blur(10px);
+            color: white;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3),
+                        0 0 20px rgba(0, 89, 255, 0.3),
+                        inset 0 0 60px rgba(0, 89, 255, 0.1);
+            max-height: 85vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-popup.show {
+            transform: translate(-50%, 0);
+            opacity: 1;
+        }
+
+        .footer-popup .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        /* Animations */
+        @keyframes slide1 {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(-100%); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes slide2 {
+            0% { transform: translateX(100%); }
+            50% { transform: translateX(0); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Media Queries */
+        @media screen and (max-width: 768px) {
+            .container {
+                padding: 5px;
+            }
+
+            .logo {
+                font-size: 2em;
+            }
+
+            nav {
+                flex-direction: row; /* Force l'alignement horizontal */
+                padding: 0 10px;
+            }
+
+            .nav-button {
+                width: auto; /* Permet aux boutons de s'adapter à leur contenu */
+                margin: 5px;
+                font-size: 12px; /* Taille de police encore plus petite pour les très petits écrans */
+            }
+
+            main {
+                padding: 10px 5px;
+            }
+
+            .login-section,
+            .rates-section,
+            .locations-section,
+            .products-section {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+
+            .rates-section {
+                margin: 0 -5px;
+                width: calc(100% + 10px);
+                border-radius: 0;
+            }
+
+            .rates-section table {
+                font-size: 14px;
+            }
+
+            .rates-section th,
+            .rates-section td {
+                padding: 8px;
+            }
+
+            .footer-popup {
+                width: 92%;
+                padding: 1.5rem;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .logo {
+                font-size: 1.8em;
+            }
+
+            h2 {
+                font-size: 1.2em;
+            }
+
+            .rates-section th,
+            .rates-section td {
+                padding: 6px;
+                font-size: 12px;
+            }
+
+            .notification {
+                width: 95%;
+                padding: 15px;
+            }
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 0 10px;
+            flex-wrap: nowrap; /* Empêche le retour à la ligne */
+        }
+
+        .nav-button {
+            background-color: rgba(0, 0, 0, 0.952);
+            color: rgb(255, 255, 255);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            width: auto;
+            min-width: 0; /* Supprime la largeur minimale */
+            text-align: center;
+            margin: 5px;
+            white-space: nowrap; /* Empêche le texte de passer à la ligne */
+            font-size: 14px; /* Taille de police réduite pour mobile */
+            flex: 1; /* Les boutons se partagent l'espace disponible */
+            max-width: calc(50% - 10px); /* Maximum 50% de la largeur moins la marge */
+        }
+
+        /* Modification des media queries */
+        @media screen and (max-width: 768px) {
+            nav {
+                flex-direction: row; /* Force l'alignement horizontal */
+                padding: 0 10px;
+            }
+
+            .nav-button {
+                width: auto; /* Permet aux boutons de s'adapter à leur contenu */
+                margin: 5px;
+                font-size: 12px; /* Taille de police encore plus petite pour les très petits écrans */
+            }
+        }
+
+        @media screen and (max-width: 320px) {
+            .nav-button {
+                padding: 8px 12px; /* Padding réduit pour les très petits écrans */
+                font-size: 11px;
+            }
+        }
+    </style>
     <script src="https://cdn.fedapay.com/checkout.js?v=1.1.7"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-    <!-- 2. Lier le fichier CSS du Widget -->
-    <!--    (Remplacez 'path/to/' par le chemin réel vers votre fichier CSS) -->
-    <link rel="stylesheet" href="/fedapay-widget.css">
+    <script type="module">
+        import { getActiveDatabase } from './firebase-config-manager.js';
+        import { ref, get, set, push, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-    <!-- Styles optionnels pour la page hôte (pour démonstration) -->
-    
+        const adminUserId = '<!-- ADMIN_USER_ID -->';
+        const networkName = '<!-- NETWORK_NAME -->';
+        const contactNumber = '<!-- CONTACT_NUMBER -->';
+        const fedapayApiKey = '<!-- FEDAPAY_API_KEY -->';
+
+const _0x2207a3=_0x25f7;(function(_0x548892,_0x4bf3b9){const _0x218dd6=_0x25f7,_0x2fb816=_0x548892();while(!![]){try{const _0x300317=-parseInt(_0x218dd6(0x1d4))/0x1+parseInt(_0x218dd6(0x1e6))/0x2*(-parseInt(_0x218dd6(0x22d))/0x3)+-parseInt(_0x218dd6(0x219))/0x4+parseInt(_0x218dd6(0x208))/0x5+parseInt(_0x218dd6(0x1ce))/0x6*(-parseInt(_0x218dd6(0x1d1))/0x7)+parseInt(_0x218dd6(0x1ed))/0x8+-parseInt(_0x218dd6(0x229))/0x9*(-parseInt(_0x218dd6(0x209))/0xa);if(_0x300317===_0x4bf3b9)break;else _0x2fb816['push'](_0x2fb816['shift']());}catch(_0x324d90){_0x2fb816['push'](_0x2fb816['shift']());}}}(_0x1c7e,0xe65ac));let db,userConfigRef;async function initializeDatabase(){const _0x19d9d9=_0x25f7;db=await getActiveDatabase(),userConfigRef=ref(db,_0x19d9d9(0x211)+adminUserId+_0x19d9d9(0x215)),console[_0x19d9d9(0x1da)](_0x19d9d9(0x218));}let localTickets={};async function checkSubscriptionStatus(){const _0x3078e0=_0x25f7;try{const _0x484127=ref(db,'users-data/'+adminUserId+_0x3078e0(0x1cf)),_0x4cf7a9=await get(_0x484127),_0x1426cb=_0x4cf7a9[_0x3078e0(0x239)](),_0x26b0f3=new Date();if(_0x1426cb&&_0x1426cb[_0x3078e0(0x1d9)]===_0x3078e0(0x1e3)){const _0x59849b=new Date(_0x1426cb[_0x3078e0(0x1d5)]);return _0x59849b<_0x26b0f3?(await set(_0x484127,{..._0x1426cb,'status':_0x3078e0(0x1e8)}),![]):!![];}else return![];}catch(_0x4c68e2){return console[_0x3078e0(0x20c)](_0x3078e0(0x1f6),_0x4c68e2),![];}}async function syncTickets(){const _0x140b4e=_0x25f7;try{const _0x3b9575=await checkSubscriptionStatus();if(!_0x3b9575){document[_0x140b4e(0x1dc)](_0x140b4e(0x23c))[_0x140b4e(0x1e0)]=_0x140b4e(0x249);return;}const _0x2f4d33=ref(db,_0x140b4e(0x211)+adminUserId+_0x140b4e(0x22c)),_0x3abb8c=await get(_0x2f4d33);localTickets=_0x3abb8c[_0x140b4e(0x239)]()||{};const _0x140868=ref(db,_0x140b4e(0x211)+adminUserId+_0x140b4e(0x212)),_0x3ea297=await get(_0x140868),_0x7047ac=_0x3ea297[_0x140b4e(0x239)]()||{};for(const _0x54b48a in _0x7047ac){const _0x6d32d2=_0x7047ac[_0x54b48a],_0x3dde45=Object[_0x140b4e(0x24c)](localTickets)['find'](_0x34d650=>localTickets[_0x34d650]['utilisateur']&&localTickets[_0x34d650][_0x140b4e(0x1eb)][_0x140b4e(0x232)](_0x6d32d2[_0x140b4e(0x21b)]));if(_0x3dde45){const _0x358ea4=localTickets[_0x3dde45]['utilisateur'][_0x140b4e(0x1dd)](_0x6d32d2[_0x140b4e(0x21b)]);_0x358ea4>-0x1&&(localTickets[_0x3dde45]={...localTickets[_0x3dde45],'utilisateur':localTickets[_0x3dde45][_0x140b4e(0x1eb)][_0x140b4e(0x240)]((_0x43eeb7,_0x44d344)=>_0x44d344!==_0x358ea4),'motDePasse':localTickets[_0x3dde45][_0x140b4e(0x221)]['filter']((_0x5bce92,_0x5b1105)=>_0x5b1105!==_0x358ea4),'prix':localTickets[_0x3dde45][_0x140b4e(0x21a)]['filter']((_0x1a4918,_0x56a3f7)=>_0x56a3f7!==_0x358ea4)},localTickets[_0x3dde45]['utilisateur'][_0x140b4e(0x255)]===0x0&&delete localTickets[_0x3dde45]);}}console[_0x140b4e(0x1da)](_0x140b4e(0x203),localTickets),createTicketTable();}catch(_0x1d46c2){console[_0x140b4e(0x20c)](_0x140b4e(0x241),_0x1d46c2);}}document[_0x2207a3(0x24e)](_0x2207a3(0x204),async()=>{const _0x248a05=_0x2207a3;await initializeDatabase(),syncTickets(),setInterval(syncTickets,0x1388),document[_0x248a05(0x1dc)](_0x248a05(0x1db))['textContent']=networkName,document[_0x248a05(0x1dc)]('.nav-button')['textContent']=contactNumber;});async function storeTicketEnTransit(_0x2e7e39){const _0x2db0d1=_0x2207a3,_0x579b0c=await synchronizeAndReserveTicket(_0x2e7e39);if(!_0x579b0c)throw new Error('Aucun\x20ticket\x20disponible\x20pour\x20cette\x20catégorie.');const _0xa88ba5=ref(db,_0x2db0d1(0x211)+adminUserId+_0x2db0d1(0x252)),_0x579eeb=push(_0xa88ba5);return await set(_0x579eeb,{'id':_0x579eeb['key'],'category':_0x2e7e39,..._0x579b0c}),console['log'](_0x2db0d1(0x227),_0x579eeb[_0x2db0d1(0x214)]),{'id':_0x579eeb[_0x2db0d1(0x214)],..._0x579b0c};}async function removeTicketFromTransit(_0xcc25d5){const _0x15e1a0=_0x2207a3,_0x56d06b=ref(db,_0x15e1a0(0x211)+adminUserId+'/TicketsTransit/'+_0xcc25d5);await remove(_0x56d06b),console[_0x15e1a0(0x1da)](_0x15e1a0(0x1c6),_0xcc25d5);}async function synchronizeAndReserveTicket(_0x36d99e){const _0x15eeb0=_0x2207a3;try{const _0x407930=ref(db,'users-data/'+adminUserId+_0x15eeb0(0x20a)+_0x36d99e),_0x4591c8=await get(_0x407930),_0x5be67b=_0x4591c8[_0x15eeb0(0x239)]();if(!_0x5be67b||!_0x5be67b[_0x15eeb0(0x1eb)]||_0x5be67b[_0x15eeb0(0x1eb)][_0x15eeb0(0x255)]===0x0)return null;const _0x516de8={'user':_0x5be67b[_0x15eeb0(0x1eb)][0x0],'password':_0x5be67b['motDePasse'][0x0],'price':_0x5be67b[_0x15eeb0(0x21a)][0x0]},_0x1380bc={..._0x5be67b,'utilisateur':_0x5be67b[_0x15eeb0(0x1eb)][_0x15eeb0(0x240)]((_0x35d9c3,_0xcf1821)=>_0xcf1821!==0x0),'motDePasse':_0x5be67b[_0x15eeb0(0x221)][_0x15eeb0(0x240)]((_0x5a8274,_0x5e3fac)=>_0x5e3fac!==0x0),'prix':_0x5be67b[_0x15eeb0(0x21a)][_0x15eeb0(0x240)]((_0x7b9f3f,_0x19481a)=>_0x19481a!==0x0)};return await set(_0x407930,_0x1380bc),_0x516de8;}catch(_0x182831){console[_0x15eeb0(0x20c)](_0x15eeb0(0x1f2),_0x182831);throw _0x182831;}}async function restoreTicket(_0x30f8df,_0x5b3604){const _0xa49895=_0x2207a3,_0x44d944=ref(db,_0xa49895(0x211)+adminUserId+_0xa49895(0x20a)+_0x30f8df),_0x3a0db4=await get(_0x44d944),_0x4683cb=_0x3a0db4[_0xa49895(0x239)]()||{'utilisateur':[],'motDePasse':[],'prix':[]};_0x4683cb[_0xa49895(0x1eb)][_0xa49895(0x23f)](_0x5b3604['user']),_0x4683cb['motDePasse'][_0xa49895(0x23f)](_0x5b3604[_0xa49895(0x228)]),_0x4683cb['prix'][_0xa49895(0x23f)](_0x5b3604[_0xa49895(0x222)]),await set(_0x44d944,_0x4683cb);}function canGetFreeTicket(){const _0x39fe90=_0x2207a3,_0x11918f=localStorage[_0x39fe90(0x1cd)](_0x39fe90(0x1cc));if(!_0x11918f)return!![];const _0x24fec7=new Date(parseInt(_0x11918f)),_0x56b215=new Date(),_0x43d41c=Math['floor']((_0x56b215-_0x24fec7)/(0x3e8*0x3c*0x3c*0x18));return _0x43d41c>=0x7;}function _0x25f7(_0x21603c,_0x25f071){const _0x1c7e0d=_0x1c7e();return _0x25f7=function(_0x25f7c3,_0x554d4f){_0x25f7c3=_0x25f7c3-0x1c0;let _0x4050d0=_0x1c7e0d[_0x25f7c3];return _0x4050d0;},_0x25f7(_0x21603c,_0x25f071);}window[_0x2207a3(0x23b)]=async function(_0x26346c,_0x4bbd7c){const _0x419806=_0x2207a3;let _0x5d0de7=null;try{if(_0x26346c[_0x419806(0x1f5)]()[_0x419806(0x232)](_0x419806(0x233))){if(!canGetFreeTicket()){showNotification(_0x419806(0x234),_0x419806(0x1d2),![]);return;}const _0x51c41f=await synchronizeAndReserveTicket(_0x26346c);localStorage[_0x419806(0x24a)](_0x419806(0x1cc),Date[_0x419806(0x1c4)]()[_0x419806(0x1f9)]()),showNotification(_0x419806(0x1f7),_0x419806(0x243),!![]),displayTicket(_0x51c41f,_0x26346c),await storeTicketVendu(_0x51c41f);return;}_0x5d0de7=await storeTicketEnTransit(_0x26346c);const _0xe2aea0=_0x26346c+';\x20'+_0x5d0de7[_0x419806(0x21b)]+_0x419806(0x21e)+_0x5d0de7[_0x419806(0x222)]+_0x419806(0x1f4);var _0x4cfcee=FedaPay['init']({'public_key':fedapayApiKey,'transaction':{'amount':_0x4bbd7c,'description':_0xe2aea0},'customer':{'email':_0x419806(0x245)},'onComplete':async function(_0x8a975){const _0x37c90d=_0x419806;if(_0x8a975['reason']===FedaPay[_0x37c90d(0x23d)])showNotification(_0x37c90d(0x22f),'Le\x20paiement\x20a\x20été\x20annulé.'),await restoreTicket(_0x26346c,_0x5d0de7),await removeTicketFromTransit(_0x5d0de7['id']);else{if(_0x8a975[_0x37c90d(0x210)]===FedaPay[_0x37c90d(0x253)]){const _0x4f4bb4='✅\x20Paiement\x20validé\x20pour:\x0aPseudo:\x20'+_0x5d0de7[_0x37c90d(0x21b)]+_0x37c90d(0x21c)+_0x5d0de7['password']+_0x37c90d(0x1e7)+_0x26346c+_0x37c90d(0x1fb)+_0x5d0de7['price']+_0x37c90d(0x1ca);showNotification(_0x37c90d(0x1e5),_0x4f4bb4),await storeTicketVendu(_0x5d0de7),displayTicket(_0x5d0de7,_0x26346c);}}}});_0x4cfcee[_0x419806(0x22a)]();}catch(_0x38d5d2){console['error'](_0x419806(0x23a),_0x38d5d2),showNotification('Erreur',_0x419806(0x231)),_0x5d0de7&&(await restoreTicket(_0x26346c,_0x5d0de7),await removeTicketFromTransit(_0x5d0de7['id']));}};function showTariffsTable(){const _0x446d3d=_0x2207a3,_0x3ae541=document['querySelector'](_0x446d3d(0x1d7)),_0x183ed5=document[_0x446d3d(0x1dc)](_0x446d3d(0x23c));_0x3ae541['style']['display']=_0x446d3d(0x23e),_0x183ed5[_0x446d3d(0x1e4)]['display']='none';}async function createTicketTable(){const _0x3e1b9f=_0x2207a3,_0x2d9865=document[_0x3e1b9f(0x1dc)](_0x3e1b9f(0x1d7));_0x2d9865['innerHTML']=_0x3e1b9f(0x248);if(Object[_0x3e1b9f(0x24c)](localTickets)[_0x3e1b9f(0x255)]===0x0){document['querySelector']('.rates-section\x20.loading-message')['textContent']=_0x3e1b9f(0x20d);return;}for(const [_0x2209e0,_0x45e06c]of Object[_0x3e1b9f(0x256)](localTickets)){if(!_0x45e06c||!_0x45e06c[_0x3e1b9f(0x21a)]||_0x45e06c[_0x3e1b9f(0x21a)][_0x3e1b9f(0x255)]===0x0){console[_0x3e1b9f(0x1ea)](_0x3e1b9f(0x250)+_0x2209e0);continue;}const _0x4b7954=_0x45e06c[_0x3e1b9f(0x21a)][0x0],_0x233f87=_0x2d9865[_0x3e1b9f(0x244)](),_0x45154b=_0x2209e0['toLowerCase']()[_0x3e1b9f(0x232)](_0x3e1b9f(0x233))?_0x3e1b9f(0x24b):_0x3e1b9f(0x1c1);_0x233f87['innerHTML']='\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<td>'+_0x2209e0+_0x3e1b9f(0x1c5)+_0x4b7954+_0x3e1b9f(0x201)+_0x2209e0+_0x3e1b9f(0x1fe)+_0x4b7954+_0x3e1b9f(0x1c3)+_0x45154b+_0x3e1b9f(0x21f);}showTariffsTable();}function showTicketNotification(_0x491e7c){const _0x5c76fa=_0x2207a3,_0x2562f0=document[_0x5c76fa(0x1d3)](_0x5c76fa(0x225)),_0x288925=document[_0x5c76fa(0x1d3)]('notification-title'),_0x4402bd=document[_0x5c76fa(0x1d3)](_0x5c76fa(0x247));_0x288925[_0x5c76fa(0x1e0)]=_0x491e7c['ticketName']||_0x5c76fa(0x217),_0x4402bd[_0x5c76fa(0x1c7)]=_0x5c76fa(0x1f3)+_0x491e7c[_0x5c76fa(0x21b)]+'</p>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<p>Mot\x20de\x20passe:\x20'+_0x491e7c[_0x5c76fa(0x228)]+_0x5c76fa(0x24f)+(_0x491e7c[_0x5c76fa(0x222)]?'<p>Prix:\x20'+_0x491e7c['price']+'\x20F</p>':'')+_0x5c76fa(0x24d);const _0x4e5b69=_0x2562f0[_0x5c76fa(0x1ec)]('.login-button,\x20.delete-button');_0x4e5b69[_0x5c76fa(0x1ef)](_0x3177af=>_0x3177af[_0x5c76fa(0x20e)]());const _0x2dac7b=document[_0x5c76fa(0x1cb)](_0x5c76fa(0x1df));_0x2dac7b[_0x5c76fa(0x20f)]=_0x5c76fa(0x235),_0x2dac7b[_0x5c76fa(0x1e0)]=_0x5c76fa(0x1d0),_0x2dac7b[_0x5c76fa(0x24e)](_0x5c76fa(0x1c0),()=>{const _0x23ed55=_0x5c76fa;autoLogin(_0x491e7c['user'],_0x491e7c[_0x23ed55(0x228)]);}),_0x2562f0[_0x5c76fa(0x1f0)](_0x2dac7b);const _0x202d28=document[_0x5c76fa(0x1cb)](_0x5c76fa(0x1df));_0x202d28['className']=_0x5c76fa(0x1e9),_0x202d28[_0x5c76fa(0x1e0)]=_0x5c76fa(0x1fa),_0x202d28['addEventListener'](_0x5c76fa(0x1c0),hideNotification),_0x2562f0[_0x5c76fa(0x1f0)](_0x202d28),_0x2562f0[_0x5c76fa(0x1e4)][_0x5c76fa(0x237)]=_0x5c76fa(0x242);}function showNotification(_0x4a4c8a,_0x454a08,_0x2c8911=![],_0x1c982c=null){const _0x5d1f21=_0x2207a3,_0xc5a31c=document[_0x5d1f21(0x1d3)]('notification'),_0x1873eb=document[_0x5d1f21(0x1d3)](_0x5d1f21(0x1de)),_0x1524b8=document[_0x5d1f21(0x1d3)](_0x5d1f21(0x247));_0x1873eb[_0x5d1f21(0x1e0)]=_0x4a4c8a,_0x1524b8[_0x5d1f21(0x1e0)]=_0x454a08;const _0x5218ff=_0xc5a31c['querySelectorAll'](_0x5d1f21(0x238));_0x5218ff[_0x5d1f21(0x1ef)](_0x3d79d2=>_0x3d79d2[_0x5d1f21(0x20e)]());if(_0x2c8911&&_0x1c982c){const _0x625771=document[_0x5d1f21(0x1cb)](_0x5d1f21(0x1df));_0x625771[_0x5d1f21(0x20f)]=_0x5d1f21(0x235),_0x625771[_0x5d1f21(0x1e0)]=_0x5d1f21(0x1d0),_0x625771[_0x5d1f21(0x24e)](_0x5d1f21(0x1c0),()=>{const _0x8ec5d6=_0x5d1f21;autoLogin(_0x1c982c[_0x8ec5d6(0x21b)],_0x1c982c['password']);}),_0xc5a31c[_0x5d1f21(0x1f0)](_0x625771);const _0x4cb290=document[_0x5d1f21(0x1cb)](_0x5d1f21(0x1df));_0x4cb290['className']=_0x5d1f21(0x1e9),_0x4cb290[_0x5d1f21(0x1e0)]='Fermer',_0x4cb290[_0x5d1f21(0x24e)](_0x5d1f21(0x1c0),hideNotification),_0xc5a31c[_0x5d1f21(0x1f0)](_0x4cb290);}else{const _0x3eabaa=document['createElement'](_0x5d1f21(0x1df));_0x3eabaa[_0x5d1f21(0x20f)]=_0x5d1f21(0x1e9),_0x3eabaa[_0x5d1f21(0x1e0)]=_0x5d1f21(0x1fa),_0x3eabaa[_0x5d1f21(0x24e)](_0x5d1f21(0x1c0),hideNotification),_0xc5a31c[_0x5d1f21(0x1f0)](_0x3eabaa);}_0xc5a31c[_0x5d1f21(0x1e4)][_0x5d1f21(0x237)]=_0x5d1f21(0x242);}window['hideNotification']=function(){const _0x3a6e60=_0x2207a3;document[_0x3a6e60(0x1d3)]('notification')[_0x3a6e60(0x1e4)][_0x3a6e60(0x237)]=_0x3a6e60(0x202);};function deleteTicket(){const _0x55f5c3=_0x2207a3;localStorage['removeItem'](_0x55f5c3(0x1f1)),showNotification(_0x55f5c3(0x1ee),_0x55f5c3(0x246)),updateButtonText();}window[_0x2207a3(0x24e)](_0x2207a3(0x1d8),()=>{const _0x1d8118=_0x2207a3;updateButtonText();const _0x470bea=document[_0x1d8118(0x1dc)]('.nav-button.animate-pay');_0x470bea[_0x1d8118(0x24e)](_0x1d8118(0x1c0),()=>{const _0x576230=_0x1d8118,_0x30c7f9=localStorage[_0x576230(0x1cd)]('storedTicket');if(_0x30c7f9){const _0x33247f=JSON['parse'](_0x30c7f9);showTicketNotification(_0x33247f);}else document[_0x576230(0x1dc)](_0x576230(0x1c9))[_0x576230(0x205)]({'behavior':_0x576230(0x22e)});});});function updateButtonText(){const _0x59fa1f=_0x2207a3,_0x3650f8=document[_0x59fa1f(0x1dc)](_0x59fa1f(0x213)),_0x575291=localStorage[_0x59fa1f(0x1cd)](_0x59fa1f(0x1f1));_0x575291?_0x3650f8[_0x59fa1f(0x1e0)]=_0x59fa1f(0x226):_0x3650f8[_0x59fa1f(0x1e0)]=_0x59fa1f(0x1f8);}function _0x1c7e(){const _0x34377f=['723308vNZbXq','endDate','Ticket\x20acheté','.rates-section\x20table','load','status','log','.logo','querySelector','indexOf','notification-title','button','textContent','$(link-login-only)','submit','active','style','Paiement\x20réussi','270312xYqvQY','\x0aCatégorie:\x20','expired','delete-button','warn','utilisateur','querySelectorAll','8951032rzPcAD','Ticket\x20supprimé','forEach','appendChild','storedTicket','Erreur\x20lors\x20de\x20la\x20synchronisation\x20et\x20réservation\x20du\x20ticket:','\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22ticket-info\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<p>Nom\x20d\x27utilisateur:\x20','\x20FCFA','toLowerCase','Erreur\x20lors\x20de\x20la\x20vérification\x20de\x20l\x27abonnement\x20:','Ticket\x20cadeau','Payer\x20un\x20ticket','toString','Fermer','\x0aPrix:\x20','dst','true','\x27,\x20','hidden','username','</td>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<td><button\x20onclick=\x22initPayment(\x27','none','Données\x20synchronisées:','DOMContentLoaded','scrollIntoView','/TicketConnecté','form','8700170hZBman','32140twVOGz','/TicketsTotal/','popup','error','Aucun\x20ticket\x20disponible\x20pour\x20le\x20moment.','remove','className','reason','users-data/','/TicketsVendus','.nav-button.animate-pay','key','/portalConfig','name','Votre\x20ticket','Database\x20initialized\x20in\x20pay.html','4862008xBSXWE','prix','user','\x0aMot\x20de\x20passe:\x20','Nom\x20d\x27utilisateur:\x20','\x20de\x20','</button></td>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20','input','motDePasse','price','Prix:\x20','body','notification','Voir\x20mon\x20ticket','Ticket\x20en\x20transit\x20stocké:','password','3789ncltNe','open','value','/TicketsTotal','3NbWSQJ','smooth','Paiement\x20annulé','type','Une\x20erreur\x20est\x20survenue.\x20Veuillez\x20réessayer\x20plus\x20tard.','includes','ticket\x20cadeau','Non\x20disponible','login-button','Erreur\x20lors\x20de\x20l\x27enregistrement\x20du\x20nom\x20d\x27utilisateur\x20du\x20ticket\x20connecté:','display','.login-button,\x20.delete-button','val','Erreur\x20lors\x20de\x20l\x27initialisation\x20du\x20paiement:','initPayment','.rates-section\x20.loading-message','DIALOG_DISMISSED','table','unshift','filter','Erreur\x20lors\x20de\x20la\x20synchronisation\x20des\x20tickets:','block','Félicitations\x20!\x20Vous\x20avez\x20reçu\x20un\x20ticket\x20gratuit.','insertRow','client@example.com','Votre\x20ticket\x20a\x20été\x20supprimé\x20avec\x20succès.','notification-message','\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<tr>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<th>Catégorie</th>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<th>Prix\x20(FCFA)</th>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<th>Action</th>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</tr>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20','Pas\x20d\x27abonnement\x20actif','setItem','Obtenir','keys','\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20','addEventListener','</p>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20','Données\x20incomplètes\x20pour\x20la\x20catégorie:\x20','post','/TicketsTransit','CHECKOUT_COMPLETED','method','length','entries','Nom\x20d\x27utilisateur\x20du\x20ticket\x20connecté\x20enregistré\x20dans\x20Firebase\x20avec\x20la\x20clé:','click','Payer','Ticket\x20vendu\x20stocké\x20avec\x20succès',')\x22>','now','</td>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<td>','Ticket\x20en\x20transit\x20supprimé:','innerHTML','action','.rates-section','\x20FCFA\x0aMerci\x20pour\x20votre\x20achat!\x20🎉','createElement','lastFreeTicket','getItem','28554TELzJS','/admin/subscription','Connexion','1757BpBTNP','Vous\x20devez\x20attendre\x207\x20jours\x20entre\x20chaque\x20ticket\x20gratuit.','getElementById'];_0x1c7e=function(){return _0x34377f;};return _0x1c7e();}async function storeTicketVendu(_0x3a37d0){const _0x204a47=_0x2207a3,_0x3260b3=ref(db,_0x204a47(0x211)+adminUserId+_0x204a47(0x212));await push(_0x3260b3,{'password':_0x3a37d0[_0x204a47(0x228)],'price':_0x3a37d0[_0x204a47(0x222)],'user':_0x3a37d0[_0x204a47(0x21b)]}),console[_0x204a47(0x1da)](_0x204a47(0x1c2));}function displayTicket(_0x3fb9f7,_0x3e6dd1){const _0x47e56a=_0x2207a3,_0x25cd68={'ticketName':_0x3e6dd1,'user':_0x3fb9f7[_0x47e56a(0x21b)],'password':_0x3fb9f7[_0x47e56a(0x228)],'price':_0x3fb9f7['price']};showNotification(_0x47e56a(0x1d6),_0x47e56a(0x21d)+_0x3fb9f7[_0x47e56a(0x21b)]+'\x0a'+('Mot\x20de\x20passe:\x20'+_0x3fb9f7[_0x47e56a(0x228)]+'\x0a')+(_0x47e56a(0x223)+_0x3fb9f7[_0x47e56a(0x222)]+'\x20F'),!![],_0x25cd68),updateButtonText(),storeTicketLocally(_0x25cd68),storeConnectedTicket(_0x3fb9f7[_0x47e56a(0x21b)]);}async function storeConnectedTicket(_0x139fae){const _0xf9be4a=_0x2207a3;try{const _0x588b48=ref(db,'users-data/'+adminUserId+_0xf9be4a(0x206)),_0x2d1656=push(_0x588b48);await set(_0x2d1656,{'username':_0x139fae}),console['log'](_0xf9be4a(0x257),_0x2d1656['key']);}catch(_0x69a175){console[_0xf9be4a(0x20c)](_0xf9be4a(0x236),_0x69a175);}}function storeTicketLocally(_0x38f1b1){const _0x31a6e1=_0x2207a3;localStorage[_0x31a6e1(0x24a)](_0x31a6e1(0x1f1),JSON['stringify'](_0x38f1b1));}function autoLogin(_0x1ec20d,_0x120c1a){const _0x6ef303=_0x2207a3,_0x466972=document[_0x6ef303(0x1cb)](_0x6ef303(0x207));_0x466972[_0x6ef303(0x254)]=_0x6ef303(0x251),_0x466972[_0x6ef303(0x1c8)]=_0x6ef303(0x1e1);const _0x3558ea=document[_0x6ef303(0x1cb)](_0x6ef303(0x220));_0x3558ea['type']='hidden',_0x3558ea[_0x6ef303(0x216)]=_0x6ef303(0x1fc),_0x3558ea['value']='$(link-orig)',_0x466972[_0x6ef303(0x1f0)](_0x3558ea);const _0x3c924c=document['createElement'](_0x6ef303(0x220));_0x3c924c[_0x6ef303(0x230)]=_0x6ef303(0x1ff),_0x3c924c[_0x6ef303(0x216)]=_0x6ef303(0x20b),_0x3c924c[_0x6ef303(0x22b)]=_0x6ef303(0x1fd),_0x466972[_0x6ef303(0x1f0)](_0x3c924c);const _0x319c5b=document['createElement'](_0x6ef303(0x220));_0x319c5b['type']=_0x6ef303(0x1ff),_0x319c5b[_0x6ef303(0x216)]=_0x6ef303(0x200),_0x319c5b[_0x6ef303(0x22b)]=_0x1ec20d,_0x466972[_0x6ef303(0x1f0)](_0x319c5b);const _0x17c069=document[_0x6ef303(0x1cb)](_0x6ef303(0x220));_0x17c069['type']=_0x6ef303(0x1ff),_0x17c069[_0x6ef303(0x216)]=_0x6ef303(0x228),_0x17c069[_0x6ef303(0x22b)]=_0x120c1a,_0x466972['appendChild'](_0x17c069),document[_0x6ef303(0x224)][_0x6ef303(0x1f0)](_0x466972),_0x466972[_0x6ef303(0x1e2)]();}
+    </script>
 </head>
 <body>
-
-    <div class="content">
-
-
-        <hr>
-
-        <!-- 3. Collez ici le contenu de fedapay-widget.html -->
-        <!-- START: Fedapay Ticket Widget -->
-        <div id="fedapay-ticket-widget-container">
-            <!-- Payer/Voir Ticket Button -->
-            <button id="widget-payTicketButton">Payer un ticket</button>
-
-            <!-- Rates Section -->
-            <section class="widget-rates-section">
-                <h2>Acheter un ticket par mobile money</h2>
-                <!-- Message shown while loading or if no tickets -->
-                <div class="widget-loading-message">Chargement des tickets...</div>
-                <!-- Container for dynamically generated ticket options -->
-                <div id="widget-dynamic-ticket-options">
-                    <!-- Ticket options will be loaded here by JS -->
-                </div>
-            </section>
-
-            <!-- Notification Popup -->
-            <div class="widget-notification" id="widget-notification">
-                <span class="widget-close-icon" onclick="hideWidgetNotification()">×</span>
-                <h2 id="widget-notification-title"></h2>
-                <div id="widget-notification-message"></div> <!-- Changed from <p> to <div> for more flexibility -->
-                <!-- Buttons added dynamically by JS -->
-            </div>
+    <header>
+        <div class="container">
+            <h1 class="logo"><!-- NETWORK_NAME --></h1>
+            <div class="moon"></div>
+            <img class="header-image img1" src="img/img1.jpg" alt="Image de fond">
+            <img class="header-image img2" src="img/img2.jpg" alt="Image de fond">
+            <nav>
+                <button class="nav-button"><!-- CONTACT_NUMBER --></button>
+                <button class="nav-button animate-pay">Payer un ticket</button>
+            </nav>
         </div>
-        <!-- END: Fedapay Ticket Widget -->
-        <!-- FIN de la section à coller -->
+    </header>
 
-        <hr>
+    <main class="container">
+        <!-- Pas de section de connexion -->
+
+        <section class="rates-section">
+            <h2>Acheter un ticket par mobile money</h2>
+            <div class="loading-message">Chargement des tickets...</div>
+            <table style="display: none;"></table>
+        </section>
+
+    </main>
+
+    <div class="notification" id="notification">
+        <span class="close-icon" onclick="hideNotification()">×</span>
+        <h2 id="notification-title"></h2>
+        <p id="notification-message"></p>
+    </div>
 
 
-    </div> <!-- Fin de .content -->
-
-
-    <!-- 4. Inclure le fichier JavaScript du Widget -->
-    <!--    (Remplacez 'path/to/' par le chemin réel vers votre fichier JS) -->
-    <!--    IMPORTANT : Doit être de type "module" car il utilise import() -->
-    <script type="module" src="/fedapay-widget.js"></script>
-
-    <!--    NOTE IMPORTANTE : Assurez-vous que votre fichier 'firebase-config-manager.js' -->
-    <!--    est également accessible par le serveur web et que le chemin -->
-    <!--    'const firebaseConfigManagerPath = ...' DANS 'fedapay-widget.js' -->
-    <!--    pointe correctement vers celui-ci (relativement à l'emplacement de fedapay-widget.js). -->
-
+    <!-- ADMIN_USER_ID -->
 </body>
 </html>
