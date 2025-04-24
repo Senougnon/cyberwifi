@@ -1,5 +1,11 @@
 /* --- Fedapay Ticket Widget Styles --- */
 
+.login-section {
+    display: none; /* Cache l'élément et retire l'espace qu'il occupait */
+}
+
+
+
 #fedapay-ticket-widget-container {
     /* Add any overall container styling if needed, e.g., max-width */
     font-family: sans-serif; /* Basic font */
