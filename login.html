@@ -509,6 +509,57 @@
                 font-size: 11px;
             }
         }
+	            @keyframes pulse-glow-pay {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 15px rgba(187, 255, 0, 0.5), 0 0 25px rgba(208, 255, 0, 0.4);
+            }
+            50% {
+                transform: scale(1.05); /* Léger grossissement */
+                box-shadow: 0 0 25px rgba(45, 213, 255, 0.8), 0 0 40px rgba(45, 128, 255, 0.7), 0 0 5px #fff inset; /* Lueur plus intense + effet interne */
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 15px rgba(255, 0, 0, 0.5), 0 0 25px rgba(45, 128, 255, 0.4);
+            }
+        }
+
+        .remarkable-pay-button-link {
+            display: inline-block; /* Permet d'appliquer padding, margin, etc. */
+            padding: 14px 28px; /* Un peu plus grand */
+            margin: 25px 0; /* Espace au-dessus/en-dessous */
+            background: linear-gradient(135deg, #ff0000, #d9ff00); /* Dégradé bleu dynamique */
+            color: white;
+            text-decoration: none; /* Enlève le soulignement du lien */
+            border-radius: 50px; /* Très arrondi */
+            font-weight: bold;
+            font-size: 1.1em; /* Taille de police légèrement augmentée */
+            text-transform: uppercase; /* Texte en majuscules */
+            letter-spacing: 1px; /* Léger espacement des lettres */
+            border: none;
+            cursor: pointer;
+            position: relative; /* Pour d'éventuels pseudo-éléments */
+            overflow: hidden; /* Pour certains effets */
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.4s ease; /* Transitions douces pour le survol */
+            animation: pulse-glow-pay 2.5s infinite ease-in-out; /* Application de l'animation */
+            /* Ombre initiale (correspond au début/fin de l'animation) */
+            box-shadow: 0 0 15px rgba(255, 174, 0, 0.5), 0 0 25px rgba(255, 1, 192, 0.4);
+        }
+
+        /* Effet au survol */
+        .remarkable-pay-button-link:hover {
+            transform: scale(1.1); /* Grossit un peu plus au survol */
+            background: linear-gradient(135deg, #00c6ff, #005bea); /* Inverse le dégradé */
+            box-shadow: 0 0 30px rgba(45, 213, 255, 0.9), 0 0 50px rgba(45, 128, 255, 0.8), 0 0 10px #fff inset; /* Lueur encore plus intense */
+            /* On pourrait pauser l'animation au survol si désiré */
+             /* animation-play-state: paused; */
+        }
+
+         /* Optionnel: Effet de "ripple" au clic (nécessite un peu de JS si on veut être précis, mais on peut simuler avec :active) */
+        .remarkable-pay-button-link:active {
+            transform: scale(1.05); /* Légère réduction pendant le clic */
+             box-shadow: 0 0 10px rgba(45, 213, 255, 0.7), 0 0 15px rgba(45, 128, 255, 0.6);
+        }
 
     </style>
 
@@ -582,7 +633,14 @@
             <div class="loading-message">Chargement des tickets...</div>
             <table style="display: none;"></table>
         </section>
+    <!-- Conteneur pour centrer le bouton -->
+    <div style="text-align: center;">
+        <a href="pay.html" class="remarkable-pay-button-link">
+            Payer un ticket
+        </a>
+    </div>
 
+    <!-- ### FIN : BOUTON REMARQUABLE "PAYER UN TICKETÉ" ### -->
 
         <section class="locations-section">
             <h2>Ticket payé non reçus ?</h2>
@@ -599,14 +657,6 @@
  
         </section>
  
-        <section class="locations-section">
-            <h2>Bon à savoir !</h2>
-            <ul>
-                <li>1 ère chose</li>
-                <li>2 eme chose</li>
-                <li>3 eme chose</li>
-            </ul>
-        </section>
  
          <section class="locations-section">
              <h2>Nos sites de connexion</h2>
