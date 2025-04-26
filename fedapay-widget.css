@@ -1,7 +1,7 @@
 /* --- Fedapay Ticket Widget Styles --- */
 
 .login-section {
-    display: none; /* Cache l'élément et retire l'espace qu'il occupait */
+  /*  display: none; /* Cache l'élément et retire l'espace qu'il occupait */
 }
 
 
@@ -70,7 +70,7 @@
 }
 #fedapay-ticket-widget-container .widget-dynamic-ticket-option p font {
     font-weight: bold; /* Make text bold like original */
-    color: #ff0000; /* Keep color */
+    color: #b60064; /* Keep color */
 }
 
 
