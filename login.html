@@ -66,7 +66,7 @@
         }
         
         .logo {
-            font-size: 2.5em;
+            font-size: 1.5em;
             color: white;
             text-align: center;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
@@ -449,6 +449,221 @@
         .notification .login-button:hover {
             background-color: #1a2a6c;
             color: #fdbb2d;
+        }
+        footer {
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            text-align: center;
+            margin-top: auto;
+        }
+
+        .notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            display: none;
+            color: #1a2a6c;
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .notification h2 {
+            color: #1a2a6c;
+            margin-bottom: 20px;
+        }
+
+        .notification p {
+            margin-bottom: 15px;
+        }
+
+        .close-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .notification .ticket-info {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .notification .ticket-info p {
+            margin-bottom: 5px;
+        }
+
+        .notification .login-button,
+        .notification .delete-button {
+            display: inline-block;
+            margin: 0 10px;
+        }
+
+        .notification .login-button {
+            background-color: #fdbb2d;
+            color: #1a2a6c;
+        }
+
+        .delete-button {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .delete-button:hover {
+            background-color: #d32f2f;
+        }
+
+        .notification.error {
+            background-color: #fdd;
+            border: 1px solid #faa;
+            color: #f00;
+        }
+
+        /* Footer Popup Styles */
+        .footer-popup {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translate(-50%, 200%);
+            width: 95%;
+            max-width: 600px;
+            padding: 2rem;
+            border-radius: 25px;
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(135deg, rgba(129, 0, 0, 0.95) 0%, rgba(0, 60, 150, 0.95) 100%);
+            backdrop-filter: blur(10px);
+            color: white;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3),
+                        0 0 20px rgba(0, 89, 255, 0.3),
+                        inset 0 0 60px rgba(0, 89, 255, 0.1);
+            max-height: 85vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-popup.show {
+            transform: translate(-50%, 0);
+            opacity: 1;
+        }
+
+        .footer-popup .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        /* Animations */
+        @keyframes slide1 {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(-100%); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes slide2 {
+            0% { transform: translateX(100%); }
+            50% { transform: translateX(0); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Media Queries */
+        @media screen and (max-width: 768px) {
+            .container {
+                padding: 5px;
+            }
+
+            .logo {
+                font-size: 2em;
+            }
+
+            nav {
+                flex-direction: row; /* Force l'alignement horizontal */
+                padding: 0 10px;
+            }
+
+            .nav-button {
+                width: auto; /* Permet aux boutons de s'adapter à leur contenu */
+                margin: 5px;
+                font-size: 12px; /* Taille de police encore plus petite pour les très petits écrans */
+            }
+
+            main {
+                padding: 10px 5px;
+            }
+
+            .login-section,
+            .rates-section,
+            .locations-section,
+            .products-section {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+
+            .rates-section {
+                margin: 0 -5px;
+                width: calc(100% + 10px);
+                border-radius: 0;
+            }
+
+            .rates-section table {
+                font-size: 14px;
+            }
+
+            .rates-section th,
+            .rates-section td {
+                padding: 8px;
+            }
+
+            .footer-popup {
+                width: 92%;
+                padding: 1.5rem;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .logo {
+                font-size: 1.8em;
+            }
+
+            h2 {
+                font-size: 1.2em;
+            }
+
+            .rates-section th,
+            .rates-section td {
+                padding: 6px;
+                font-size: 12px;
+            }
+
+            .notification {
+                width: 95%;
+                padding: 15px;
+            }
+        }
+        @media screen and (max-width: 320px) {
+            .nav-button {
+                padding: 8px 12px; /* Padding réduit pour les très petits écrans */
+                font-size: 11px;
+            }
         }
             </style>
 
