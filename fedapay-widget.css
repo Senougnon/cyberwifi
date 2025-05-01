@@ -275,6 +275,7 @@
     text-decoration: none; /* Supprime le soulignement par défaut */
     font-size: 13px;
     cursor: text; /* Indique qu'on peut sélectionner le texte */
+    /* word-break: break-all; - This was in the parent, but might be needed explicitly on the input */
 }
 #fedapay-ticket-widget-container .widget-direct-link:hover {
      text-decoration: underline; /* Ajouter soulignement au survol si souhaité */
