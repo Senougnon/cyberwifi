@@ -240,14 +240,11 @@
 
 /* --- Styles pour le lien de paiement direct (ajouté par JS) --- */
 #fedapay-ticket-widget-container .widget-direct-link-block {
-    margin-top: 15px;
-    margin-bottom: 15px;
-    padding: 15px;
+
     border: 1px solid #DDD;
     border-radius: 8px;
     background-color: #f9f9f9; /* Un fond léger pour le distinguer */
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    position: relative; /* Nécessaire pour positionner le message de succès */
 }
 
 #fedapay-ticket-widget-container .widget-link-instruction {
@@ -261,12 +258,8 @@
 #fedapay-ticket-widget-container .widget-link-area {
     display: flex;
     align-items: center;
-    gap: 10px; /* Espace entre le lien et le bouton */
     background-color: #e0e0e0; /* Un fond plus marqué pour le lien */
-    padding: 8px 10px;
-    border-radius: 5px;
     border: 1px solid #ccc;
-    word-break: break-all; /* Permet aux longues URLs de se casser sur plusieurs lignes */
 }
 
 #fedapay-ticket-widget-container .widget-direct-link {
@@ -277,47 +270,6 @@
     cursor: text; /* Indique qu'on peut sélectionner le texte */
     /* word-break: break-all; - This was in the parent, but might be needed explicitly on the input */
 }
-#fedapay-ticket-widget-container .widget-direct-link:hover {
-     text-decoration: underline; /* Ajouter soulignement au survol si souhaité */
-}
 
-
-#fedapay-ticket-widget-container .widget-copy-button {
-    flex-shrink: 0; /* Empêche le bouton de rétrécir */
-    background-color: #000768; /* Couleur du bouton */
-    color: white;
-    border: none;
-    padding: 5px 8px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    display: flex; /* Pour centrer l'icône SVG */
-    align-items: center;
-    justify-content: center;
-    line-height: 1; /* Aide au centrage de l'icône */
-}
-#fedapay-ticket-widget-container .widget-copy-button:hover {
-    background-color: #ff0404; /* Couleur au survol */
-}
-#fedapay-ticket-widget-container .widget-copy-button svg {
-    display: block; /* Supprime l'espace sous l'icône */
-    fill: white; /* Assure que l'icône est blanche */
-}
-
-
-#fedapay-ticket-widget-container .widget-copy-success {
-    position: absolute; /* Positionne par rapport au conteneur parent (.widget-direct-link-block) */
-    top: 10px; /* Ajustez la position */
-    right: 10px; /* Ajustez la position */
-    background-color: #d4edda; /* Vert léger */
-    color: #155724; /* Texte vert foncé */
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    opacity: 0; /* Initialement invisible */
-    pointer-events: none; /* N'intercepte pas les clics */
-    transition: opacity 0.5s ease-in-out; /* Animation de fondu */
-    z-index: 1; /* Assure qu'il est au-dessus des autres éléments du bloc */
-}
 
 /* --- Fin Styles pour le lien de paiement direct --- */
