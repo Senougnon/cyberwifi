@@ -1,0 +1,1330 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- 1. Inclure le SDK FedaPay -->
+    <!--    (Nécessaire pour que le widget puisse initialiser FedaPay) -->
+    <script src="https://cdn.fedapay.com/checkout.js?v=1.1.7"></script>
+
+    <!-- 2. Lier le fichier CSS du Widget -->
+    <!--    (Remplacez 'path/to/' par le chemin réel vers votre fichier CSS) -->
+    <link rel="stylesheet" href="/fedapay-widget.css">
+
+    <!-- Styles optionnels pour la page hôte (pour démonstration) -->
+    
+    <title>Connexion</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #dda900, #bebebe, #ffffff);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #000000;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+        
+        .img1 {
+            animation: slide1 10s linear infinite;
+        }
+        
+        .img2 {
+            animation: slide2 10s linear infinite;
+        }
+        
+        .logo {
+            font-size: 1.5em;
+            color: white;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .logo::before {
+            content: '';
+            font-size: 0.8em;
+            margin-right: 10px;
+            animation: rotate 5s linear infinite;
+            display: inline-block;
+        }
+        
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .moon {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 2em;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .nav-button {
+            background-color: rgba(0, 0, 0, 0.952);
+            color: rgb(255, 255, 255);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background-color: rgb(0, 0, 0);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.5s, height 0.5s;
+        }
+        
+        .nav-button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        @keyframes buttonPulse {
+            0% { background-color: #020202; color: #ffffff; }
+            50% { background-color: #1a2a6c; color: #c8ff00; }
+            100% { background-color: #000000; color: #ffffff; }
+        }
+        
+        .nav-button.animate-pay {
+            animation: buttonPulse 3s ease-in-out infinite;
+        }
+        
+        @keyframes textChange {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
+        .nav-button.animate-pay {
+            animation: textChange 0.5s ease-in-out, buttonPulse 3s ease-in-out infinite;
+        }
+        
+        main {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-top: 40px;
+            position: relative;
+        }
+        
+        .login-section, .rates-section, .locations-section, .products-section {
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 33, 122, 0.158);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .login-section:hover, .rates-section:hover, .locations-section:hover, .products-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 8px rgba(0, 41, 226, 0.11);
+        }
+        
+        .login-section {
+            flex-basis: 100%;
+        }
+        
+        .rates-section, .locations-section, .products-section {
+            flex-basis: calc(33.333% - 20px);
+        }
+        
+        h2 {
+            color: rgb(0, 0, 0);
+            margin-bottom: 15px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: #fdbb2d;
+            transition: width 0.3s;
+        }
+        
+        .login-section:hover h2::after,
+        .rates-section:hover h2::after,
+        .locations-section:hover h2::after,
+        .products-section:hover h2::after {
+            width: 100%;
+        }
+        
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        input {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: none;
+            border-radius: 25px;
+            background-color: rgb(212, 212, 212);
+            color: rgb(0, 0, 0);
+            transition: background-color 0.3s;
+        }
+        
+        input:focus {
+            background-color: rgba(255, 255, 255, 0.3);
+            outline: none;
+        }
+        
+        button {
+            background-color: #000000;
+            color: #ffffff;
+            border: none;
+            padding: 10px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background-color: #1a2a6c;
+            color: #fdbb2d;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            color: rgb(0, 0, 0);
+        }
+        
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        ul {
+            list-style-type: none;
+        }
+        
+        li {
+            margin-bottom: 5px;
+            position: relative;
+            padding-left: 20px;
+        }
+        
+        li::before {
+            content: '➤';
+            position: absolute;
+            left: 0;
+            color: #fdbb2d;
+        }
+        
+        .animated-text-container {
+            overflow: hidden;
+            height: 50px;
+        }
+        
+        .animated-text {
+            animation: scrollText 10s linear infinite;
+        }
+        
+        @keyframes scrollText {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-50px); }
+        }
+        
+        footer {
+            margin-top: auto;
+            text-align: center;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        @keyframes slide1 {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(-100%); }
+            100% { transform: translateX(0); }
+        }
+        
+        @keyframes slide2 {
+            0% { transform: translateX(100%); }
+            50% { transform: translateX(0); }
+            100% { transform: translateX(100%); }
+        }
+        
+        @media (max-width: 768px) {
+            .rates-section, .locations-section, .products-section {
+                flex-basis: 100%;
+            }
+        }
+        
+        .notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            display: none;
+            color: #1a2a6c;
+            text-align: center;
+        }
+        
+        .notification h2 {
+            color: #1a2a6c;
+            margin-bottom: 20px;
+        }
+        
+        .notification p {
+            margin-bottom: 15px;
+        }
+        
+        .close-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            font-size: 20px;
+        }
+        
+        #ticket-select {
+            margin-bottom: 20px;
+        }
+        
+        #nomTicket {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        
+        #paymentFrame {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+        }
+        
+        #paymentFrame > div {
+            position: relative;
+            width: 80%;
+            height: 80%;
+            margin: 5% auto;
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        #closePaymentFrame {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1001;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #1a2a6c;
+        }
+        
+        #paymentIframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .delete-button {
+            background-color: #f44336; /* Rouge pour un bouton de suppression */
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            margin: 10px;
+        }
+        
+        .delete-button:hover {
+            background-color: #d32f2f; /* Rouge foncé au survol */
+        }
+        
+        .notification.error { /* Style spécifique pour les notifications d'erreur */
+            background-color: #fdd; /* Couleur de fond légèrement rouge */
+            border: 1px solid #faa; /* Bordure rouge */
+            color: #f00; /* Texte en rouge */
+        }
+        
+        .notification .ticket-info {
+            /* Style pour la section d'information du ticket */
+            margin-bottom: 15px;
+            text-align: left; /* Alignement à gauche pour une meilleure lisibilité */
+        }
+        
+        .notification .ticket-info p {
+            margin-bottom: 5px; /* Espacement entre les lignes */
+        }
+        
+        .notification .login-button,
+        .notification .delete-button {
+            display: inline-block; /* Affichage en ligne pour les boutons */
+            margin: 0 10px; /* Espacement entre les boutons */
+        }
+        
+        .notification .login-button {
+            background-color: #fdbb2d; /* Style pour le bouton Connexion */
+            color: #1a2a6c;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        .notification .login-button:hover {
+            background-color: #1a2a6c;
+            color: #fdbb2d;
+        }
+        footer {
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            text-align: center;
+            margin-top: auto;
+        }
+
+        .notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            display: none;
+            color: #1a2a6c;
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .notification h2 {
+            color: #1a2a6c;
+            margin-bottom: 20px;
+        }
+
+        .notification p {
+            margin-bottom: 15px;
+        }
+
+        .close-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .notification .ticket-info {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .notification .ticket-info p {
+            margin-bottom: 5px;
+        }
+
+        .notification .login-button,
+        .notification .delete-button {
+            display: inline-block;
+            margin: 0 10px;
+        }
+
+        .notification .login-button {
+            background-color: #fdbb2d;
+            color: #1a2a6c;
+        }
+
+        .delete-button {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .delete-button:hover {
+            background-color: #d32f2f;
+        }
+
+        .notification.error {
+            background-color: #fdd;
+            border: 1px solid #faa;
+            color: #f00;
+        }
+
+        /* Footer Popup Styles */
+        .footer-popup {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translate(-50%, 200%);
+            width: 95%;
+            max-width: 600px;
+            padding: 2rem;
+            border-radius: 25px;
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(135deg, rgba(129, 0, 0, 0.95) 0%, rgba(0, 60, 150, 0.95) 100%);
+            backdrop-filter: blur(10px);
+            color: white;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3),
+                        0 0 20px rgba(0, 89, 255, 0.3),
+                        inset 0 0 60px rgba(0, 89, 255, 0.1);
+            max-height: 85vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-popup.show {
+            transform: translate(-50%, 0);
+            opacity: 1;
+        }
+
+        .footer-popup .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        /* Animations */
+        @keyframes slide1 {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(-100%); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes slide2 {
+            0% { transform: translateX(100%); }
+            50% { transform: translateX(0); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Media Queries */
+        @media screen and (max-width: 768px) {
+            .container {
+                padding: 5px;
+            }
+
+            .logo {
+                font-size: 2em;
+            }
+
+            nav {
+                flex-direction: row; /* Force l'alignement horizontal */
+                padding: 0 10px;
+            }
+
+            .nav-button {
+                width: auto; /* Permet aux boutons de s'adapter à leur contenu */
+                margin: 5px;
+                font-size: 12px; /* Taille de police encore plus petite pour les très petits écrans */
+            }
+
+            main {
+                padding: 10px 5px;
+            }
+
+            .login-section,
+            .rates-section,
+            .locations-section,
+            .products-section {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+
+            .rates-section {
+                margin: 0 -5px;
+                width: calc(100% + 10px);
+                border-radius: 0;
+            }
+
+            .rates-section table {
+                font-size: 14px;
+            }
+
+            .rates-section th,
+            .rates-section td {
+                padding: 8px;
+            }
+
+            .footer-popup {
+                width: 92%;
+                padding: 1.5rem;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .logo {
+                font-size: 1.8em;
+            }
+
+            h2 {
+                font-size: 1.2em;
+            }
+
+            .rates-section th,
+            .rates-section td {
+                padding: 6px;
+                font-size: 12px;
+            }
+
+            .notification {
+                width: 95%;
+                padding: 15px;
+            }
+        }
+        @media screen and (max-width: 320px) {
+            .nav-button {
+                padding: 8px 12px; /* Padding réduit pour les très petits écrans */
+                font-size: 11px;
+            }
+        }
+            </style>
+
+    $(if chap-id)
+    <form name="sendin" action="$(link-login-only)" method="post" style="display:none">
+        <input type="hidden" name="username" />
+        <input type="hidden" name="password" />
+        <input type="hidden" name="dst" value="$(link-orig)" />
+        <input type="hidden" name="popup" value="true" />
+    </form>
+
+    <script src="/md5.js"></script>
+    <script>
+        function doLogin() {
+            document.sendin.username.value = document.login.username.value;
+            document.sendin.password.value = hexMD5('$(chap-id)' + document.login.password.value + '$(chap-challenge)');
+            document.sendin.submit();
+            return false;
+        }
+    </script>
+    $(endif)
+    <script src="https://cdn.fedapay.com/checkout.js?v=1.1.7"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script type="module">
+        import { getActiveDatabase } from './firebase-config-manager.js';
+        import { ref, get, set, push, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+        const adminUserId = '<!-- ADMIN_USER_ID -->';
+        const networkName = '<!-- NETWORK_NAME -->';
+        const contactNumber = '<!-- CONTACT_NUMBER -->';
+        const fedapayApiKey = '<!-- FEDAPAY_API_KEY -->';
+
+        let db;
+        let userConfigRef;
+
+        async function initializeDatabase() {
+            db = await getActiveDatabase();
+            userConfigRef = ref(db, `users-data/${adminUserId}/portalConfig`);
+            console.log("Database initialized in login.html");
+        }
+
+        let localTickets = {};
+
+    async function checkSubscriptionStatus() {
+        try {
+            const userAdminRef = ref(db, `users-data/${adminUserId}/admin/subscription`);
+            const snapshot = await get(userAdminRef);
+            const subscription = snapshot.val();
+            const now = new Date();
+
+            if (subscription && subscription.status === 'active') {
+                const endDate = new Date(subscription.endDate);
+                if (endDate < now) {
+                    await set(userAdminRef, { ...subscription, status: 'expired' });
+                    return false;
+                } else {
+                    return true;
+                }
+            } else {
+                return false;
+            }
+        } catch (error) {
+            console.error("Erreur lors de la vérification de l'abonnement :", error);
+            return false;
+        }
+    }
+
+       async function syncTickets() {
+            try {
+                const isActive = await checkSubscriptionStatus();
+                if (!isActive) {
+                    document.querySelector('.rates-section .loading-message').textContent = 'Pas d\'abonnement actif';
+                    return;
+                }
+
+                const ticketsTotalRef = ref(db, `users-data/${adminUserId}/TicketsTotal`);
+                const snapshot = await get(ticketsTotalRef);
+                localTickets = snapshot.val() || {};
+
+                const ticketsVendusRef = ref(db, `users-data/${adminUserId}/TicketsVendus`);
+                const snapshotVendus = await get(ticketsVendusRef);
+                const ticketsVendus = snapshotVendus.val() || {};
+
+                for (const ticketId in ticketsVendus) {
+                    const ticketVendu = ticketsVendus[ticketId];
+                    const ticketName = Object.keys(localTickets).find(
+                        (key) => localTickets[key].utilisateur && localTickets[key].utilisateur.includes(ticketVendu.user)
+                    );
+
+                    if (ticketName) {
+                         const ticketIndex = localTickets[ticketName].utilisateur.indexOf(ticketVendu.user);
+                        if (ticketIndex > -1) {
+                            localTickets[ticketName] = {
+                                ...localTickets[ticketName],
+                                utilisateur: localTickets[ticketName].utilisateur.filter((_, index) => index !== ticketIndex),
+                                motDePasse: localTickets[ticketName].motDePasse.filter((_, index) => index !== ticketIndex),
+                                prix: localTickets[ticketName].prix.filter((_, index) => index !== ticketIndex)
+                            };
+
+                            if (localTickets[ticketName].utilisateur.length === 0) {
+                                delete localTickets[ticketName];
+                            }
+                        }
+                    }
+                }
+
+                console.log("Données synchronisées:", localTickets);
+                createTicketTable();
+            } catch (error) {
+                console.error("Erreur lors de la synchronisation des tickets:", error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initializeDatabase();
+            syncTickets();
+            setInterval(syncTickets, 5000);
+
+             document.querySelector('.logo').textContent = networkName;
+             document.querySelector('.nav-button').textContent = contactNumber;
+
+        });
+
+
+        document.login.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const username = document.login.username.value;
+            const password = document.login.password.value;
+
+            // Stocke IMMÉDIATEMENT le nom d'utilisateur dans Firebase.
+            storeConnectedTicket(username);
+
+            // Stocke les identifiants saisis localement (comme avant).
+            storeTicketLocally({
+                user: username,
+                password: password,
+                ticketName: 'Manual Login'
+            });
+            updateButtonText();
+
+            if (typeof hexMD5 === 'function') {
+                doLogin();  // Tentative de connexion avec MD5.
+            } else {
+                const isValid = checkCredentials(username, password);
+                if (isValid) {
+                    storeLoginTicket(username, password);  // Stocke pour la *vraie* connexion (si valide).
+                    // storeConnectedTicket(username);  <-- PLUS BESOIN ICI, déjà fait plus haut.
+                    this.submit();
+                } else {
+                    showNotification("Erreur", "Identifiants invalides.");
+                }
+            }
+        });
+
+        function storeLoginTicket(username, password) {
+            localStorage.setItem('TicketConnecté', JSON.stringify({
+                user: username,
+                password: password
+            }));
+            console.log("Ticket de connexion stocké:", username);
+        }
+
+
+        async function storeTicketEnTransit(category) {
+            const ticket = await synchronizeAndReserveTicket(category);
+            if (!ticket) {
+                throw new Error("Aucun ticket disponible pour cette catégorie.");
+            }
+
+            const transitRef = ref(db, `users-data/${adminUserId}/TicketsTransit`);
+            const newTicketRef = push(transitRef);
+            await set(newTicketRef, {
+                id: newTicketRef.key,
+                category: category,
+                ...ticket
+            });
+            console.log("Ticket en transit stocké:", newTicketRef.key);
+            return { id: newTicketRef.key, ...ticket };
+        }
+
+        async function removeTicketFromTransit(ticketId) {
+            const transitRef = ref(db, `users-data/${adminUserId}/TicketsTransit/${ticketId}`);
+            await remove(transitRef);
+            console.log("Ticket en transit supprimé:", ticketId);
+        }
+
+    async function synchronizeAndReserveTicket(category) {
+        try {
+            const ticketsTotalRef = ref(db, `users-data/${adminUserId}/TicketsTotal/${category}`);
+            const snapshot = await get(ticketsTotalRef);
+            const ticketData = snapshot.val();
+
+            if (!ticketData || !ticketData.utilisateur || ticketData.utilisateur.length === 0) {
+                return null;
+            }
+
+            const reservedTicket = {
+                user: ticketData.utilisateur[0],
+                password: ticketData.motDePasse[0],
+                price: ticketData.prix[0]
+            };
+
+            const updatedTicketData = {
+                ...ticketData,
+                utilisateur: ticketData.utilisateur.filter((_, index) => index !== 0),
+                motDePasse: ticketData.motDePasse.filter((_, index) => index !== 0),
+                prix: ticketData.prix.filter((_, index) => index !== 0)
+            };
+
+            await set(ticketsTotalRef, updatedTicketData);
+            return reservedTicket;
+
+        } catch (error) {
+            console.error("Erreur lors de la synchronisation et réservation du ticket:", error);
+            throw error;
+        }
+    }
+
+        async function restoreTicket(category, ticket) {
+            const ticketsTotalRef = ref(db, `users-data/${adminUserId}/TicketsTotal/${category}`);
+            const snapshot = await get(ticketsTotalRef);
+            const ticketData = snapshot.val() || { utilisateur: [], motDePasse: [], prix: [] };
+
+            ticketData.utilisateur.unshift(ticket.user);
+            ticketData.motDePasse.unshift(ticket.password);
+            ticketData.prix.unshift(ticket.price);
+
+            await set(ticketsTotalRef, ticketData);
+        }
+
+        function canGetFreeTicket() {
+            const lastFreeTicket = localStorage.getItem('lastFreeTicket');
+            if (!lastFreeTicket) return true;
+
+            const lastTicketDate = new Date(parseInt(lastFreeTicket));
+            const now = new Date();
+            const diffDays = Math.floor((now - lastTicketDate) / (1000 * 60 * 60 * 24));
+
+            return diffDays >= 7;
+        }
+
+       window.initPayment = async function(category, amount) {
+            let ticketEnTransit = null;
+            try {
+                if (category.toLowerCase().includes('ticket cadeau')) {
+                    if (!canGetFreeTicket()) {
+                        showNotification(
+                            "Non disponible",
+                            "Vous devez attendre 7 jours entre chaque ticket gratuit.",
+                            false
+                        );
+                        return;
+                    }
+
+                    const reservedTicket = await synchronizeAndReserveTicket(category);
+                    localStorage.setItem('lastFreeTicket', Date.now().toString());
+                    showNotification(
+                        "Ticket cadeau",
+                        "Félicitations ! Vous avez reçu un ticket gratuit.",
+                        true
+                    );
+                    displayTicket(reservedTicket, category);
+                    await storeTicketVendu(reservedTicket);
+                    return;
+                }
+
+                ticketEnTransit = await storeTicketEnTransit(category);
+                const description = `${category}; ${ticketEnTransit.user} de ${ticketEnTransit.price} FCFA`;
+
+                var fedaPayInstance = FedaPay.init({
+                    public_key: fedapayApiKey,
+                    transaction: {
+                        amount: amount,
+                        description: description
+                    },
+                    customer: {
+                        email: 'client@example.com'
+                    },
+                   onComplete: async function(response) {
+                        if (response.reason === FedaPay.DIALOG_DISMISSED) {
+                            showNotification("Paiement annulé", "Le paiement a été annulé.");
+                            await restoreTicket(category, ticketEnTransit);
+                            await removeTicketFromTransit(ticketEnTransit.id);
+                        } else if (response.reason === FedaPay.CHECKOUT_COMPLETED) {
+                            const successDescription = `✅ Paiement validé pour:\nPseudo: ${ticketEnTransit.user}\nMot de passe: ${ticketEnTransit.password}\nCatégorie: ${category}\nPrix: ${ticketEnTransit.price} FCFA\nMerci pour votre achat! 🎉`;
+                            showNotification("Paiement réussi", successDescription);
+                            await storeTicketVendu(ticketEnTransit);
+                            displayTicket(ticketEnTransit, category);
+
+                        }
+                    }
+                });
+                fedaPayInstance.open();
+            } catch (error) {
+                console.error("Erreur lors de l'initialisation du paiement:", error);
+                showNotification("Erreur", "Une erreur est survenue. Veuillez réessayer plus tard.");
+                if (ticketEnTransit) {
+                    await restoreTicket(category, ticketEnTransit);
+                    await removeTicketFromTransit(ticketEnTransit.id);
+                }
+            }
+        };
+
+        function showTariffsTable() {
+            const tariffsTable = document.querySelector('.rates-section table');
+            const loadingMessage = document.querySelector('.rates-section .loading-message');
+            tariffsTable.style.display = 'table';
+            loadingMessage.style.display = 'none';
+        }
+
+        async function createTicketTable() {
+            const table = document.querySelector('.rates-section table');
+            table.innerHTML = `
+                <tr>
+                    <th>Catégorie</th>
+                    <th>Prix (FCFA)</th>
+                    <th>Action</th>
+                </tr>
+            `;
+
+            if (Object.keys(localTickets).length === 0) {
+                document.querySelector('.rates-section .loading-message').textContent = 'Aucun ticket disponible pour le moment.';
+                return;
+            }
+
+            for (const [category, data] of Object.entries(localTickets)) {
+                if (!data || !data.prix || data.prix.length === 0) {
+                    console.warn(`Données incomplètes pour la catégorie: ${category}`);
+                    continue;
+                }
+
+                const price = data.prix[0];
+                const row = table.insertRow();
+                const buttonText = category.toLowerCase().includes('ticket cadeau') ? 'Obtenir' : 'Payer';
+
+                row.innerHTML = `
+                    <td>${category}</td>
+                    <td>${price}</td>
+                    <td><button onclick="initPayment('${category}', ${price})">${buttonText}</button></td>
+                `;
+            }
+
+            showTariffsTable();
+        }
+
+        function showTicketNotification(ticket) {
+            const notification = document.getElementById('notification');
+            const notificationTitle = document.getElementById('notification-title');
+            const notificationMessage = document.getElementById('notification-message');
+
+            notificationTitle.textContent = ticket.ticketName || 'Votre ticket'; //Affiche le nom du ticket
+            notificationMessage.innerHTML = `
+                <div class="ticket-info">
+                    <p>Nom d'utilisateur: ${ticket.user}</p>
+                    <p>Mot de passe: ${ticket.password}</p>
+                    ${ticket.price ? `<p>Prix: ${ticket.price} F</p>` : ''}
+                </div>
+            `;
+
+            const existingButtons = notification.querySelectorAll('.login-button, .delete-button');
+            existingButtons.forEach(button => button.remove());
+
+            const loginButton = document.createElement('button');
+            loginButton.className = 'login-button';
+            loginButton.textContent = 'Connexion';
+            loginButton.addEventListener('click', () => {
+                storeConnectedTicket(ticket.user); // Stocke dans Firebase AVANT autoLogin.
+                autoLogin(ticket.user, ticket.password);
+            });
+
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'delete-button';
+            deleteButton.textContent = 'Supprimer';
+            deleteButton.addEventListener('click', deleteTicket);
+
+            notification.appendChild(loginButton);
+            notification.appendChild(deleteButton);
+
+            notification.style.display = 'block';
+}
+
+
+    function showNotification(title, message, isTicketPurchase = false, ticket = null) {
+        const notification = document.getElementById('notification');
+        const notificationTitle = document.getElementById('notification-title');
+        const notificationMessage = document.getElementById('notification-message');
+
+        notificationTitle.textContent = title;
+        notificationMessage.textContent = message;
+
+        const existingButtons = notification.querySelectorAll('.login-button, .delete-button');
+        existingButtons.forEach(button => button.remove());
+
+        if (isTicketPurchase && ticket) { // Vérifie si 'ticket' est passé en argument
+            const loginButton = document.createElement('button');
+            loginButton.className = 'login-button';
+            loginButton.textContent = 'Connexion';
+            loginButton.addEventListener('click', () => {
+                storeConnectedTicket(ticket.user);  // Stocke dans Firebase AVANT autoLogin.
+                autoLogin(ticket.user, ticket.password);
+            });
+            notification.appendChild(loginButton);
+
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'delete-button';
+            deleteButton.textContent = 'Supprimer';
+            deleteButton.addEventListener('click', deleteTicket);
+            notification.appendChild(deleteButton);
+        }
+
+        notification.style.display = 'block';
+    }
+
+
+        window.hideNotification = function() {
+            document.getElementById('notification').style.display = 'none';
+        }
+
+    async function storeConnectedTicket(username) {
+        try {
+            const ticketConnectedRef = ref(db, `users-data/${adminUserId}/TicketConnecté`);
+            const newTicketRef = push(ticketConnectedRef);
+            await set(newTicketRef, { username });
+            console.log("Nom d'utilisateur du ticket connecté enregistré dans Firebase avec la clé:", newTicketRef.key);
+        } catch (error) {
+            console.error("Erreur lors de l'enregistrement du nom d'utilisateur du ticket connecté:", error);
+        }
+    }
+
+   function checkCredentials(username, password) {
+        for (const category in localTickets) {
+            const users = localTickets[category].utilisateur;
+            const passwords = localTickets[category].motDePasse;
+            if(users && passwords){
+                const index = users.indexOf(username);
+                if (index > -1 && passwords[index] === password) {
+                    return true;
+                }
+            }
+
+        }
+        return false;
+    }
+
+    function autoLogin(username, password) {
+        document.login.username.value = username;
+        document.login.password.value = password;
+      //  storeConnectedTicket(username); // Plus besoin ici, fait dans showNotification ou submit
+        document.login.submit();
+    }
+
+    function deleteTicket() {
+        localStorage.removeItem('storedTicket');
+        showNotification("Ticket supprimé", "Votre ticket a été supprimé avec succès.");
+        updateButtonText();
+    }
+
+
+    function updateButtonText() {
+        const payButton = document.querySelector('.nav-button.animate-pay');
+        const storedTicket = localStorage.getItem('storedTicket');
+
+        if (storedTicket) {
+            payButton.textContent = 'Voir mon ticket';
+        } else {
+            payButton.textContent = 'Payer un ticket';
+        }
+    }
+
+   window.addEventListener('load', () => {
+       updateButtonText();
+       const payButton = document.querySelector('.nav-button.animate-pay');
+       payButton.addEventListener('click', () => {
+           const storedTicket = localStorage.getItem('storedTicket');
+           if (storedTicket) {
+               const ticket = JSON.parse(storedTicket);
+               showTicketNotification(ticket); // Utilise la version mise à jour
+           } else {
+               document.querySelector('.rates-section').scrollIntoView({ behavior: 'smooth' });
+           }
+       });
+   });
+
+    async function storeTicketVendu(ticket) {
+        const ticketsVendusRef = ref(db, `users-data/${adminUserId}/TicketsVendus`);
+        await push(ticketsVendusRef, {
+            password: ticket.password,
+            price: ticket.price,
+            user: ticket.user
+        });
+        console.log("Ticket vendu stocké avec succès");
+    }
+
+
+    function displayTicket(ticket, category) {
+        const ticketData = {
+                ticketName: category,
+                user: ticket.user,
+                password: ticket.password,
+                price: ticket.price
+            };
+        showNotification("Ticket acheté",
+            `Nom d'utilisateur: ${ticket.user}\n` +
+            `Mot de passe: ${ticket.password}\n` +
+            `Prix: ${ticket.price} F`,
+            true,
+            ticketData //Passe les données ticketData
+        );
+        updateButtonText();
+        storeTicketLocally(ticketData);
+    }
+
+
+    function storeTicketLocally(ticketData) {
+        localStorage.setItem('storedTicket', JSON.stringify(ticketData));
+    }
+
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1 class="logo"><!-- NETWORK_NAME --></h1>
+            <div class="moon"></div>
+            <img class="header-image img1" src="img/img1.jpg" alt="Image de fond">
+            <img class="header-image img2" src="img/img2.jpg" alt="Image de fond">
+            <nav>
+                <button class="nav-button"><!-- CONTACT_NUMBER --></button>
+                <button class="nav-button animate-pay">Payer un ticket</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+
+        <section class="login-section">
+            <h2>Connexion</h2>
+            <form name="login" action="$(link-login-only)" method="post" $(if chap-id) onSubmit="return doLogin()" $(endif)>
+                <input type="hidden" name="dst" value="$(link-orig)" />
+                <input type="hidden" name="popup" value="true" />
+                <input type="text" name="username" placeholder="Nom d'utilisateur" value="$(username)" required>
+                <input type="password" name="password" placeholder="Mot de passe" required>
+                <button type="submit">Se connecter</button>
+            </form>
+            <p class="info $(if error)alert$(endif)">
+                $(if error == "")Veuillez vous connecter pour utiliser le service hotspot Internet $(if trial == 'yes')<br />Essai gratuit disponible, <a href="$(link-login-only)?dst=$(link-orig-esc)&username=T-$(mac-esc)">cliquez ici</a>.$(endif)
+                $(endif)
+                $(if error)$(error)$(endif)
+            </p>
+        </section>
+
+        <div class="content">
+
+
+    
+            <!-- 3. Collez ici le contenu de fedapay-widget.html -->
+            <!-- START: Fedapay Ticket Widget -->
+            <div id="fedapay-ticket-widget-container">
+                <!-- Payer/Voir Ticket Button -->
+    
+                <!-- Rates Section -->
+                <section class="widget-rates-section">
+                    <h2>Acheter un ticket par mobile money</h2>
+                    <!-- Message shown while loading or if no tickets -->
+                    <div class="widget-loading-message">Chargement des tickets...</div>
+                    <!-- Container for dynamically generated ticket options -->
+                    <div id="widget-dynamic-ticket-options">
+                        <!-- Ticket options will be loaded here by JS -->
+                    </div>
+                    <button id="widget-payTicketButton">Payer un ticket</button>
+
+                </section>
+    
+                <!-- Notification Popup -->
+                <div class="widget-notification" id="widget-notification">
+                    <span class="widget-close-icon" onclick="hideWidgetNotification()">×</span>
+                    <h2 id="widget-notification-title"></h2>
+                    <div id="widget-notification-message"></div> <!-- Changed from <p> to <div> for more flexibility -->
+                    <!-- Buttons added dynamically by JS -->
+                </div>
+            </div>
+            <!-- END: Fedapay Ticket Widget -->
+            <!-- FIN de la section à coller -->
+    
+    
+        </div> <!-- Fin de .content -->
+
+
+        <!-- 4. Inclure le fichier JavaScript du Widget -->
+        <!--    (Remplacez 'path/to/' par le chemin réel vers votre fichier JS) -->
+        <!--    IMPORTANT : Doit être de type "module" car il utilise import() -->
+        <script type="module" src="/fedapay-widget.js"></script>
+
+        <!--    NOTE IMPORTANTE : Assurez-vous que votre fichier 'firebase-config-manager.js' -->
+        <!--    est également accessible par le serveur web et que le chemin -->
+        <!--    'const firebaseConfigManagerPath = ...' DANS 'fedapay-widget.js' -->
+        <!--    pointe correctement vers celui-ci (relativement à l'emplacement de fedapay-widget.js). -->
+
+
+        <section class="locations-section">
+            <h2>Ticket payé non reçus ?</h2>
+             <!-- This list was hardcoded, will be replaced by injection if configured -->
+            <ul>
+                Récupérer les ID du ticket en contactant le <!-- CONTACT_NUMBER -->
+            </ul>
+
+        </section>
+
+
+         <section class="locations-section">
+             <h2>Nos tarifs (Information)</h2>
+              <table class="static-tariffs-table">
+                  <thead>
+                      <tr>
+                          <th>Catégorie</th>
+                          <th>Prix (FCFA)</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      <!-- PLACEHOLDER_STATIC_TARIFFS_TABLE_BODY -->
+                  </tbody>
+              </table>
+         </section>
+
+         <!-- Renamed section for clarity -->
+         <section class="locations-section">
+             <h2>Bon à savoir !</h2>
+             <!-- This list was hardcoded, will be replaced by injection -->
+             <ul>
+                 <!-- PLACEHOLDER_KNOW_BEFORE_YOU_GO_LIST -->
+             </ul>
+         </section>
+
+
+         <section class="locations-section">
+             <h2>Nos sites de connexion</h2>
+             <!-- This list was hardcoded, will be replaced by injection -->
+             <ul>
+                 <!-- PLACEHOLDER_CONNECTIONS_LIST -->
+             </ul>
+         </section>
+
+         <section class="products-section">
+             <h2>Nos produits</h2>
+             <!-- This list was hardcoded, will be replaced by injection -->
+             <ul>
+                 <!-- PLACEHOLDER_PRODUCTS_LIST -->
+             </ul>
+         </section>
+         <div class="notification" id="notification">
+            <span class="close-icon" onclick="hideNotification()">×</span>
+            <h2 id="notification-title"></h2>
+            <p id="notification-message"></p>
+        </div>
+
+    </main>
+
+    <footer>
+        <div class="anitext">
+            PROPULSE PAR EVISIONS
+        </div>
+    </footer>

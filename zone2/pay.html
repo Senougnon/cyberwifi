@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Widget FedaPay</title>
+
+    <!-- 1. Inclure le SDK FedaPay -->
+    <!--    (Nécessaire pour que le widget puisse initialiser FedaPay) -->
+    <script src="https://cdn.fedapay.com/checkout.js?v=1.1.7"></script>
+
+    <!-- 2. Lier le fichier CSS du Widget -->
+    <!--    (Remplacez 'path/to/' par le chemin réel vers votre fichier CSS) -->
+    <link rel="stylesheet" href="/fedapay-widget.css">
+
+    <!-- Styles optionnels pour la page hôte (pour démonstration) -->
+    
+</head>
+<body>
+    <section class="login-section">
+        <h2>Connexion</h2>
+        <form name="login" action="$(link-login-only)" method="post" $(if chap-id) onSubmit="return doLogin()" $(endif)>
+            <input type="hidden" name="dst" value="$(link-orig)" />
+            <input type="hidden" name="popup" value="true" />
+            <input type="text" name="username" placeholder="Nom d'utilisateur" value="$(username)" required>
+            <input type="password" name="password" placeholder="Mot de passe" required>
+            <button type="submit">Se connecter</button>
+        </form>
+        <p class="info $(if error)alert$(endif)">
+            $(if error == "")Veuillez vous connecter pour utiliser le service hotspot Internet $(if trial == 'yes')<br />Essai gratuit disponible, <a href="$(link-login-only)?dst=$(link-orig-esc)&username=T-$(mac-esc)">cliquez ici</a>.$(endif)
+            $(endif)
+            $(if error)$(error)$(endif)
+        </p>
+    </section>
+    <div class="content">
+
+
+        <!-- 3. Collez ici le contenu de fedapay-widget.html -->
+        <!-- START: Fedapay Ticket Widget -->
+        <div id="fedapay-ticket-widget-container">
+            <!-- Payer/Voir Ticket Button -->
+
+            <!-- Rates Section -->
+            <section class="widget-rates-section">
+                <h2>Acheter un ticket par mobile money</h2>
+                <!-- Message shown while loading or if no tickets -->
+                <div class="widget-loading-message">Chargement des tickets...</div>
+                <!-- Container for dynamically generated ticket options -->
+                <div id="widget-dynamic-ticket-options">
+                    <!-- Ticket options will be loaded here by JS -->
+                </div>
+            </section>
+            <button id="widget-payTicketButton">Payer un ticket</button>
+
+            <!-- Notification Popup -->
+            <div class="widget-notification" id="widget-notification">
+                <span class="widget-close-icon" onclick="hideWidgetNotification()">×</span>
+                <h2 id="widget-notification-title"></h2>
+                <div id="widget-notification-message"></div> <!-- Changed from <p> to <div> for more flexibility -->
+                <!-- Buttons added dynamically by JS -->
+            </div>
+        </div>
+        <!-- END: Fedapay Ticket Widget -->
+        <!-- FIN de la section à coller -->
+
+
+    </div> <!-- Fin de .content -->
+
+
+    <!-- 4. Inclure le fichier JavaScript du Widget -->
+    <!--    (Remplacez 'path/to/' par le chemin réel vers votre fichier JS) -->
+    <!--    IMPORTANT : Doit être de type "module" car il utilise import() -->
+    <script type="module" src="/fedapay-widget.js"></script>
+
+    <!--    NOTE IMPORTANTE : Assurez-vous que votre fichier 'firebase-config-manager.js' -->
+    <!--    est également accessible par le serveur web et que le chemin -->
+    <!--    'const firebaseConfigManagerPath = ...' DANS 'fedapay-widget.js' -->
+    <!--    pointe correctement vers celui-ci (relativement à l'emplacement de fedapay-widget.js). -->
+
+</body>
+</html>

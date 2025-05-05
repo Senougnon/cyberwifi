@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Widget FedaPay</title>
+
+    <!-- 1. Inclure le SDK FedaPay -->
+    <!--    (Nécessaire pour que le widget puisse initialiser FedaPay) -->
+    <script src="https://cdn.fedapay.com/checkout.js?v=1.1.7"></script>
+
+    <!-- 2. Lier le fichier CSS du Widget -->
+    <!--    (Remplacez 'path/to/' par le chemin réel vers votre fichier CSS) -->
+    <link rel="stylesheet" href="/fedapay-widget.css">
+
+    <!-- Styles optionnels pour la page hôte (pour démonstration) -->
+    
+</head>
+<body>
+
+    <div class="content">
+
+
+        <hr>
+
+        <!-- 3. Collez ici le contenu de fedapay-widget.html -->
+        <!-- START: Fedapay Ticket Widget -->
+        <div id="fedapay-ticket-widget-container">
+            <!-- Payer/Voir Ticket Button -->
+
+            <!-- Rates Section -->
+            <section class="widget-rates-section">
+                <h2>Acheter un ticket par mobile money</h2>
+                <!-- Message shown while loading or if no tickets -->
+                <div class="widget-loading-message">Chargement des tickets...</div>
+                <!-- Container for dynamically generated ticket options -->
+                <div id="widget-dynamic-ticket-options">
+                    <!-- Ticket options will be loaded here by JS -->
+                </div>
+            </section>
+            <button id="widget-payTicketButton">Payer un ticket</button>
+
+            <!-- Notification Popup -->
+            <div class="widget-notification" id="widget-notification">
+                <span class="widget-close-icon" onclick="hideWidgetNotification()">×</span>
+                <h2 id="widget-notification-title"></h2>
+                <div id="widget-notification-message"></div> <!-- Changed from <p> to <div> for more flexibility -->
+                <!-- Buttons added dynamically by JS -->
+            </div>
+        </div>
+        <!-- END: Fedapay Ticket Widget -->
+        <!-- FIN de la section à coller -->
+
+        <hr>
+
+
+    </div> <!-- Fin de .content -->
+
+
+    <!-- 4. Inclure le fichier JavaScript du Widget -->
+    <!--    IMPORTANT : Doit être de type "module" car il utilise import() -->
+    <script type="module" src="/payer-widget.js"></script>
+
+</body>
+</html>

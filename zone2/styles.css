@@ -1,0 +1,466 @@
+:root {
+    --primary-color: #00ffff;
+    --secondary-color: #ff00ff;
+    --background-color: #0a0a1a;
+    --text-color: #00ffff;
+    --input-bg: rgba(255, 255, 255, 0.1);
+    --box-bg: rgba(20, 20, 40, 0.8);
+    --button-text-color: #0a0a1a;
+    --table-border-color: rgba(0, 255, 255, 0.3);
+    --table-header-bg: rgba(0, 255, 255, 0.2);
+}
+
+:root.light-theme {
+    --primary-color: #008080;
+    --secondary-color: #800080;
+    --background-color: #f0f0f0;
+    --text-color: #333333;
+    --input-bg: rgba(0, 0, 0, 0.1);
+    --box-bg: rgba(255, 255, 255, 0.8);
+    --button-text-color: #ffffff;
+    --table-border-color: rgba(0, 128, 128, 0.3);
+    --table-header-bg: rgba(0, 128, 128, 0.2);
+}
+
+body {
+    font-family: 'Orbitron', sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 20px;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    transition: all 0.3s ease;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: var(--box-bg);
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+}
+
+h1, h2, h3 {
+    color: var(--primary-color);
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+form {
+    margin-bottom: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+input, select, button {
+    padding: 10px;
+    border: none;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    border-radius: 5px;
+}
+
+button {
+    background-color: var(--primary-color);
+    color: var(--button-text-color); /* Utilisation de la nouvelle variable */
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    background-color: var(--secondary-color);
+}
+
+/* Le reste du CSS reste inchangé */
+
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-bottom: 20px;
+    border: 1px solid var(--table-border-color);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.1);
+}
+
+th, td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--table-border-color);
+}
+
+th {
+    background-color: var(--table-header-bg);
+    color: var(--text-color);
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+th:hover {
+    background-color: var(--primary-color);
+    color: var(--button-text-color);
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+tbody tr:hover {
+    background-color: var(--input-bg);
+}
+
+/* Styles pour les tables de stock */
+.stock-table {
+    margin-bottom: 30px;
+}
+
+.stock-table h3 {
+    margin-bottom: 10px;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.15);
+}
+
+#salesChart {
+    margin-top: 20px;
+    background-color: var(--box-bg);
+    border-radius: 10px;
+    padding: 20px;
+}
+
+#loginForm {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+#loginForm input {
+    margin-bottom: 10px;
+    width: 200px;
+}
+
+#dashboardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+#userInfo {
+    font-size: 1.2em;
+    color: var(--text-color);
+}
+
+#searchInputs {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+#searchInputs input {
+    width: calc(100% / 8 - 10px);
+}
+
+.button-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.toggle-button {
+    width: 48%;
+    padding: 10px;
+    background-color: var(--primary-color);
+    color: var(--background-color);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.toggle-button:hover {
+    background-color: var(--secondary-color);
+}
+
+#analysisSection, #salesDetailsSection {
+    display: none;
+}
+
+.period-analysis {
+    margin-top: 20px;
+    background-color: var(--input-bg);
+    padding: 15px;
+    border-radius: 10px;
+}
+
+.period-analysis h3 {
+    color: var(--primary-color);
+    margin-top: 0;
+}
+
+#theme-toggle {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 24px;
+    z-index: 1001;
+    padding: 5px;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+}
+
+#theme-toggle:hover {
+    background-color: var(--input-bg);
+}
+
+.date-filter {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.date-filter input {
+    flex: 1;
+}
+
+.stock-tables {
+    display: flex;
+    flex-direction: column;
+}
+
+.stock-table {
+    width: 100%;
+    margin-bottom: 20px;
+    overflow-x: auto;
+}
+
+.stock-table table {
+    width: 100%;
+    min-width: 300px;
+}
+
+@media (min-width: 768px) {
+    .stock-tables {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+
+    .stock-table {
+        width: 48%;
+    }
+}
+/* Styles pour l'icône de suppression */
+.delete-icon {
+    display: none;
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    cursor: pointer;
+    color: var(--secondary-color);
+    font-size: 18px;
+    transition: color 0.3s ease;
+}
+
+.delete-icon:hover {
+    color: var(--primary-color);
+}
+
+/* Ajoutez cette règle pour rendre les cellules du tableau relatives */
+#salesTable tbody td {
+    position: relative;
+}
+
+/* Afficher l'icône de suppression au survol de la ligne */
+#salesTable tbody tr:hover .delete-icon {
+    display: block;
+}
+
+/* Style pour la boîte de dialogue de confirmation */
+.confirm-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--box-bg);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+    z-index: 1000;
+}
+
+.confirm-dialog p {
+    margin-bottom: 20px;
+}
+
+.confirm-dialog button {
+    margin-right: 10px;
+}
+/* Styles pour l'icône de suppression */
+.delete-icon {
+    display: none;
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    cursor: pointer;
+    color: var(--secondary-color);
+    font-size: 18px;
+    transition: color 0.3s ease;
+}
+
+.delete-icon:hover {
+    color: var(--primary-color);
+}
+
+/* Ajoutez cette règle pour rendre les cellules du tableau relatives */
+#salesTable tbody td {
+    position: relative;
+}
+
+/* Afficher l'icône de suppression au survol de la ligne */
+#salesTable tbody tr:hover .delete-icon {
+    display: block;
+}
+
+/* Style pour la boîte de dialogue de confirmation */
+.confirm-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--box-bg);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+    z-index: 1000;
+}
+
+.confirm-dialog p {
+    margin-bottom: 20px;
+}
+
+.confirm-dialog button {
+    margin-right: 10px;
+}
+.export-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    background-color: var(--primary-color);
+    color: var(--button-text-color);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    z-index: 1000;
+    font-family: 'Orbitron', sans-serif;
+}
+
+.export-button:hover {
+    background-color: var(--secondary-color);
+}
+
+/* Assurer la visibilité du bouton sur les petits écrans */
+@media (max-width: 768px) {
+    .export-button {
+        bottom: 10px;
+        right: 10px;
+        padding: 8px 16px;
+        font-size: 0.9em;
+    }
+}
+
+#stockConfigSection {
+    margin-bottom: 30px;
+}
+
+#stockConfigForm {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+#stockConfigForm .config-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+#stockConfigForm label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+#stockConfigForm select {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid var(--table-border-color);
+    border-radius: 5px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+}
+
+.subscription-required {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+
+.subscription-required-content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    max-width: 400px;
+    width: 90%;
+}
+
+.subscription-required-content h2 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.subscription-required-content p {
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.subscription-required-content button {
+    background-color: var(--primary-color);
+    color: var(--button-text-color);
+    border: none;
+    padding: 12px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin: 0 10px;
+}
+
+.subscription-required-content button:hover {
+    background-color: var(--secondary-color);
+}
