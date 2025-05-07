@@ -1,7 +1,10 @@
 /* --- Fedapay Ticket Widget Styles --- */
-
 .login-section {
   /*  display: none; /* Cache l'élément et retire l'espace qu'il occupait */
+}
+
+.login-section1 {
+    display: none; /* Cache l'élément et retire l'espace qu'il occupait */
 }
 
 
