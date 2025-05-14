@@ -17,7 +17,21 @@
     
 </head>
 <body>
-
+    <section class="login-section1">
+        <h2>Connexion</h2>
+        <form name="login" action="$(link-login-only)" method="post" $(if chap-id) onSubmit="return doLogin()" $(endif)>
+            <input type="hidden" name="dst" value="$(link-orig)" />
+            <input type="hidden" name="popup" value="true" />
+            <input type="text" name="username" placeholder="Nom d'utilisateur" value="$(username)" required>
+            <input type="password" name="password" placeholder="Mot de passe" required>
+            <button type="submit">Se connecter</button>
+        </form>
+        <p class="info $(if error)alert$(endif)">
+            $(if error == "")Veuillez vous connecter pour utiliser le service hotspot Internet $(if trial == 'yes')<br />Essai gratuit disponible, <a href="$(link-login-only)?dst=$(link-orig-esc)&username=T-$(mac-esc)">cliquez ici</a>.$(endif)
+            $(endif)
+            $(if error)$(error)$(endif)
+        </p>
+    </section>
     <div class="content">
 
 
@@ -27,7 +41,10 @@
         <!-- START: Fedapay Ticket Widget -->
         <div id="fedapay-ticket-widget-container">
             <!-- Payer/Voir Ticket Button -->
-
+<!-- Ajoutez ceci quelque part dans #fedapay-ticket-widget-container si ce n'est pas déjà fait -->
+<div id="widget-tooltip" class="widget-tooltip-class" style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background-color: rgba(0,0,0,0.8); color: white; padding: 8px 15px; border-radius: 5px; z-index: 1000; font-size: 0.9em; transition: opacity 0.3s ease; opacity: 0; pointer-events: none;">
+    <!-- Message appears here -->
+</div>
             <!-- Rates Section -->
             <section class="widget-rates-section">
                 <h2>Acheter un ticket par mobile money</h2>
