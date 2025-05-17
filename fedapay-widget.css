@@ -401,7 +401,7 @@
     width: 100%;
     margin-top: 5px; /* Small margin below the main button */
     margin-bottom: 15px; /* Match margin below main button */
-    background-color: #6c757d; /* A neutral grey */
+    background-color: #cf001c; /* A neutral grey */
     color: white;
     border: none;
     padding: 8px;
@@ -412,5 +412,5 @@
     text-align: center;
 }
 #fedapay-ticket-widget-container #widget-ticketNotReceivedButton:hover {
-    background-color: #5a6268;
+    background-color: #272727;
 }
