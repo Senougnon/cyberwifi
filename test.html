@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Firebase Realtime Database (Local SDKs)</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; background-color: #f4f7f6; color: #333; }
+        .container { margin-bottom: 25px; padding: 15px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1, h2 { color: #2c3e50; }
+        label { display: block; margin-top: 12px; font-weight: bold; }
+        input[type="text"], textarea { width: calc(100% - 22px); padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        textarea { min-height: 80px; }
+        button { padding: 10px 18px; margin-top: 15px; cursor: pointer; background-color: #3498db; color: white; border: none; border-radius: 4px; transition: background-color 0.3s; }
+        button:hover { background-color: #2980b9; }
+        button.secondary { background-color: #e74c3c; }
+        button.secondary:hover { background-color: #c0392b; }
+        pre { background-color: #ecf0f1; padding: 10px; border: 1px solid #bdc3c7; border-radius: 4px; white-space: pre-wrap; word-wrap: break-word; max-height: 300px; overflow-y: auto; }
+        .status { margin-top: 10px; font-style: italic; color: #7f8c8d; }
+        .warning { color: #e67e22; font-weight: bold; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <h1>Test Firebase Realtime Database (Local SDKs)</h1>
+    <p class="warning">ATTENTION : Vos identifiants Firebase (apiKey, etc.) sont visibles dans le code source de cette page. Ceci est acceptable pour des tests locaux mais ne doit JAMAIS être fait pour des clés sensibles en production sans mesures de sécurité appropriées (règles de sécurité Firebase, App Check).</p>
+    <p><em>Les SDK Firebase sont chargés depuis les fichiers locaux. Assurez-vous que <code>firebase-app.js</code>, <code>firebase-database.js</code> (et <code>firebase-analytics.js</code> si utilisé) sont dans le même dossier que ce fichier HTML.</em></p>
+    <p><em><strong>Important :</strong> Pour que les modules ES6 locaux fonctionnent correctement, vous devrez peut-être servir cette page via un serveur web local (par exemple, avec l'extension "Live Server" de VS Code, ou <code>python -m http.server</code>, ou <code>npx http-server</code>) plutôt que de l'ouvrir directement comme un fichier (<code>file:///...</code>).</em></p>
+
+
+    <div class="container">
+        <h2>Configuration Firebase</h2>
+        <p>Projet ID: <strong>test-d5828</strong></p>
+        <p>Database URL: <strong>https://test-d5828-default-rtdb.firebaseio.com</strong></p>
+        <p><em>Assurez-vous que votre console Firebase pour ce projet est configurée pour Realtime Database et que les règles de sécurité autorisent la lecture/écriture (pour les tests, `".read": true, ".write": true` peut être utilisé temporairement).</em></p>
+    </div>
+
+    <div class="container">
+        <h2>Écrire des données</h2>
+        <label for="dataPathWrite">Chemin (ex: messages/msg1 ou users/jean/nom):</label>
+        <input type="text" id="dataPathWrite" value="testData/greeting">
+
+        <label for="dataValueWrite">Valeur (Texte simple ou JSON stringifié. Ex: "Bonjour" ou {"text": "Salut", "timestamp": 1678886400}):</label>
+        <textarea id="dataValueWrite">"Bonjour depuis la page de test avec SDK locaux!"</textarea>
+
+        <button id="writeDataBtn">Écrire dans la DB (set)</button>
+        <button id="pushDataBtn">Ajouter à une liste (push)</button>
+        <div id="writeStatus" class="status"></div>
+    </div>
+
+    <div class="container">
+        <h2>Lire des données (une fois)</h2>
+        <label for="dataPathRead">Chemin (ex: messages/msg1 ou testData):</label>
+        <input type="text" id="dataPathRead" value="testData">
+        <button id="readDataBtn">Lire depuis la DB (get)</button>
+        <h3>Données lues :</h3>
+        <pre id="dataDisplay">Aucune donnée chargée pour l'instant.</pre>
+        <div id="readStatus" class="status"></div>
+    </div>
+
+    <div class="container">
+        <h2>Écouter les données (en temps réel)</h2>
+        <label for="dataPathListen">Chemin à écouter (ex: testData/greeting):</label>
+        <input type="text" id="dataPathListen" value="testData/greeting">
+        <button id="listenDataBtn">Commencer l'écoute (onValue)</button>
+        <button id="stopListenDataBtn" class="secondary" style="display:none;">Arrêter l'écoute</button>
+        <h3>Données en temps réel :</h3>
+        <pre id="liveDataDisplay">En attente de données...</pre>
+        <div id="listenStatus" class="status"></div>
+    </div>
+
+    <script type="module">
+      // Import the functions you need from the SDKs you need
+      // Modifié pour utiliser les fichiers locaux. Assurez-vous que les noms correspondent exactement.
+      import { initializeApp } from "./firebase-app.js";
+      // import { getAnalytics } from "./firebase-analytics.js"; // Facultatif pour ce test DB, mais chemin local si besoin
+      
+      // SDK pour Realtime Database (local)
+      import { getDatabase, ref, set, get, push, onValue, off } from "./firebase-database.js";
+
+      // Your web app's Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyAW1XLcUrPdEzwYM_3eovHfA2B5xKG6cwc",
+        authDomain: "test-d5828.firebaseapp.com",
+        databaseURL: "https://test-d5828-default-rtdb.firebaseio.com",
+        projectId: "test-d5828",
+        storageBucket: "test-d5828.firebasestorage.app",
+        messagingSenderId: "774042101425",
+        appId: "1:774042101425:web:e5c0e1e5d552145b9be490",
+        measurementId: "G-KGP0JRE1F9" // Facultatif si vous n'utilisez pas Analytics ici
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      // const analytics = getAnalytics(app); // Décommentez si vous utilisez firebase-analytics.js localement
+      const database = getDatabase(app); // Obtenir une référence à la base de données
+
+      console.log("Firebase App initialisée (SDKs locaux). Database instance:", database);
+
+      // --- Éléments UI ---
+      const dataPathWriteInput = document.getElementById('dataPathWrite');
+      const dataValueWriteInput = document.getElementById('dataValueWrite');
+      const writeDataBtn = document.getElementById('writeDataBtn');
+      const pushDataBtn = document.getElementById('pushDataBtn');
+      const writeStatusDiv = document.getElementById('writeStatus');
+
+      const dataPathReadInput = document.getElementById('dataPathRead');
+      const readDataBtn = document.getElementById('readDataBtn');
+      const dataDisplayPre = document.getElementById('dataDisplay');
+      const readStatusDiv = document.getElementById('readStatus');
+
+      const dataPathListenInput = document.getElementById('dataPathListen');
+      const listenDataBtn = document.getElementById('listenDataBtn');
+      const stopListenDataBtn = document.getElementById('stopListenDataBtn');
+      const liveDataDisplayPre = document.getElementById('liveDataDisplay');
+      const listenStatusDiv = document.getElementById('listenStatus');
+
+      let currentListenerRef = null;
+      let currentListenerPath = "";
+      let onValueCallback = null; 
+
+      // --- Fonctions ---
+
+      function parseValue(valueString) {
+          try {
+              return JSON.parse(valueString);
+          } catch (e) {
+              return valueString;
+          }
+      }
+
+      // Écriture (set)
+      writeDataBtn.addEventListener('click', () => {
+          const path = dataPathWriteInput.value.trim();
+          const valueString = dataValueWriteInput.value;
+
+          if (!path) {
+              writeStatusDiv.textContent = "Le chemin ne peut pas être vide.";
+              return;
+          }
+          const value = parseValue(valueString);
+
+          const dbRef = ref(database, path);
+          set(dbRef, value)
+              .then(() => {
+                  writeStatusDiv.textContent = `Données écrites avec succès à '${path}'!`;
+                  console.log("Data set successfully!", {path, value});
+              })
+              .catch((error) => {
+                  writeStatusDiv.textContent = "Erreur lors de l'écriture: " + error.message;
+                  console.error("Error setting data: ", error);
+              });
+      });
+
+      // Ajout à une liste (push)
+      pushDataBtn.addEventListener('click', () => {
+          const path = dataPathWriteInput.value.trim(); 
+          const valueString = dataValueWriteInput.value;
+
+          if (!path) {
+              writeStatusDiv.textContent = "Le chemin pour 'push' ne peut pas être vide (ce sera le parent de la nouvelle entrée).";
+              return;
+          }
+          const value = parseValue(valueString);
+
+          const listRef = ref(database, path);
+          const newItemRef = push(listRef); 
+          set(newItemRef, value)
+              .then(() => {
+                  writeStatusDiv.textContent = `Données ajoutées avec succès sous '${path}' avec l'ID: ${newItemRef.key}`;
+                  console.log("Data pushed successfully!", {path, value, newKey: newItemRef.key});
+              })
+              .catch((error) => {
+                  writeStatusDiv.textContent = "Erreur lors de l'ajout (push): " + error.message;
+                  console.error("Error pushing data: ", error);
+              });
+      });
+
+      // Lecture (get)
+      readDataBtn.addEventListener('click', () => {
+          const path = dataPathReadInput.value.trim();
+          if (!path) {
+              readStatusDiv.textContent = "Le chemin ne peut pas être vide.";
+              dataDisplayPre.textContent = "";
+              return;
+          }
+          readStatusDiv.textContent = `Lecture de '${path}'...`;
+          const dbRef = ref(database, path);
+          get(dbRef).then((snapshot) => {
+              if (snapshot.exists()) {
+                  dataDisplayPre.textContent = JSON.stringify(snapshot.val(), null, 2);
+                  readStatusDiv.textContent = `Données lues depuis '${path}'.`;
+                  console.log("Data read:", snapshot.val());
+              } else {
+                  dataDisplayPre.textContent = "Aucune donnée disponible à ce chemin.";
+                  readStatusDiv.textContent = `Aucune donnée à '${path}'.`;
+                  console.log("No data available at", path);
+              }
+          }).catch((error) => {
+              dataDisplayPre.textContent = "Erreur de lecture: " + error.message;
+              readStatusDiv.textContent = "Erreur de lecture: " + error.message;
+              console.error("Error reading data:", error);
+          });
+      });
+
+      // Écoute (onValue)
+      listenDataBtn.addEventListener('click', () => {
+          const path = dataPathListenInput.value.trim();
+          if (!path) {
+              listenStatusDiv.textContent = "Le chemin ne peut pas être vide pour l'écoute.";
+              return;
+          }
+
+          if (currentListenerRef) { 
+              off(currentListenerRef, 'value', onValueCallback);
+              console.log("Previous listener stopped for path:", currentListenerPath);
+          }
+
+          currentListenerPath = path;
+          currentListenerRef = ref(database, path);
+          listenStatusDiv.textContent = `Démarrage de l'écoute pour '${path}'...`;
+
+          onValueCallback = (snapshot) => { 
+              const data = snapshot.val();
+              if (data !== null) {
+                  liveDataDisplayPre.textContent = JSON.stringify(data, null, 2);
+                  listenStatusDiv.textContent = `Écoute en temps réel de '${path}'. Données mises à jour.`;
+                  console.log("Live data update for", path, ":", data);
+              } else {
+                  liveDataDisplayPre.textContent = `Aucune donnée à '${path}' ou le chemin a été supprimé.`;
+                  listenStatusDiv.textContent = `Aucune donnée à '${path}' ou le chemin a été supprimé.`;
+              }
+          };
+
+          onValue(currentListenerRef, onValueCallback, (error) => {
+              liveDataDisplayPre.textContent = "Erreur d'écoute: " + error.message;
+              listenStatusDiv.textContent = "Erreur d'écoute: " + error.message;
+              console.error("Firebase onValue error:", error);
+              listenDataBtn.style.display = 'inline-block';
+              stopListenDataBtn.style.display = 'none';
+              currentListenerRef = null; 
+          });
+
+          listenDataBtn.style.display = 'none';
+          stopListenDataBtn.style.display = 'inline-block';
+      });
+
+      stopListenDataBtn.addEventListener('click', () => {
+          if (currentListenerRef && onValueCallback) {
+              off(currentListenerRef, 'value', onValueCallback); 
+              liveDataDisplayPre.textContent = "Écoute arrêtée.";
+              listenStatusDiv.textContent = `Écoute arrêtée pour '${currentListenerPath}'.`;
+              console.log(`Listener stopped for path: ${currentListenerPath}`);
+              currentListenerRef = null;
+              currentListenerPath = "";
+              onValueCallback = null;
+              listenDataBtn.style.display = 'inline-block';
+              stopListenDataBtn.style.display = 'none';
+          } else {
+              listenStatusDiv.textContent = "Aucune écoute active à arrêter.";
+          }
+      });
+
+    </script>
+</body>
+</html>
