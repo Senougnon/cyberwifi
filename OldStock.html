@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue des Stocks Partenaires</title>
+    <style>
+        /* Styles CSS inspirés de votre fichier original, mais simplifiés */
+        :root {
+            --primary-color: #00ffff;
+            --secondary-color: #ff00ff;
+            --background-color: #0a0a1a;
+            --text-color: #00ffff;
+            --input-bg: rgba(255, 255, 255, 0.1);
+            --box-bg: rgba(20, 20, 40, 0.8);
+            --button-text-color: #0a0a1a;
+            --table-border-color: rgba(0, 255, 255, 0.3);
+            --table-header-bg: rgba(0, 255, 255, 0.2);
+            --error-color: #ff4d4d;
+        }
+
+        body {
+            font-family: 'Orbitron', sans-serif; /* Assurez-vous d'importer cette police si nécessaire, ou utilisez une police de secours */
+            font-family: monospace, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: var(--box-bg);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+        }
+
+        h1, h2, h3 {
+            color: var(--primary-color);
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+        }
+
+        form {
+            margin-bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        form div {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input, button {
+            padding: 12px;
+            border: 1px solid var(--table-border-color);
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        input {
+            flex-grow: 1;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: var(--button-text-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        #resultsContainer {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .message {
+            background-color: var(--input-bg);
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 5px solid var(--primary-color);
+            grid-column: 1 / -1; /* Prend toute la largeur */
+        }
+        
+        .error-message {
+            border-left-color: var(--error-color);
+            color: var(--error-color);
+        }
+        
+        .partner-card {
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid var(--table-border-color);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.1);
+        }
+        
+        .partner-card h3 {
+            margin-top: 0;
+            font-size: 1.2em;
+            color: var(--secondary-color);
+            border-bottom: 1px solid var(--secondary-color);
+        }
+        
+        .partner-card table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .partner-card th, .partner-card td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid var(--table-border-color);
+        }
+
+        .partner-card th {
+            background-color: var(--table-header-bg);
+            font-size: 0.9em;
+            text-transform: uppercase;
+        }
+        
+        .partner-card tr:last-child td {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Vue des Stocks Partenaires</h1>
+        <p>Entrez l'ID de l'utilisateur principal pour voir le dernier état de stock de tous ses partenaires associés.</p>
+        
+        <form id="searchForm">
+            <div>
+               <label for="adminId">ID Utilisateur Principal :</label>
+               <input type="text" id="adminId" placeholder="ex: admin@example.com" required>
+               <button type="submit">Rechercher</button>
+            </div>
+        </form>
+        
+        <div id="resultsContainer">
+            <div class="message">
+                Veuillez entrer un ID et lancer la recherche.
+            </div>
+        </div>
+    </div>
+
+<script type="module">
+    // Importation des fonctions Firebase nécessaires
+    import { getActiveDatabase } from './firebase-config-manager.js';
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    // Références aux éléments du DOM
+    const searchForm = document.getElementById('searchForm');
+    const adminIdInput = document.getElementById('adminId');
+    const resultsContainer = document.getElementById('resultsContainer');
+    
+    let db;
+
+    // Initialisation de la base de données au chargement de la page
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            db = await getActiveDatabase();
+            console.log("Database initialized for partner stock viewer.");
+        } catch (error) {
+            console.error("Failed to initialize database:", error);
+            renderMessage("Erreur critique : impossible d'initialiser la base de données.", true);
+        }
+    });
+
+    // Écouteur d'événement sur la soumission du formulaire
+    searchForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const adminId = adminIdInput.value.trim();
+
+        if (!adminId) {
+            renderMessage("Veuillez fournir un ID d'utilisateur principal.", true);
+            return;
+        }
+        
+        if (!db) {
+            renderMessage("La connexion à la base de données n'est pas encore établie. Veuillez patienter.", true);
+            return;
+        }
+
+        await fetchAndDisplayPartnerStocks(adminId);
+    });
+
+    /**
+     * Affiche un message (information ou erreur) dans le conteneur de résultats.
+     * @param {string} text Le message à afficher.
+     * @param {boolean} isError Si true, le message sera stylisé comme une erreur.
+     */
+    function renderMessage(text, isError = false) {
+        resultsContainer.innerHTML = `
+            <div class="message ${isError ? 'error-message' : ''}">
+                ${text}
+            </div>
+        `;
+    }
+
+    /**
+     * Fonction principale qui orchestre la récupération et l'affichage des données.
+     * @param {string} adminId L'identifiant de l'utilisateur principal.
+     */
+    async function fetchAndDisplayPartnerStocks(adminId) {
+        renderMessage("Chargement des données des partenaires...");
+        
+        try {
+            // 1. Récupérer la liste des partenaires (utilisateurs secondaires)
+            const partnersRef = ref(db, `users-data/${adminId}/secondaryUsers`);
+            const partnersSnapshot = await get(partnersRef);
+
+            if (!partnersSnapshot.exists()) {
+                renderMessage(`Aucun partenaire trouvé pour l'ID "${adminId}". Vérifiez l'ID et assurez-vous que des partenaires ont été ajoutés.`, true);
+                return;
+            }
+            
+            // 2. Préparer un tableau de promesses pour récupérer les stocks de chaque partenaire
+            const partnerStockPromises = [];
+            partnersSnapshot.forEach(partnerSnapshot => {
+                const partnerId = partnerSnapshot.key;
+                const partnerName = partnerSnapshot.val().name;
+                // Pour chaque partenaire, on lance une recherche de son dernier stock
+                partnerStockPromises.push(getLatestStockForPartner(adminId, partnerId, partnerName));
+            });
+            
+            // 3. Exécuter toutes les promesses en parallèle pour plus d'efficacité
+            const partnersWithStocks = await Promise.all(partnerStockPromises);
+            
+            // 4. Afficher les résultats
+            renderResults(partnersWithStocks);
+
+        } catch (error) {
+            console.error("Erreur lors de la récupération des données :", error);
+            renderMessage(`Une erreur est survenue lors de la communication avec la base de données pour l'ID "${adminId}".`, true);
+        }
+    }
+
+    /**
+     * Récupère toutes les opérations d'un partenaire et calcule le dernier stock final pour chaque produit.
+     * @param {string} adminId
+     * @param {string} partnerId
+     * @param {string} partnerName
+     * @returns {Promise<object>} Un objet contenant les informations du partenaire et ses derniers stocks.
+     */
+    async function getLatestStockForPartner(adminId, partnerId, partnerName) {
+        const salesRef = ref(db, `users-data/${adminId}/sales/${partnerId}`);
+        const salesSnapshot = await get(salesRef);
+        
+        // Objet pour stocker le dernier stock connu par produit : { "produit": { stock: 10, date: ... } }
+        const latestStocks = {};
+        
+        if (salesSnapshot.exists()) {
+            salesSnapshot.forEach(entrySnapshot => {
+                const sale = entrySnapshot.val();
+                if (!sale.product || !sale.dateTime) return; // Ignore les entrées malformées
+
+                const saleDate = new Date(sale.dateTime);
+                
+                // Si le produit n'est pas encore dans notre liste, OU si l'entrée actuelle est plus récente
+                if (!latestStocks[sale.product] || saleDate > latestStocks[sale.product].date) {
+                    latestStocks[sale.product] = {
+                        stock: sale.SF, // Le stock final de l'opération
+                        date: saleDate  // La date de l'opération pour comparaison future
+                    };
+                }
+            });
+        }
+        
+        return {
+            name: partnerName,
+            id: partnerId,
+            stocks: latestStocks
+        };
+    }
+
+    /**
+     * Affiche les données finales dans le DOM sous forme de cartes.
+     * @param {Array<object>} partnersData Tableau d'objets partenaires avec leurs stocks.
+     */
+    function renderResults(partnersData) {
+        resultsContainer.innerHTML = ''; // Vide les résultats précédents
+
+        if (partnersData.length === 0) {
+            renderMessage("Aucun partenaire n'a été trouvé ou traité.");
+            return;
+        }
+
+        partnersData.forEach(partner => {
+            const card = document.createElement('div');
+            card.className = 'partner-card';
+
+            let tableContent = '';
+            const stockEntries = Object.entries(partner.stocks);
+
+            if (stockEntries.length > 0) {
+                // Trie les produits par ordre alphabétique pour un affichage cohérent
+                stockEntries.sort((a, b) => a[0].localeCompare(b[0]));
+
+                tableContent = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Produit</th>
+                                <th>Dernier Stock Final</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${stockEntries.map(([productName, stockInfo]) => `
+                                <tr>
+                                    <td>${productName}</td>
+                                    <td>${stockInfo.stock}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } else {
+                tableContent = '<p>Aucune donnée de stock trouvée pour ce partenaire.</p>';
+            }
+
+            card.innerHTML = `
+                <h3>${partner.name}</h3>
+                ${tableContent}
+            `;
+            resultsContainer.appendChild(card);
+        });
+    }
+
+</script>
+
+</body>
+</html>
