@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statut</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #f2f2f2;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .status-section {
+            background-color: #fff;
+            border-radius: 5px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px; /* Ajout pour un meilleur centrage sur grand écran */
+            margin: 20px auto; /* Centrage horizontal */
+        }
+
+        .welcome-message {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+
+        .user-info {
+            margin-top: 20px;
+            text-align: left; /* Alignement à gauche pour la lisibilité */
+            display: inline-block; /* Pour centrer le bloc */
+        }
+
+        .user-info p {
+            margin: 10px 0;
+        }
+
+        .status {
+            color: #d9534f;
+            font-weight: bold; /* Mise en évidence du statut */
+        }
+
+        .logout-button {
+            background-color: #d9534f;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 20px; /* Espace avant le bouton */
+        }
+
+        .logout-button:hover {
+            background-color: #c9302c;
+        }
+
+        #user {
+            font-size: 1.8em; /* Légèrement réduit pour s'adapter */
+            font-weight: bold; /* Mise en évidence du nom */
+            color: #337ab7; /* Couleur pour le nom d'utilisateur */
+        }
+
+        .a { /* Styles pour les liens généraux si besoin */
+            color: #337ab7;
+            text-decoration: none;
+        }
+        .a:hover {
+            text-decoration: underline;
+        }
+        #cek { /* Si vous avez un lien spécifique avec cet ID */
+             display: block; /* Assure qu'il prend son propre espace */
+             margin-bottom: 15px; /* Espace après le lien */
+        }
+
+    </style>
+
+</head>
+<body>
+
+    <div class="container">
+       <div class="status-section">
+            <!-- Condition d'affichage du message de bienvenue et du nom d'utilisateur -->
+            $(if login-by == 'trial')
+            <div class="welcome-message">Bienvenue (Accès d'essai)</div>
+            $(elif login-by != 'mac')
+            <div class="welcome-message">Bienvenue</div>
+            <!-- C'est ici que MikroTik insère le nom d'utilisateur -->
+            <div id="user" class="welcome-message">$(username)</div>
+            $(else)
+            <!-- Message pour connexion MAC si nécessaire -->
+             <div class="welcome-message">Connecté via MAC</div>
+            $(endif)
+
+            <!-- Lien optionnel -->
+            <div style="padding:10px;">
+                <a href="./detail.html" id="cek" class="a">Voir détails (optionnel)</a>
+            </div>
+
+            <div class="user-info">
+                <p><strong>IP :</strong> $(ip)</p>
+                <p><strong>Données (Envoyé | Reçu) :</strong> $(bytes-out-nice) | $(bytes-in-nice)</p> <!-- Inversion Upload/Download -->
+                <p><strong>Temps de connexion :</strong> $(uptime)</p>
+                $(if remain-bytes-total)
+                <p><strong>Données restantes :</strong> $(remain-bytes-total-nice)</p>
+                $(endif)
+                $(if session-time-left)
+                <p><strong>Temps restant :</strong> $(session-time-left)</p>
+                $(endif)
+                $(if blocked == 'yes')
+                <p><strong>Statut :</strong> <span class="status"><a href="$(link-advert)" target="hotspot_advert" class="a">Publicité requise</a></span></p>
+                $(elif refresh-timeout)
+                 <!-- Le rafraîchissement est souvent automatique, l'afficher peut être optionnel -->
+                <!-- <p>Rafraîchir dans : $(refresh-timeout)</p> -->
+                <p><strong>Statut :</strong> <span style="color: green; font-weight: bold;">Connecté</span></p> <!-- Statut connecté explicite -->
+                $(else)
+                 <p><strong>Statut :</strong> <span style="color: green; font-weight: bold;">Connecté</span></p> <!-- Cas général connecté -->
+                $(endif)
+                <!-- $(if login-by-mac != 'yes') -->
+                <!-- Cette condition semble redondante ou mal placée, peut être retirée si non utilisée -->
+                <!-- $(endif) -->
+            </div>
+            <br> <!-- Ajout pour espacement avant le bouton -->
+            <button class="logout-button" onclick="window.location.href='$(link-logout)'">Déconnexion</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { getActiveDatabase } from './firebase-config-manager.js';
+        import { ref, get, set, push, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+        // !! IMPORTANT !! Remplacez ceci par l'ID réel de l'administrateur lors du déploiement
+        const adminUserId = '<!-- ADMIN_USER_ID -->';
+
+        let db;
+        let userConfigRef;
+
+        async function initializeDatabase() {
+            try {
+                db = await getActiveDatabase();
+                if (!db) {
+                    console.error("La base de données Firebase n'a pas pu être initialisée.");
+                    return false; // Indiquer l'échec
+                }
+                userConfigRef = ref(db, `users-data/${adminUserId}/portalConfig`);
+                console.log("Base de données initialisée dans status.html");
+                return true; // Indiquer le succès
+            } catch (error) {
+                console.error("Erreur lors de l'initialisation de la base de données:", error);
+                return false; // Indiquer l'échec
+            }
+        }
+
+        async function storeConnectedTicket(username) {
+            // Vérification supplémentaire de la validité de l'username
+            if (!username || typeof username !== 'string' || username.trim() === '' || username.startsWith('$(')) {
+                console.warn("Nom d'utilisateur invalide ou vide, enregistrement annulé:", username);
+                return;
+            }
+            if (!db) {
+                console.error("La base de données n'est pas initialisée. Impossible d'enregistrer le ticket.");
+                return;
+            }
+             if (!adminUserId || adminUserId === '<!-- ADMIN_USER_ID -->') {
+                console.error("L'ID administrateur n'est pas configuré. Impossible d'enregistrer le ticket.");
+                return;
+            }
+
+            try {
+                const ticketConnectedRef = ref(db, `users-data/${adminUserId}/TicketConnecté`);
+                const newTicketRef = push(ticketConnectedRef);
+                await set(newTicketRef, {
+                    username: username,
+                    timestamp: new Date().toISOString() // Ajout d'un horodatage
+                 });
+                console.log(`Ticket (${username}) enregistré dans Firebase avec la clé: ${newTicketRef.key}`);
+            } catch (error) {
+                console.error("Erreur lors de l'enregistrement du ticket connecté:", error);
+            }
+        }
+
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const dbInitialized = await initializeDatabase();
+
+            if (!dbInitialized) {
+                console.error("Échec de l'initialisation de la DB, arrêt du script de statut.");
+                return; // Ne pas continuer si la DB n'est pas prête
+            }
+
+            // --- NOUVELLE MÉTHODE POUR RÉCUPÉRER LE USERNAME ---
+            const userElement = document.getElementById('user');
+            let actualUsername = '';
+
+            // Vérifier si l'élément 'user' existe et contient du texte
+            if (userElement && userElement.textContent && userElement.textContent.trim() !== '') {
+                actualUsername = userElement.textContent.trim(); // Lire le contenu textuel de l'élément
+                console.log("Nom d'utilisateur récupéré depuis le DOM:", actualUsername);
+
+                // Appeler la fonction pour stocker le nom d'utilisateur si valide
+                storeConnectedTicket(actualUsername);
+
+            } else {
+                // Cas où l'élément n'est pas trouvé (ex: login trial, mac) ou est vide
+                console.warn("Élément 'user' non trouvé ou vide. Pas de stockage de ticket pour cet utilisateur (peut être normal pour login trial/mac ou si $(username) est vide).");
+                // Vous pourriez ajouter ici une logique spécifique si nécessaire pour ces cas
+            }
+             // --- FIN DE LA NOUVELLE MÉTHODE ---
+
+            // Vous pouvez ajouter ici d'autres logiques JS qui dépendent de la page chargée
+        });
+    </script>
+</body>
+</html>

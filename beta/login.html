@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- 1. Inclure le SDK FedaPay -->
+    <!--    (Nécessaire pour que le widget puisse initialiser FedaPay) -->
+    <script src="https://cdn.fedapay.com/checkout.js?v=1.1.7"></script>
+
+    <!-- 2. Lier le fichier CSS du Widget -->
+    <!--    (Remplacez 'path/to/' par le chemin réel vers votre fichier CSS) -->
+    <link rel="stylesheet" href="/fedapay-widget.css">
+
+    <!-- Styles optionnels pour la page hôte (pour démonstration) -->
+    
+    <title>Connexion</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #dda900, #bebebe, #ffffff);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #000000;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+        
+        .img1 {
+            animation: slide1 10s linear infinite;
+        }
+        
+        .img2 {
+            animation: slide2 10s linear infinite;
+        }
+        
+        .logo {
+            font-size: 1.5em;
+            color: white;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .logo::before {
+            content: '';
+            font-size: 0.8em;
+            margin-right: 10px;
+            animation: rotate 5s linear infinite;
+            display: inline-block;
+        }
+        
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .moon {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 2em;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .nav-button {
+            background-color: rgba(0, 0, 0, 0.952);
+            color: rgb(255, 255, 255);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background-color: rgb(0, 0, 0);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.5s, height 0.5s;
+        }
+        
+        .nav-button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        @keyframes buttonPulse {
+            0% { background-color: #020202; color: #ffffff; }
+            50% { background-color: #1a2a6c; color: #c8ff00; }
+            100% { background-color: #000000; color: #ffffff; }
+        }
+        
+        .nav-button.animate-pay {
+            animation: buttonPulse 3s ease-in-out infinite;
+        }
+        
+        @keyframes textChange {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
+        .nav-button.animate-pay {
+            animation: textChange 0.5s ease-in-out, buttonPulse 3s ease-in-out infinite;
+        }
+        
+        main {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-top: 40px;
+            position: relative;
+        }
+        
+        .login-section, .rates-section, .locations-section, .products-section, .gallery-section {
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 33, 122, 0.158);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .login-section:hover, .rates-section:hover, .locations-section:hover, .products-section:hover, .gallery-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 8px rgba(0, 41, 226, 0.11);
+        }
+        
+        .login-section {
+            flex-basis: 100%;
+        }
+        
+        .rates-section, .locations-section, .products-section {
+            flex-basis: calc(33.333% - 20px);
+        }
+        
+        h2 {
+            color: rgb(0, 0, 0);
+            margin-bottom: 15px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: #fdbb2d;
+            transition: width 0.3s;
+        }
+        
+        .login-section:hover h2::after,
+        .rates-section:hover h2::after,
+        .locations-section:hover h2::after,
+        .products-section:hover h2::after,
+        .gallery-section:hover h2::after {
+            width: 100%;
+        }
+        
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        input {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: none;
+            border-radius: 25px;
+            background-color: rgb(212, 212, 212);
+            color: rgb(0, 0, 0);
+            transition: background-color 0.3s;
+        }
+        
+        input:focus {
+            background-color: rgba(255, 255, 255, 0.3);
+            outline: none;
+        }
+        
+        button {
+            background-color: #000000;
+            color: #ffffff;
+            border: none;
+            padding: 10px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background-color: #1a2a6c;
+            color: #fdbb2d;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            color: rgb(0, 0, 0);
+        }
+        
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        ul {
+            list-style-type: none;
+        }
+        
+        li {
+            margin-bottom: 5px;
+            position: relative;
+            padding-left: 20px;
+        }
+        
+        li::before {
+            content: '➤';
+            position: absolute;
+            left: 0;
+            color: #fdbb2d;
+        }
+        
+        .animated-text-container {
+            overflow: hidden;
+            height: 50px;
+        }
+        
+        .animated-text {
+            animation: scrollText 10s linear infinite;
+        }
+        
+        @keyframes scrollText {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-50px); }
+        }
+        
+        footer {
+            margin-top: auto;
+            text-align: center;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        @keyframes slide1 {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(-100%); }
+            100% { transform: translateX(0); }
+        }
+        
+        @keyframes slide2 {
+            0% { transform: translateX(100%); }
+            50% { transform: translateX(0); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* --- STYLES POUR LA NOUVELLE GALERIE --- */
+        .gallery-section {
+            flex-basis: 100%; /* La galerie prend toute la largeur */
+        }
+        
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .gallery-item {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: transform 0.4s ease-out, box-shadow 0.4s ease-out;
+            animation: fadeInUp 0.5s ease-out forwards;
+            opacity: 0;
+        }
+
+        .gallery-item:nth-child(2) { animation-delay: 0.1s; }
+        .gallery-item:nth-child(3) { animation-delay: 0.2s; }
+        .gallery-item:nth-child(4) { animation-delay: 0.3s; }
+        .gallery-item:nth-child(5) { animation-delay: 0.4s; }
+        .gallery-item:nth-child(6) { animation-delay: 0.5s; }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .gallery-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        .gallery-item:hover img {
+            transform: scale(1.1);
+        }
+        
+        .gallery-item figcaption {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
+            color: white;
+            padding: 40px 15px 15px;
+            font-size: 0.9em;
+            font-weight: 500;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(100%);
+            transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        .gallery-item:hover figcaption {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        /* --- FIN DES STYLES POUR LA GALERIE --- */
+        
+        @media (max-width: 768px) {
+            .rates-section, .locations-section, .products-section {
+                flex-basis: 100%;
+            }
+        }
+        
+        .notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            display: none;
+            color: #1a2a6c;
+            text-align: center;
+        }
+        
+        .notification h2 {
+            color: #1a2a6c;
+            margin-bottom: 20px;
+        }
+        
+        .notification p {
+            margin-bottom: 15px;
+        }
+        
+        .close-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            font-size: 20px;
+        }
+        
+        #ticket-select {
+            margin-bottom: 20px;
+        }
+        
+        #nomTicket {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        
+        #paymentFrame {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+        }
+        
+        #paymentFrame > div {
+            position: relative;
+            width: 80%;
+            height: 80%;
+            margin: 5% auto;
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        #closePaymentFrame {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1001;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #1a2a6c;
+        }
+        
+        #paymentIframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .delete-button {
+            background-color: #f44336; /* Rouge pour un bouton de suppression */
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            margin: 10px;
+        }
+        
+        .delete-button:hover {
+            background-color: #d32f2f; /* Rouge foncé au survol */
+        }
+        
+        .notification.error { /* Style spécifique pour les notifications d'erreur */
+            background-color: #fdd; /* Couleur de fond légèrement rouge */
+            border: 1px solid #faa; /* Bordure rouge */
+            color: #f00; /* Texte en rouge */
+        }
+        
+        .notification .ticket-info {
+            /* Style pour la section d'information du ticket */
+            margin-bottom: 15px;
+            text-align: left; /* Alignement à gauche pour une meilleure lisibilité */
+        }
+        
+        .notification .ticket-info p {
+            margin-bottom: 5px; /* Espacement entre les lignes */
+        }
+        
+        .notification .login-button,
+        .notification .delete-button {
+            display: inline-block; /* Affichage en ligne pour les boutons */
+            margin: 0 10px; /* Espacement entre les boutons */
+        }
+        
+        .notification .login-button {
+            background-color: #fdbb2d; /* Style pour le bouton Connexion */
+            color: #1a2a6c;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        .notification .login-button:hover {
+            background-color: #1a2a6c;
+            color: #fdbb2d;
+        }
+        footer {
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            text-align: center;
+            margin-top: auto;
+        }
+
+        .notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            display: none;
+            color: #1a2a6c;
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .notification h2 {
+            color: #1a2a6c;
+            margin-bottom: 20px;
+        }
+
+        .notification p {
+            margin-bottom: 15px;
+        }
+
+        .close-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .notification .ticket-info {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .notification .ticket-info p {
+            margin-bottom: 5px;
+        }
+
+        .notification .login-button,
+        .notification .delete-button {
+            display: inline-block;
+            margin: 0 10px;
+        }
+
+        .notification .login-button {
+            background-color: #fdbb2d;
+            color: #1a2a6c;
+        }
+
+        .delete-button {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .delete-button:hover {
+            background-color: #d32f2f;
+        }
+
+        .notification.error {
+            background-color: #fdd;
+            border: 1px solid #faa;
+            color: #f00;
+        }
+
+        /* Footer Popup Styles */
+        .footer-popup {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translate(-50%, 200%);
+            width: 95%;
+            max-width: 600px;
+            padding: 2rem;
+            border-radius: 25px;
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(135deg, rgba(129, 0, 0, 0.95) 0%, rgba(0, 60, 150, 0.95) 100%);
+            backdrop-filter: blur(10px);
+            color: white;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3),
+                        0 0 20px rgba(0, 89, 255, 0.3),
+                        inset 0 0 60px rgba(0, 89, 255, 0.1);
+            max-height: 85vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-popup.show {
+            transform: translate(-50%, 0);
+            opacity: 1;
+        }
+
+        .footer-popup .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        /* Animations */
+        @keyframes slide1 {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(-100%); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes slide2 {
+            0% { transform: translateX(100%); }
+            50% { transform: translateX(0); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Media Queries */
+        @media screen and (max-width: 768px) {
+            .container {
+                padding: 5px;
+            }
+
+            .logo {
+                font-size: 2em;
+            }
+
+            nav {
+                flex-direction: row; /* Force l'alignement horizontal */
+                padding: 0 10px;
+            }
+
+            .nav-button {
+                width: auto; /* Permet aux boutons de s'adapter à leur contenu */
+                margin: 5px;
+                font-size: 12px; /* Taille de police encore plus petite pour les très petits écrans */
+            }
+
+            main {
+                padding: 10px 5px;
+            }
+
+            .login-section,
+            .rates-section,
+            .locations-section,
+            .products-section {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+
+            .rates-section {
+                margin: 0 -5px;
+                width: calc(100% + 10px);
+                border-radius: 0;
+            }
+
+            .rates-section table {
+                font-size: 14px;
+            }
+
+            .rates-section th,
+            .rates-section td {
+                padding: 8px;
+            }
+
+            .footer-popup {
+                width: 92%;
+                padding: 1.5rem;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .logo {
+                font-size: 1.8em;
+            }
+
+            h2 {
+                font-size: 1.2em;
+            }
+
+            .rates-section th,
+            .rates-section td {
+                padding: 6px;
+                font-size: 12px;
+            }
+
+            .notification {
+                width: 95%;
+                padding: 15px;
+            }
+        }
+        @media screen and (max-width: 320px) {
+            .nav-button {
+                padding: 8px 12px; /* Padding réduit pour les très petits écrans */
+                font-size: 11px;
+            }
+        }
+            </style>
+
+    $(if chap-id)
+    <form name="sendin" action="$(link-login-only)" method="post" style="display:none">
+        <input type="hidden" name="username" />
+        <input type="hidden" name="password" />
+        <input type="hidden" name="dst" value="$(link-orig)" />
+        <input type="hidden" name="popup" value="true" />
+    </form>
+
+    <script src="/md5.js"></script>
+    <script>
+        function doLogin() {
+            document.sendin.username.value = document.login.username.value;
+            document.sendin.password.value = hexMD5('$(chap-id)' + document.login.password.value + '$(chap-challenge)');
+            document.sendin.submit();
+            return false;
+        }
+    </script>
+    $(endif)
+    <script src="https://cdn.fedapay.com/checkout.js?v=1.1.7"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script type="module">
+        import { getActiveDatabase } from './firebase-config-manager.js';
+        import { ref, get, set, push, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+        const adminUserId = '<!-- ADMIN_USER_ID -->';
+        const networkName = '<!-- NETWORK_NAME -->';
+        const contactNumber = '<!-- CONTACT_NUMBER -->';
+        const fedapayApiKey = '<!-- FEDAPAY_API_KEY -->';
+
+
+        let localTickets = {};
+
+
+        document.addEventListener('DOMContentLoaded', async () => {
+
+
+             document.querySelector('.logo').textContent = networkName;
+             document.querySelector('.nav-button').textContent = contactNumber;
+            // START - SMOOTH SCROLL TO TICKET SECTION
+            const payTicketNavButton = document.querySelector('.nav-button.animate-pay');
+            const ticketSection = document.getElementById('buy-ticket-section');
+
+            if (payTicketNavButton && ticketSection) {
+                payTicketNavButton.addEventListener('click', (event) => {
+                    // Empêche l'action par défaut du bouton (utile si c'est un lien ou un submit)
+                    event.preventDefault(); 
+                    
+                    // Fait défiler la page en douceur jusqu'à la section des tickets
+                    ticketSection.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start' // Aligne le haut de la section avec le haut de la vue
+                    });
+                });
+            }
+            // END - SMOOTH SCROLL TO TICKET SECTION
+                      // --- DEBUT DU NOUVEAU BLOC AUDIO ---
+            const audio = document.getElementById('background-music');
+            const toggleBtn = document.getElementById('toggle-sound-btn');
+            
+            // Variables pour suivre l'état
+            let hasAudioStarted = false; // Pour savoir si l'audio a déjà été lancé une fois
+            let userManuallyPaused = false; // Pour savoir si l'utilisateur a cliqué sur "pause"
+
+            // Fonction pour lancer l'audio lors de la première interaction
+            const playOnFirstInteraction = () => {
+                // Conditions : L'audio doit être en pause, ne jamais avoir été lancé,
+                // et l'utilisateur ne doit pas l'avoir mis en pause manuellement.
+                if (audio.paused && !hasAudioStarted && !userManuallyPaused) {
+                    audio.play().catch(error => console.log("La lecture a échoué:", error));
+                    hasAudioStarted = true; // Marquer que l'audio a été lancé
+                    toggleBtn.innerHTML = '🔇';
+                }
+            };
+
+            // Écouteurs pour la première interaction
+            document.addEventListener('click', playOnFirstInteraction, { once: true });
+            document.addEventListener('scroll', playOnFirstInteraction, { once: true });
+            document.addEventListener('keydown', playOnFirstInteraction, { once: true });
+
+            // Gestion du clic sur le bouton de contrôle
+            toggleBtn.addEventListener('click', () => {
+                if (audio.paused) {
+                    audio.play();
+                    toggleBtn.innerHTML = '🔇';
+                    userManuallyPaused = false; // L'utilisateur relance, ce n'est plus une pause manuelle
+                    if(!hasAudioStarted) hasAudioStarted = true; // Marquer comme lancé si c'est la 1ère fois
+                } else {
+                    audio.pause();
+                    toggleBtn.innerHTML = '🔊';
+                    userManuallyPaused = true; // L'utilisateur a explicitement mis en pause
+                }
+            });
+
+            // Gestion de la fin de la piste audio
+            audio.addEventListener('ended', () => {
+                toggleBtn.innerHTML = '🔊';
+                // On ne réinitialise pas les flags pour que la lecture ne se relance pas automatiquement
+            });
+            // --- FIN DU NOUVEAU BLOC AUDIO ---
+        });
+
+
+        document.login.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const username = document.login.username.value;
+            const password = document.login.password.value;
+
+            if (typeof hexMD5 === 'function') {
+                doLogin();  // Tentative de connexion avec MD5.
+            } else {
+                const isValid = checkCredentials(username, password);
+                if (isValid) {
+                    this.submit();
+                } else {
+                    showNotification("Erreur", "Identifiants invalides.");
+                }
+            }
+        });
+
+
+    function autoLogin(username, password) {
+        document.login.username.value = username;
+        document.login.password.value = password;
+      //  storeConnectedTicket(username); // Plus besoin ici, fait dans showNotification ou submit
+        document.login.submit();
+    }
+
+
+    </script>
+</head>
+<body>
+<!-- Dans la section <body> de votre HTML -->
+
+<!-- 1. Mettre à jour la balise audio : sans 'autoplay' ni 'loop' -->
+<audio id="background-music">
+    <source src='music.mp3' type="audio/mpeg">
+</audio>
+
+<header>
+    <div class="container">
+        <h1 class="logo"><!-- NETWORK_NAME --></h1>
+        <div class="moon"></div>
+        <!-- 2. Mettre à jour l'icône par défaut du bouton -->
+        <button id="toggle-sound-btn" style="position: fixed; top: 100px; right: 20px; z-index: 100; background-color: rgba(0,0,0,0.7); color: white; border-radius: 50%; width: 50px; height: 50px; font-size: 20px;">🔊</button>
+        
+        <img class="header-image img1" src="img/img1.jpg" alt="Image de fond">
+        <img class="header-image img2" src="img/img2.jpg" alt="Image de fond">
+        <nav>
+            <button class="nav-button"><!-- CONTACT_NUMBER --></button>
+            <button class="nav-button animate-pay">Payer par MoMo</button>
+        </nav>
+    </div>
+
+
+    </header>
+
+    <main class="container">
+
+        <section class="login-section">
+            <h2>Connexion</h2>
+            <form name="login" action="$(link-login-only)" method="post" $(if chap-id) onSubmit="return doLogin()" $(endif)>
+                <input type="hidden" name="dst" value="$(link-orig)" />
+                <input type="hidden" name="popup" value="true" />
+                <input type="text" name="username" placeholder="Nom d'utilisateur" value="$(username)" required>
+                <input type="password" name="password" placeholder="Mot de passe" required>
+                <button type="submit">Se connecter</button>
+            </form>
+            <p class="info $(if error)alert$(endif)">
+                $(if error == "")Veuillez vous connecter pour utiliser le service hotspot Internet $(if trial == 'yes')<br />Essai gratuit disponible, <a href="$(link-login-only)?dst=$(link-orig-esc)&username=T-$(mac-esc)">cliquez ici</a>.$(endif)
+                $(endif)
+                $(if error)$(error)$(endif)
+            </p>
+        </section>
+
+        <div class="content">
+
+
+    
+            <!-- 3. Collez ici le contenu de fedapay-widget.html -->
+            <!-- START: Fedapay Ticket Widget -->
+            <div id="fedapay-ticket-widget-container">
+                <!-- Payer/Voir Ticket Button -->
+    
+                <!-- Rates Section (ID ADDED HERE) -->
+                <section id="buy-ticket-section" class="widget-rates-section">
+                    <h2>Acheter un ticket par mobile money</h2>
+                    <!-- Message shown while loading or if no tickets -->
+                    <div class="widget-loading-message">Chargement des tickets...</div>
+                    <!-- Container for dynamically generated ticket options -->
+                    <div id="widget-dynamic-ticket-options">
+                        <!-- Ticket options will be loaded here by JS -->
+                    </div>
+                    <button id="widget-payTicketButton">Payer un ticket</button>
+
+                </section>
+    
+                <!-- Notification Popup -->
+                <div class="widget-notification" id="widget-notification">
+                    <span class="widget-close-icon" onclick="hideWidgetNotification()">×</span>
+                    <h2 id="widget-notification-title"></h2>
+                    <div id="widget-notification-message"></div> <!-- Changed from <p> to <div> for more flexibility -->
+                    <!-- Buttons added dynamically by JS -->
+                </div>
+            </div>
+            <!-- END: Fedapay Ticket Widget -->
+            <!-- FIN de la section à coller -->
+    
+    
+        </div> <!-- Fin de .content -->
+
+
+        <!-- 4. Inclure le fichier JavaScript du Widget -->
+        <!--    (Remplacez 'path/to/' par le chemin réel vers votre fichier JS) -->
+        <!--    IMPORTANT : Doit être de type "module" car il utilise import() -->
+        <script type="module" src="/fedapay-widget.js"></script>
+
+        <!--    NOTE IMPORTANTE : Assurez-vous que votre fichier 'firebase-config-manager.js' -->
+        <!--    est également accessible par le serveur web et que le chemin -->
+        <!--    'const firebaseConfigManagerPath = ...' DANS 'fedapay-widget.js' -->
+        <!--    pointe correctement vers celui-ci (relativement à l'emplacement de fedapay-widget.js). -->
+        
+        <!-- NOUVELLE SECTION GALERIE -->
+        <section class="gallery-section">
+            <h2>Notre Galerie</h2>
+            <div class="gallery-grid">
+                <!-- Élément 1 -->
+                <figure class="gallery-item">
+                    <img src="img/img3.jpg" alt="Description de l'image 1">
+                    <figcaption>Explorez un monde de possibilités.</figcaption>
+                </figure>
+                <!-- Élément 2 (GIF) -->
+                <figure class="gallery-item">
+                    <img src="img/img4.jpg" alt="GIF animé illustrant la vitesse">
+                    <figcaption>Une connexion rapide et illimitée.</figcaption>
+                </figure>
+                <!-- Élément 3 -->
+                <figure class="gallery-item">
+                    <img src="img/img5.jpg" alt="Description de l'image 3">
+                    <figcaption>Restez connecté, où que vous soyez.</figcaption>
+                </figure>
+                <!-- Élément 4 -->
+                <figure class="gallery-item">
+                    <img src="img/img6.jpg" alt="Description de l'image 4">
+                    <figcaption>Le futur de la connectivité est ici.</figcaption>
+                </figure>
+                <!-- Ajoutez autant d'éléments <figure> que vous le souhaitez -->
+            </div>
+        </section>
+        <!-- FIN DE LA NOUVELLE SECTION GALERIE -->
+
+
+
+
+         <section class="locations-section">
+             <h2>Nos tarifs (Information)</h2>
+              <table class="static-tariffs-table">
+                  <thead>
+                      <tr>
+                          <th>Catégorie</th>
+                          <th>Prix (FCFA)</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      <!-- PLACEHOLDER_STATIC_TARIFFS_TABLE_BODY -->
+                  </tbody>
+              </table>
+         </section>
+
+         <!-- Renamed section for clarity -->
+         <section class="locations-section">
+             <h2>Bon à savoir !</h2>
+             <!-- This list was hardcoded, will be replaced by injection -->
+             <ul>
+                 <!-- PLACEHOLDER_KNOW_BEFORE_YOU_GO_LIST -->
+             </ul>
+         </section>
+
+
+         <section class="locations-section">
+             <h2>Nos sites de connexion</h2>
+             <!-- This list was hardcoded, will be replaced by injection -->
+             <ul>
+                 <!-- PLACEHOLDER_CONNECTIONS_LIST -->
+             </ul>
+         </section>
+
+         <section class="products-section">
+             <h2>Nos produits</h2>
+             <!-- This list was hardcoded, will be replaced by injection -->
+             <ul>
+                 <!-- PLACEHOLDER_PRODUCTS_LIST -->
+             </ul>
+         </section>
+         <div class="notification" id="notification">
+            <span class="close-icon" onclick="hideNotification()">×</span>
+            <h2 id="notification-title"></h2>
+            <p id="notification-message"></p>
+        </div>
+
+    </main>
+
+    <footer>
+        <div class="anitext">
+            PROPULSE PAR EVISIONS
+        </div>
+    </footer>
+</body>
+</html>

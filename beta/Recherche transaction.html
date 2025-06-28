@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transactions FedaPay (Client-Side Test - Clé Transaction)</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 1300px; /* Élargi un peu plus pour la nouvelle colonne */
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow-x: auto; /* Ajoute une barre de défilement si le tableau est trop large */
+        }
+        h1 {
+            text-align: center;
+            color: #0056b3;
+            margin-bottom: 20px;
+        }
+        #transactions-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+        #transactions-table th, #transactions-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            word-break: break-word;
+            vertical-align: top;
+        }
+         #transactions-table th {
+            background-color: #0056b3;
+            color: white;
+            position: sticky;
+            top: 0;
+            white-space: nowrap;
+        }
+        #transactions-table tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        #transactions-table tbody tr:hover {
+            background-color: #e9e9e9;
+        }
+        .status-approved { color: green; font-weight: bold; }
+        .status-pending { color: orange; }
+        .status-canceled, .status-declined { color: red; }
+        .status-other { color: gray; }
+
+        #loading-message, #error-message {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        #loading-message {
+            background-color: #cfe2ff;
+            color: #084298;
+            border: 1px solid #b6d4fe;
+        }
+        #error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Liste des Transactions FedaPay (Test Client-Side)</h1>
+
+        <p id="loading-message">Chargement des transactions...</p>
+        <p id="error-message" class="hidden"></p>
+
+        <table id="transactions-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Référence</th>
+                    <th>Montant (FCFA)</th>
+                    <th>Statut</th>
+                    <th>Description</th>
+                    <th>Mode</th>
+                    <th>Frais</th>
+                    <th>Com.</th>
+                    <th>Montant Transféré</th>
+                    <th>Clé Transaction</th> <!-- Nouvelle colonne -->
+                    <th>Créée le</th>
+                    <th>Mise à jour le</th>
+                    <th>Approuvée le</th>
+                    <th>URL Reçu</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Les lignes de transaction seront insérées ici par JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+
+
+        // REMPLACEZ 'VOTRE_CLÉ_SECRETE_API_FEDAPAY_ICI' par votre véritable clé API secrète Fedapay.
+        // Encore une fois, utilisez une clé de test si possible !
+        const FEDAPAY_SECRET_KEY = 'sk_live_83-7VhmHhqJs_0-Yca8PIOd8'; // Exemple: sk_live_XXXX ou sk_sandbox_XXXX
+
+        // L'URL de l'API FedaPay pour rechercher les transactions
+        const FEDAPAY_API_URL = 'https://api.fedapay.com/v1/transactions/search';
+
+        // Paramètre pour la pagination
+        const TRANSACTIONS_PER_PAGE = 150; // Définissez le nombre souhaité ici
+
+        const transactionsTableBody = document.querySelector('#transactions-table tbody');
+        const loadingMessage = document.getElementById('loading-message');
+        const errorMessage = document.getElementById('error-message');
+        const tableHeadersCount = document.querySelectorAll('#transactions-table th').length; // Compte le nombre de colonnes
+
+        function showLoading() {
+            loadingMessage.classList.remove('hidden');
+            errorMessage.classList.add('hidden');
+            transactionsTableBody.innerHTML = '';
+        }
+
+        function showError(message) {
+            loadingMessage.classList.add('hidden');
+            errorMessage.classList.remove('hidden');
+            errorMessage.textContent = `Erreur lors du chargement : ${message}`;
+            // Utilise le nombre de colonnes dynamique pour le colspan
+            transactionsTableBody.innerHTML = `<tr><td colspan="${tableHeadersCount}" style="text-align:center;">Impossible de charger les transactions.</td></tr>`;
+        }
+
+        function hideLoading() {
+            loadingMessage.classList.add('hidden');
+        }
+
+        function displayTransactions(transactions) {
+            transactionsTableBody.innerHTML = '';
+            if (!transactions || transactions.length === 0) {
+                 // Utilise le nombre de colonnes dynamique pour le colspan
+                transactionsTableBody.innerHTML = `<tr><td colspan="${tableHeadersCount}" style="text-align:center;">Aucune transaction trouvée.</td></tr>`;
+                return;
+            }
+
+            transactions.forEach(transaction => {
+                const row = document.createElement('tr');
+
+                function getStatusClass(status) {
+                    switch (status) {
+                        case 'approved': return 'status-approved';
+                        case 'pending': return 'status-pending';
+                        case 'canceled': return 'status-canceled';
+                        case 'declined': return 'status-declined';
+                        default: return 'status-other';
+                    }
+                }
+
+                const formatDate = (dateString) => dateString ? new Date(dateString).toLocaleString('fr-FR') : 'N/A';
+
+                const formatAmount = (amount) => {
+                    if (amount == null) return 'N/A';
+                    if (typeof amount === 'string') {
+                         try {
+                            const parsed = parseFloat(amount);
+                            return isNaN(parsed) ? amount : parsed.toFixed(2);
+                         } catch (e) {
+                            return amount;
+                         }
+                    }
+                     if (typeof amount === 'number') {
+                        return (amount / 100).toFixed(2);
+                     }
+                    return 'N/A';
+                };
+
+
+                row.innerHTML = `
+                    <td>${transaction.id || 'N/A'}</td>
+                    <td>${transaction.reference || 'N/A'}</td>
+                    <td>${formatAmount(transaction.amount)}</td>
+                    <td class="${getStatusClass(transaction.status)}">${transaction.status || 'N/A'}</td>
+                    <td>${transaction.description || 'N/A'}</td>
+                    <td>${transaction.mode || 'N/A'}</td>
+                    <td>${formatAmount(transaction.fees)}</td>
+                    <td>${formatAmount(transaction.commission)}</td>
+                    <td>${formatAmount(transaction.amount_transferred)}</td>
+                    <td>${transaction.transaction_key || 'N/A'}</td> <!-- Affichage de la clé de transaction -->
+                    <td>${formatDate(transaction.created_at)}</td>
+                    <td>${formatDate(transaction.updated_at)}</td>
+                    <td>${formatDate(transaction.approved_at)}</td>
+                    <td>${transaction.receipt_url ? `<a href="${transaction.receipt_url}" target="_blank">Voir</a>` : 'N/A'}</td>
+                `;
+                transactionsTableBody.appendChild(row);
+            });
+        }
+
+        async function fetchTransactions() {
+            showLoading();
+            try {
+                const url = `${FEDAPAY_API_URL}?per_page=${TRANSACTIONS_PER_PAGE}`;
+
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${FEDAPAY_SECRET_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    let errorData = {};
+                    try {
+                         errorData = await response.json();
+                         console.error("Erreur API FedaPay JSON:", errorData);
+                    } catch (jsonError) {
+                         console.warn("Impossible de parser la réponse d'erreur en JSON:", jsonError);
+                         errorData.message = await response.text();
+                         console.error("Erreur API FedaPay Texte:", errorData.message);
+                    }
+
+                    const apiErrorMessage = errorData.message || errorData.error || `Statut HTTP: ${response.status}`;
+                    throw new Error(`Erreur API FedaPay: ${apiErrorMessage}`);
+                }
+
+                const data = await response.json();
+
+                const transactions = data && data['v1/transactions'] ? data['v1/transactions'] : [];
+
+                if (Array.isArray(transactions)) {
+                     displayTransactions(transactions);
+                } else {
+                     showError("Format de données inattendu reçu de l'API FedaPay. Le tableau de transactions 'v1/transactions' est manquant ou n'est pas un tableau.");
+                     console.error("Données reçues:", data);
+                }
+
+            } catch (error) {
+                console.error("Erreur lors de la récupération des transactions:", error);
+                showError(error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        window.onload = fetchTransactions;
+
+    </script>
+
+</body>
+</html>

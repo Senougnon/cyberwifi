@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration des Clés API</title>
+    <link rel="icon" href="logo.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #1a2a6c;
+            --secondary-color: #fdbb2d;
+            --background-gradient: linear-gradient(135deg, #424242, #073018, #553a01);
+            --text-color: #ffffff;
+            --section-bg: rgba(255, 255, 255, 0.1);
+            --input-bg: rgba(255, 255, 255, 0.2);
+            --loader-color: #fdbb2d;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--background-gradient);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: var(--section-bg);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 800px;
+        }
+        h1 {
+            color: var(--secondary-color);
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        fieldset {
+            border: 1px solid var(--secondary-color);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        legend {
+            color: var(--secondary-color);
+            font-weight: 600;
+            padding: 0 10px;
+        }
+        label {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            font-size: 0.95rem;
+            box-sizing: border-box;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+        }
+        button {
+            padding: 12px 20px;
+            background-color: var(--secondary-color);
+            color: var(--primary-color);
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-top: 15px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: scale(1.05);
+        }
+        .loader-wrapper {
+            display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 1001;
+            justify-content: center; align-items: center; flex-direction: column;
+        }
+        .loader {
+            border: 6px solid #f3f3f3; border-top: 6px solid var(--loader-color);
+            border-radius: 50%; width: 50px; height: 50px;
+            animation: spin 1.5s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .notification {
+            position: fixed; top: 20px; right: 20px; background-color: #4CAF50;
+            color: white; padding: 15px 20px; border-radius: 5px; z-index: 1002;
+            display: none; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        .notification.error { background-color: #e74c3c; }
+    </style>
+</head>
+<body>
+
+    <div class="loader-wrapper" id="loaderWrapper">
+        <div class="loader"></div>
+    </div>
+
+    <div id="notification"></div>
+
+    <div class="container" id="configContainer" style="display: none;">
+        <h1>Configuration des Clés API Globales</h1>
+        <form id="apiConfigForm">
+            
+            <fieldset>
+                <legend>Clés Globales (Abonnements)</legend>
+                <div>
+                    <label for="globalFedaApiKey">Clé Publique FedaPay (pour les abonnements de l'admin)</label>
+                    <input type="text" id="globalFedaApiKey" placeholder="pk_live_...">
+                </div>
+                <div>
+                    <label for="globalCinetApiKey">Clé API CinetPay (pour les abonnements de l'admin)</label>
+                    <input type="text" id="globalCinetApiKey" placeholder="Clé API de CinetPay">
+                </div>
+                <div>
+                    <label for="globalCinetSiteId">Site ID CinetPay (pour les abonnements de l'admin)</label>
+                    <input type="text" id="globalCinetSiteId" placeholder="Site ID de CinetPay">
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Clés par Défaut (Portails Clients)</legend>
+                <div>
+                    <label for="defaultClientFedaApiKey">Clé Publique FedaPay par défaut (pour les portails clients)</label>
+                    <input type="text" id="defaultClientFedaApiKey" placeholder="pk_live_...">
+                </div>
+                <div>
+                    <label for="defaultClientFedaSecretKey">Clé Privée FedaPay par défaut (pour les portails clients)</label>
+                    <input type="password" id="defaultClientFedaSecretKey" placeholder="sk_live_...">
+                </div>
+                <hr>
+                <div>
+                    <label for="defaultClientCinetApiKey">Clé API CinetPay par défaut (pour les portails clients)</label>
+                    <input type="text" id="defaultClientCinetApiKey" placeholder="Clé API CinetPay par défaut">
+                </div>
+                 <div>
+                    <label for="defaultClientCinetSiteId">Site ID CinetPay par défaut (pour les portails clients)</label>
+                    <input type="text" id="defaultClientCinetSiteId" placeholder="Site ID CinetPay par défaut">
+                </div>
+            </fieldset>
+
+            <button type="submit">Enregistrer les clés</button>
+        </form>
+    </div>
+
+    <script type="module">
+        import { getActiveDatabase } from './firebase-config-manager.js';
+        import { ref, get, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+        let db;
+
+        const loaderWrapper = document.getElementById('loaderWrapper');
+        const notificationEl = document.getElementById('notification');
+        const configContainer = document.getElementById('configContainer');
+        const apiConfigForm = document.getElementById('apiConfigForm');
+
+        // Inputs
+        const globalFedaApiKeyInput = document.getElementById('globalFedaApiKey');
+        const globalCinetApiKeyInput = document.getElementById('globalCinetApiKey');
+        const globalCinetSiteIdInput = document.getElementById('globalCinetSiteId');
+        const defaultClientFedaApiKeyInput = document.getElementById('defaultClientFedaApiKey');
+        const defaultClientFedaSecretKeyInput = document.getElementById('defaultClientFedaSecretKey');
+        const defaultClientCinetApiKeyInput = document.getElementById('defaultClientCinetApiKey');
+        const defaultClientCinetSiteIdInput = document.getElementById('defaultClientCinetSiteId');
+
+        function showLoader() { loaderWrapper.style.display = 'flex'; }
+        function hideLoader() { loaderWrapper.style.display = 'none'; }
+
+        function showNotification(message, type = 'success') {
+            notificationEl.textContent = message;
+            notificationEl.className = `notification ${type}`;
+            notificationEl.style.display = 'block';
+            setTimeout(() => { notificationEl.style.display = 'none'; }, 4000);
+        }
+
+        async function checkLoginStatus() {
+            const loggedInUserId = sessionStorage.getItem('currentUserId');
+            if (!loggedInUserId) {
+                alert("Accès refusé. Veuillez vous connecter.");
+                window.location.href = 'loginAccueil.html';
+                return false;
+            }
+            return true;
+        }
+
+        async function loadApiKeys() {
+            showLoader();
+            try {
+                // FedaPay Global
+                const fedaGlobalSnap = await get(ref(db, 'globalConfig/fedapayApiKey'));
+                if (fedaGlobalSnap.exists()) globalFedaApiKeyInput.value = fedaGlobalSnap.val();
+
+                // CinetPay Global
+                const cinetGlobalSnap = await get(ref(db, 'globalConfig/cinetpayConfig'));
+                if (cinetGlobalSnap.exists()) {
+                    const data = cinetGlobalSnap.val();
+                    globalCinetApiKeyInput.value = data.apiKey || '';
+                    globalCinetSiteIdInput.value = data.siteId || '';
+                }
+
+                // FedaPay Default Client
+                const fedaClientApiSnap = await get(ref(db, 'users/API Client'));
+                if (fedaClientApiSnap.exists()) defaultClientFedaApiKeyInput.value = fedaClientApiSnap.val();
+                
+                const fedaClientSecretSnap = await get(ref(db, 'users/API Privée Client'));
+                if (fedaClientSecretSnap.exists()) defaultClientFedaSecretKeyInput.value = fedaClientSecretSnap.val();
+
+                // CinetPay Default Client
+                const cinetClientSnap = await get(ref(db, 'users/CinetPayConfig'));
+                if (cinetClientSnap.exists()) {
+                    const data = cinetClientSnap.val();
+                    defaultClientCinetApiKeyInput.value = data.apiKey || '';
+                    defaultClientCinetSiteIdInput.value = data.siteId || '';
+                }
+
+                showNotification("Clés actuelles chargées.", "info");
+
+            } catch (error) {
+                console.error("Erreur lors du chargement des clés:", error);
+                showNotification("Erreur lors du chargement des clés existantes.", "error");
+            } finally {
+                hideLoader();
+            }
+        }
+
+        apiConfigForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            showLoader();
+
+            // Créer un objet pour la mise à jour atomique
+            const updates = {};
+
+            // Clés Globales (pour les abonnements)
+            updates['/globalConfig/fedapayApiKey'] = globalFedaApiKeyInput.value.trim();
+            updates['/globalConfig/cinetpayConfig'] = {
+                apiKey: globalCinetApiKeyInput.value.trim(),
+                siteId: globalCinetSiteIdInput.value.trim()
+            };
+
+            // Clés par défaut (pour les portails des clients)
+            updates['/users/API Client'] = defaultClientFedaApiKeyInput.value.trim();
+            updates['/users/API Privée Client'] = defaultClientFedaSecretKeyInput.value.trim();
+            updates['/users/CinetPayConfig'] = {
+                apiKey: defaultClientCinetApiKeyInput.value.trim(),
+                siteId: defaultClientCinetSiteIdInput.value.trim()
+            };
+            
+            try {
+                await update(ref(db), updates);
+                showNotification("Toutes les clés API ont été enregistrées avec succès !");
+            } catch (error) {
+                console.error("Erreur lors de la sauvegarde des clés:", error);
+                showNotification("Une erreur est survenue lors de la sauvegarde.", "error");
+            } finally {
+                hideLoader();
+            }
+        });
+
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            showLoader();
+            const isLoggedIn = await checkLoginStatus();
+            if (isLoggedIn) {
+                try {
+                    db = await getActiveDatabase();
+                    await loadApiKeys();
+                    configContainer.style.display = 'block';
+                } catch (error) {
+                    showNotification("Erreur d'initialisation de la base de données.", "error");
+                    console.error(error);
+                }
+            }
+            hideLoader();
+        });
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galerie des Portails Captifs</title>
+    <link rel="icon" href="logo.png" type="image/png">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FedaPay Checkout Script -->
+    <script src="https://cdn.fedapay.com/checkout.js?v=1.1.7"></script>
+    <!-- JSZip pour créer des fichiers .zip -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- FileSaver pour sauvegarder les fichiers générés -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #1a2a6c;
+            --secondary-color: #fdbb2d;
+            --background-gradient: linear-gradient(135deg, #424242, #073018, #553a01);
+            --text-color: #ffffff;
+            --section-bg: rgba(255, 255, 255, 0.1);
+            --loader-color: #fdbb2d;
+            --card-bg: rgba(0, 0, 0, 0.3);
+            --card-hover-bg: rgba(0, 0, 0, 0.5);
+            --button-success-bg: #2ecc71;
+            --button-success-hover: #27ae60;
+            --button-preview-bg: #3498db;
+            --button-preview-hover: #2980b9;
+        }
+
+        /* Styles globaux (similaires à index.html pour la cohérence) */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        html, body { min-height: 100vh; }
+        body {
+            background: var(--background-gradient);
+            color: var(--text-color);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 30px;
+        }
+        .header h1 { font-size: 2em; color: var(--secondary-color); }
+        .back-button {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white; border: none; padding: 10px 18px;
+            border-radius: 25px; cursor: pointer; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 8px;
+            transition: background-color 0.3s;
+        }
+        .back-button:hover { background-color: rgba(255, 255, 255, 0.2); }
+
+        .gallery-section {
+            margin-bottom: 40px;
+        }
+        .gallery-section h2 {
+            font-size: 1.8rem;
+            text-align: center;
+            margin-bottom: 25px;
+            color: var(--secondary-color);
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .template-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+        .template-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .template-card .template-image {
+            width: 100%;
+            height: 180px;
+            background-size: cover;
+            background-position: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .template-card-content {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+        .template-card-content h3 {
+            font-size: 1.2rem;
+            color: var(--text-color);
+            margin-bottom: 10px;
+        }
+        .template-card-content p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            flex-grow: 1;
+            margin-bottom: 15px;
+        }
+        .template-price {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+        }
+        .template-price.free {
+            color: var(--button-success-bg);
+        }
+
+        .template-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .template-actions button {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .template-actions .btn-pay {
+            background-color: var(--secondary-color);
+            color: var(--primary-color);
+        }
+        .template-actions .btn-download {
+            background-color: var(--button-success-bg);
+            color: white;
+        }
+        .template-actions .btn-preview {
+            background-color: var(--button-preview-bg);
+            color: white;
+        }
+        .template-actions button:hover:not([disabled]) {
+            transform: translateY(-2px);
+        }
+        .template-actions button:disabled {
+            background-color: #555;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        /* Preview Modal */
+        .preview-modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            padding: 20px;
+        }
+        .preview-modal-content {
+            background: #fff;
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+        }
+        .preview-modal-header {
+            padding: 10px 15px;
+            background: #333;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+        .preview-modal-header button {
+            background: #e74c3c; color: white; border: none;
+            padding: 5px 10px; border-radius: 5px; cursor: pointer;
+        }
+        .preview-modal-iframe {
+            flex-grow: 1;
+            border: none;
+        }
+
+        /* Loader */
+        .loader-wrapper {
+            display: none; position: fixed; inset: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1002; justify-content: center; align-items: center;
+            flex-direction: column;
+        }
+        .loader {
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid var(--loader-color);
+            border-radius: 50%;
+            width: 50px; height: 50px;
+            animation: spin 1.5s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loader-message { color: white; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="loader-wrapper" id="pageLoader">
+        <div class="loader"></div>
+        <div class="loader-message">Chargement de la galerie...</div>
+    </div>
+
+    <div class="container" id="mainContainer" style="display:none;">
+        <header class="header">
+            <h1>Galerie des Portails</h1>
+            <a href="index.html" class="back-button">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+        </header>
+
+        <main>
+            <section class="gallery-section">
+                <h2>Portails Premium</h2>
+                <div class="gallery-grid" id="premiumGallery">
+                    <!-- Les cartes de portails premium seront injectées ici -->
+                </div>
+            </section>
+
+            <section class="gallery-section">
+                <h2>Portails Personnalisables (Gratuits)</h2>
+                <div class="gallery-grid" id="customizableFreeGallery">
+                    <!-- Les cartes des portails gratuits personnalisables seront injectées ici -->
+                </div>
+            </section>
+
+            <section class="gallery-section">
+                <h2>Modèles Hotspot (Téléchargement Direct)</h2>
+                <div class="gallery-grid" id="freeHotspotGallery">
+                    <!-- Les cartes de modèles Hotspot gratuits seront injectées ici -->
+                </div>
+            </section>
+
+            <section class="gallery-section">
+                <h2>Modèles Mikhmon (Téléchargement Direct)</h2>
+                <div class="gallery-grid" id="freeMikhmonGallery">
+                    <!-- Les cartes de modèles Mikhmon gratuits seront injectées ici -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modale pour l'aperçu -->
+    <div class="preview-modal" id="previewModal">
+        <div class="preview-modal-content">
+            <div class="preview-modal-header">
+                <button onclick="closePreviewModal()">Fermer</button>
+            </div>
+            <iframe id="previewIframe" class="preview-modal-iframe"></iframe>
+        </div>
+    </div>
+
+    <script type="module">
+        import { getActiveDatabase } from './firebase-config-manager.js';
+        import { ref, get, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+        // --- Configuration des modèles ---
+        // Remplacez les URLs par les vôtres (images, fichiers de templates, etc.)
+
+        const PREMIUM_TEMPLATES = [
+            {
+                id: 'premium_modern',
+                title: 'Portail Moderne Animé',
+                description: 'Un design épuré avec des animations subtiles et une expérience utilisateur fluide. Idéal pour les cafés et hôtels.',
+                price: 1500,
+                imageUrl: 'https://i.imgur.com/3YpZzJZ.png',
+                files: [
+                    { path: 'login.html', url: 'templates/premium_modern/login.html' },
+                    { path: 'style.css', url: 'templates/premium_modern/style.css' },
+                    { path: 'script.js', url: 'templates/premium_modern/script.js' },
+                    { path: 'fedapay-widget.js', url: 'templates/premium_modern/fedapay-widget.js' }
+                ]
+            }
+        ];
+
+        const CUSTOMIZABLE_FREE_TEMPLATES = [
+            {
+                id: 'free_login_separate',
+                title: 'Login Séparé (Gratuit)',
+                description: 'Un portail de connexion classique avec des champs séparés pour l\'utilisateur et le mot de passe. Entièrement personnalisable avec vos informations.',
+                price: 0,
+                imageUrl: 'https://i.imgur.com/UflNq6G.png',
+                files: [
+                    { path: 'login.html', url: 'templates/free_login_separate/login.html' },
+                    { path: 'status.html', url: 'templates/free_login_separate/status.html' },
+                    { path: 'fedapay-widget.js', url: 'templates/free_login_separate/fedapay-widget.js' },
+                    { path: 'style.css', url: 'templates/free_login_separate/style.css' }
+                ]
+            }
+        ];
+
+        const FREE_HOTSPOT_TEMPLATES = [
+            {
+                id: 'hotspot_classic_blue',
+                title: 'Hotspot Classique Bleu',
+                description: 'Un modèle simple et efficace pour les routeurs MikroTik, facile à installer. Téléchargement direct.',
+                imageUrl: 'https://i.imgur.com/example_hotspot.jpg',
+                zipUrl: 'https://firebasestorage.googleapis.com/v0/b/eduque-moi-bada8.appspot.com/o/Portail%20par%20d%C3%A9faut.zip?alt=media&token=9f200c87-a577-4d51-ae08-8324c17b58e9'
+            }
+        ];
+        
+        const FREE_MIKHMON_TEMPLATES = [
+            {
+                id: 'mikhmon_v7',
+                title: 'Mikhmon v7.13.5',
+                description: 'Le pack complet pour l\'installation du serveur Mikhmon v7.13.5. Téléchargement direct.',
+                imageUrl: 'https://i.imgur.com/example_mikhmon.jpg',
+                zipUrl: 'https://firebasestorage.googleapis.com/v0/b/eduque-moi-bada8.appspot.com/o/Mikhmon%20v7.13.5.zip?alt=media&token=142acde1-8087-4d41-b42e-a06be16f9a4a'
+            }
+        ];
+
+
+        // --- Variables globales ---
+        let db;
+        let currentUserId;
+        let userPortalConfig;
+        let userPurchasedPortals = {};
+        let fedapayApiKeyGlobal = '';
+
+        const pageLoader = document.getElementById('pageLoader');
+        const mainContainer = document.getElementById('mainContainer');
+
+        // --- Fonctions principales ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            pageLoader.style.display = 'flex';
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                currentUserId = urlParams.get('userId');
+                if (!currentUserId) throw new Error("ID utilisateur non spécifié dans l'URL.");
+
+                db = await getActiveDatabase();
+                
+                const [portalConfig, purchasedPortals, globalConfig] = await Promise.all([
+                    get(ref(db, `users-data/${currentUserId}/portalConfig`)),
+                    get(ref(db, `users-data/${currentUserId}/purchasedPortals`)),
+                    get(ref(db, 'globalConfig/fedapayApiKey'))
+                ]);
+
+                userPortalConfig = portalConfig.exists() ? portalConfig.val() : null;
+                userPurchasedPortals = purchasedPortals.exists() ? purchasedPortals.val() : {};
+
+                if (globalConfig.exists()) {
+                    fedapayApiKeyGlobal = globalConfig.val();
+                } else {
+                    const oldGlobalConfig = await get(ref(db, 'users/API'));
+                    fedapayApiKeyGlobal = oldGlobalConfig.exists() ? oldGlobalConfig.val() : '';
+                }
+
+                if (!userPortalConfig) throw new Error("La configuration du portail de l'utilisateur n'a pas été trouvée. Veuillez d'abord la configurer.");
+
+                renderGalleries();
+                mainContainer.style.display = 'block';
+
+            } catch (error) {
+                console.error("Erreur d'initialisation :", error);
+                alert(error.message);
+                window.location.href = 'index.html';
+            } finally {
+                pageLoader.style.display = 'none';
+            }
+        });
+
+        function renderGalleries() {
+            renderGallery('premiumGallery', PREMIUM_TEMPLATES);
+            renderGallery('customizableFreeGallery', CUSTOMIZABLE_FREE_TEMPLATES);
+            renderGallery('freeHotspotGallery', FREE_HOTSPOT_TEMPLATES);
+            renderGallery('freeMikhmonGallery', FREE_MIKHMON_TEMPLATES);
+        }
+
+        function renderGallery(galleryId, templates) {
+            const galleryContainer = document.getElementById(galleryId);
+            galleryContainer.innerHTML = ''; 
+
+            if (!templates || templates.length === 0) {
+                galleryContainer.innerHTML = '<p>Aucun modèle disponible dans cette catégorie.</p>';
+                return;
+            }
+
+            templates.forEach(template => {
+                const isPurchased = userPurchasedPortals[template.id] === true;
+                const isFree = template.price === 0;
+                const isDirectDownload = !!template.zipUrl;
+                const canPreview = (template.files && template.files.length > 0) || isDirectDownload;
+
+                let actionButtonHtml = '';
+                if (isDirectDownload) {
+                    actionButtonHtml = `<button class="btn-download" onclick="window.directDownload('${template.zipUrl}')"><i class="fas fa-download"></i> Télécharger</button>`;
+                } else if (isFree || isPurchased) {
+                    actionButtonHtml = `<button class="btn-download" onclick="window.initiateDownload('${template.id}')"><i class="fas fa-download"></i> Télécharger</button>`;
+                } else {
+                    actionButtonHtml = `<button class="btn-pay" onclick="window.initiatePayment('${template.id}', ${template.price})"><i class="fas fa-credit-card"></i> Payer (${template.price} FCFA)</button>`;
+                }
+
+                let priceHtml = '';
+                if (!isDirectDownload) {
+                    priceHtml = isFree ? `<div class="template-price free">Gratuit</div>` : `<div class="template-price">${template.price} FCFA</div>`;
+                }
+                
+                const cardHtml = `
+                    <div class="template-card" id="card-${template.id}">
+                        <div class="template-image" style="background-image: url('${template.imageUrl}')"></div>
+                        <div class="template-card-content">
+                            <h3>${template.title}</h3>
+                            <p>${template.description}</p>
+                            ${priceHtml}
+                            <div class="template-actions">
+                                <button class="btn-preview" onclick="window.showPreview('${template.id}')" ${!canPreview ? 'disabled' : ''}><i class="fas fa-eye"></i> Aperçu</button>
+                                ${actionButtonHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                galleryContainer.insertAdjacentHTML('beforeend', cardHtml);
+            });
+        }
+        
+        // --- Logique d'aperçu dynamique ---
+
+        function generateListHtml(items, type = 'li') {
+            if (!items || !Array.isArray(items) || items.length === 0) return type === 'li' ? '<li>Aucun élément configuré.</li>' : '';
+            return items.map(item => {
+                if (type === 'li' && typeof item === 'string') return `<li>${item}</li>`;
+                if (type === 'tariff' && typeof item === 'object') return `<tr><td>${item.name || 'N/A'}</td><td>${item.price || '0'} FCFA</td></tr>`;
+                return '';
+            }).join('');
+        }
+        
+        function injectDataIntoContent(content, config) {
+            if (!config) return content;
+            let injected = content;
+            injected = injected.replaceAll('<!-- ADMIN_USER_ID -->', currentUserId || '');
+            injected = injected.replaceAll('<!-- NETWORK_NAME -->', config.networkName || 'Mon Réseau WiFi');
+            injected = injected.replaceAll('<!-- CONTACT_NUMBER -->', config.contactNumber || 'Numéro de contact');
+            injected = injected.replaceAll("'<!-- FEDAPAY_API_KEY -->'", `'${config.fedapayApiKey || ''}'`);
+            injected = injected.replaceAll('<!-- PLACEHOLDER_STATIC_TARIFFS_TABLE_BODY -->', generateListHtml(config.tariffs, 'tariff'));
+            injected = injected.replaceAll('<!-- PLACEHOLDER_KNOW_BEFORE_YOU_GO_LIST -->', generateListHtml(config.knowBeforeYouGo, 'li'));
+            injected = injected.replaceAll('<!-- PLACEHOLDER_CONNECTIONS_LIST -->', generateListHtml(config.connections, 'li'));
+            injected = injected.replaceAll('<!-- PLACEHOLDER_PRODUCTS_LIST -->', generateListHtml(config.products, 'li'));
+            return injected;
+        }
+
+        async function createSelfContainedBundle(template) {
+            const mainHtmlFile = template.files.find(f => f.path.endsWith('.html'));
+            if (!mainHtmlFile) throw new Error("Fichier HTML principal introuvable.");
+
+            const htmlResponse = await fetch(mainHtmlFile.url);
+            if (!htmlResponse.ok) throw new Error(`Impossible de charger ${mainHtmlFile.path}`);
+            let htmlContent = await htmlResponse.text();
+
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlContent, 'text/html');
+            const baseDir = mainHtmlFile.url.substring(0, mainHtmlFile.url.lastIndexOf('/'));
+
+            const processPromises = [];
+
+            // Traiter CSS
+            doc.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
+                const path = link.getAttribute('href');
+                if (path && !path.startsWith('http')) {
+                    processPromises.push(
+                        fetch(`${baseDir}/${path}`)
+                            .then(res => res.text())
+                            .then(css => {
+                                const styleTag = document.createElement('style');
+                                styleTag.textContent = injectDataIntoContent(css, userPortalConfig);
+                                link.replaceWith(styleTag);
+                            })
+                            .catch(e => console.warn(`Impossible d'intégrer ${path}:`, e))
+                    );
+                }
+            });
+
+            // Traiter JS
+            doc.querySelectorAll('script[src]').forEach(script => {
+                const path = script.getAttribute('src');
+                if (path && !path.startsWith('http')) {
+                    processPromises.push(
+                        fetch(`${baseDir}/${path}`)
+                            .then(res => res.text())
+                            .then(js => {
+                                const newScriptTag = document.createElement('script');
+                                if (script.type === 'module') newScriptTag.type = 'module';
+                                newScriptTag.textContent = injectDataIntoContent(js, userPortalConfig);
+                                script.replaceWith(newScriptTag);
+                            })
+                            .catch(e => console.warn(`Impossible d'intégrer ${path}:`, e))
+                    );
+                }
+            });
+
+            await Promise.all(processPromises);
+            
+            let finalHtml = new XMLSerializer().serializeToString(doc);
+            return injectDataIntoContent(finalHtml, userPortalConfig);
+        }
+
+        window.showPreview = async (templateId) => {
+            const template = [...PREMIUM_TEMPLATES, ...CUSTOMIZABLE_FREE_TEMPLATES, ...FREE_HOTSPOT_TEMPLATES, ...FREE_MIKHMON_TEMPLATES].find(t => t.id === templateId);
+            if (!template) return alert("Modèle introuvable.");
+
+            if (template.zipUrl) return window.open(template.zipUrl, '_blank');
+
+            if (template.files && template.files.length > 0) {
+                pageLoader.querySelector('.loader-message').textContent = 'Génération de l\'aperçu...';
+                pageLoader.style.display = 'flex';
+                try {
+                    const personalizedHtml = await createSelfContainedBundle(template);
+                    const modal = document.getElementById('previewModal');
+                    const iframe = document.getElementById('previewIframe');
+                    const blob = new Blob([personalizedHtml], { type: 'text/html' });
+                    iframe.src = URL.createObjectURL(blob);
+                    modal.style.display = 'flex';
+                } catch (error) {
+                    alert("Impossible de générer l'aperçu: " + error.message);
+                } finally {
+                    pageLoader.style.display = 'none';
+                }
+            } else {
+                alert("Ce modèle n'a pas d'aperçu configurable.");
+            }
+        };
+
+        window.closePreviewModal = () => {
+            const iframe = document.getElementById('previewIframe');
+            if (iframe.src.startsWith('blob:')) URL.revokeObjectURL(iframe.src);
+            iframe.src = 'about:blank';
+            document.getElementById('previewModal').style.display = 'none';
+        };
+
+        // --- Paiement et Téléchargement ---
+        
+        window.initiatePayment = async (templateId, price) => {
+             if (!fedapayApiKeyGlobal) return alert("Configuration de paiement indisponible.");
+             const template = PREMIUM_TEMPLATES.find(t => t.id === templateId);
+             if (!template) return;
+             FedaPay.init({ public_key: fedapayApiKeyGlobal, transaction: { amount: price, description: `Achat portail : ${template.title}` }, customer: { email: userPortalConfig.email || 'user@example.com' }, onComplete: (res) => { if (res.reason === FedaPay.CHECKOUT_COMPLETED) handleSuccessfulPayment(templateId); else alert('Paiement annulé.'); } }).open();
+        };
+
+        async function handleSuccessfulPayment(templateId) {
+            pageLoader.querySelector('.loader-message').textContent = 'Finalisation...';
+            pageLoader.style.display = 'flex';
+            try {
+                await set(ref(db, `users-data/${currentUserId}/purchasedPortals/${templateId}`), true);
+                userPurchasedPortals[templateId] = true;
+                const card = document.getElementById(`card-${templateId}`);
+                if (card) card.querySelector('.btn-pay')?.replaceWith(Object.assign(document.createElement('button'), { className: 'btn-download', innerHTML: '<i class="fas fa-download"></i> Télécharger', onclick: () => window.initiateDownload(templateId) }));
+                alert('Achat réussi !');
+            } catch (error) {
+                alert("Erreur lors de la sauvegarde de l'achat. Contactez le support.");
+            } finally {
+                pageLoader.style.display = 'none';
+            }
+        }
+
+        window.initiateDownload = async (templateId) => {
+            pageLoader.querySelector('.loader-message').textContent = 'Préparation du téléchargement...';
+            pageLoader.style.display = 'flex';
+            const template = [...PREMIUM_TEMPLATES, ...CUSTOMIZABLE_FREE_TEMPLATES].find(t => t.id === templateId);
+            if (!template) {
+                alert("Modèle introuvable.");
+                pageLoader.style.display = 'none';
+                return;
+            }
+            try {
+                const zip = new JSZip();
+                for (const file of template.files) {
+                    const response = await fetch(file.url);
+                    if (!response.ok) throw new Error(`Fichier manquant : ${file.path}`);
+                    let content = await response.text();
+                    content = injectDataIntoContent(content, userPortalConfig);
+                    zip.file(file.path, content);
+                }
+                const zipContent = await zip.generateAsync({ type: "blob" });
+                saveAs(zipContent, `${templateId}_${currentUserId}.zip`);
+            } catch (error) {
+                alert("Erreur lors de la création du ZIP: " + error.message);
+            } finally {
+                pageLoader.style.display = 'none';
+            }
+        };
+        
+        window.directDownload = (zipUrl) => {
+             if (!zipUrl) return alert("Lien de téléchargement manquant.");
+             const a = Object.assign(document.createElement('a'), { href: zipUrl, download: zipUrl.split('/').pop() });
+             document.body.appendChild(a);
+             a.click();
+             a.remove();
+        };
+    </script>
+</body>
+</html>

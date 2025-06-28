@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Utilisateurs Admin</title>
+    <link rel="icon" href="logo.png" type="image/png">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Firebase (Modular SDK imports - needed for firebase-config-manager.js) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js" type="module"></script>
+
+    <style>
+        :root {
+            --primary-color: #1a2a6c;
+            --secondary-color: #fdbb2d;
+            --background-gradient: linear-gradient(135deg, #424242, #073018, #553a01); /* Darker gradient */
+            --text-color: #ffffff;
+            --container-bg: rgba(255, 255, 255, 0.1);
+            --list-item-bg: rgba(255, 255, 255, 0.05);
+            --list-item-hover: rgba(255, 255, 255, 0.1);
+            --active-bg: rgba(46, 204, 113, 0.2); /* green */
+            --expired-bg: rgba(231, 76, 60, 0.2); /* red */
+             --nonexistent-bg: rgba(52, 152, 219, 0.2); /* blue */
+             --active-border: #2ecc71;
+            --expired-border: #e74c3c;
+             --nonexistent-border: #3498db;
+             --button-primary-bg: #fdbb2d;
+            --button-primary-text: #1a2a6c;
+            --button-danger-bg: #e74c3c;
+            --button-danger-hover: #c0392b;
+            --button-secondary-bg: #95a5a6; /* Greyish button */
+            --button-secondary-hover: #7f8c8d;
+             --loader-color: var(--secondary-color);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        html, body {
+            min-height: 100vh;
+            background: var(--background-gradient);
+            color: var(--text-color);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: var(--container-bg);
+            border-radius: 8px;
+            backdrop-filter: blur(5px);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        h2 {
+            color: var(--secondary-color);
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.4em;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 5px;
+        }
+
+        .user-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .user-item {
+            background-color: var(--list-item-bg);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            margin-bottom: 8px;
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background-color 0.3s;
+             gap: 10px; /* Space between elements */
+        }
+
+        .user-item.active {
+            background-color: var(--active-bg);
+            border-color: var(--active-border);
+        }
+
+        .user-item.expired {
+            background-color: var(--expired-bg);
+            border-color: var(--expired-border);
+        }
+
+         .user-item.nonexistent {
+            background-color: var(--nonexistent-bg);
+            border-color: var(--nonexistent-border);
+        }
+
+        .user-item:hover {
+            background-color: var(--list-item-hover);
+        }
+
+         .user-info {
+             flex-grow: 1; /* Allow info to take available space */
+             display: flex;
+             align-items: center;
+             gap: 10px;
+         }
+
+        .user-checkbox {
+            margin-right: 10px; /* Space after checkbox */
+             flex-shrink: 0; /* Prevent checkbox from shrinking */
+        }
+
+        .user-details {
+             flex-grow: 1; /* Allows details to fill space */
+        }
+
+        .user-details strong {
+            display: block; /* Username/ID on its own line */
+            font-size: 1em;
+             margin-bottom: 2px;
+        }
+
+         .user-details span {
+             font-size: 0.85em;
+             opacity: 0.8; /* Slightly less prominent status/name */
+         }
+
+        .user-actions {
+            flex-shrink: 0; /* Prevent buttons from shrinking */
+        }
+
+        .user-actions button {
+             background-color: var(--button-danger-bg);
+             color: white;
+             border: none;
+             padding: 5px 10px;
+             border-radius: 4px;
+             cursor: pointer;
+             font-size: 0.9em;
+             transition: background-color 0.3s;
+        }
+         .user-actions button:hover {
+             background-color: var(--button-danger-hover);
+         }
+
+        /* Styles for action buttons below lists */
+        .category-actions {
+             margin-top: 15px;
+             text-align: center;
+        }
+         .category-actions button {
+             margin: 0 5px;
+             padding: 10px 15px;
+             border-radius: 5px;
+             font-size: 0.95em;
+             cursor: pointer;
+             transition: background-color 0.3s;
+             border: none; /* Ensure no default border */
+         }
+
+         /* Specific button styles */
+         .category-actions .delete-selected-btn {
+             background-color: var(--button-danger-bg);
+             color: white;
+         }
+         .category-actions .delete-selected-btn:hover {
+             background-color: var(--button-danger-hover);
+         }
+
+         .category-actions .delete-all-btn {
+             background-color: var(--button-secondary-bg);
+             color: var(--text-color);
+         }
+         .category-actions .delete-all-btn:hover {
+             background-color: var(--button-secondary-hover);
+         }
+         .category-actions .select-all-btn, .category-actions .deselect-all-btn {
+              background-color: var(--primary-color);
+              color: var(--text-color);
+         }
+         .category-actions .select-all-btn:hover, .category-actions .deselect-all-btn:hover {
+              background-color: #0e1639;
+         }
+
+
+        /* Loader Styles */
+        .loader-wrapper {
+            display: flex; /* Use flex */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+             visibility: hidden; /* Hidden by default */
+             opacity: 0; /* Start transparent */
+             transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+         .loader-wrapper.visible {
+             visibility: visible;
+             opacity: 1;
+         }
+
+        .loader {
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid var(--loader-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1.5s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loader-message {
+            color: white;
+            margin-top: 15px;
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            z-index: 1002;
+            display: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            min-width: 250px;
+            max-width: 400px;
+        }
+        .notification.error { background-color: var(--button-danger-bg); }
+        .notification.info { background-color: var(--primary-color); }
+         .notification.warning { background-color: #f39c12; }
+        .notification .close-btn {
+            margin-left: 15px;
+            color: white;
+            font-weight: bold;
+            float: right;
+            font-size: 22px;
+            line-height: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .notification .close-btn:hover { opacity: 0.7; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container { padding: 15px; margin: 10px auto; }
+            h1 { font-size: 1.8em; }
+            h2 { font-size: 1.2em; }
+            .user-item { flex-direction: column; align-items: flex-start; gap: 5px; }
+            .user-info { width: 100%; }
+             .user-details strong { font-size: 0.95em; }
+             .user-details span { font-size: 0.8em; }
+            .user-actions { width: 100%; text-align: right; }
+             .category-actions button { font-size: 0.85em; padding: 8px 12px; margin: 5px 3px;}
+        }
+
+         @media (max-width: 480px) {
+             .container { padding: 10px; margin: 5px auto; }
+             h1 { font-size: 1.5em; }
+             h2 { font-size: 1.1em; }
+             .user-item { padding: 10px; }
+             .user-details strong { font-size: 0.9em; }
+              .user-details span { font-size: 0.75em; }
+              .user-actions button { font-size: 0.8em; padding: 4px 8px;}
+               .category-actions button { font-size: 0.75em; padding: 6px 10px;}
+         }
+
+    </style>
+</head>
+<body>
+    <div class="loader-wrapper" id="loaderWrapper">
+        <div class="loader"></div>
+        <div class="loader-message" id="loaderMessage">Chargement des données...</div>
+    </div>
+
+     <div id="notification" class="notification">
+        <span id="notificationMessage"></span>
+        <span class="close-btn" onclick="closeNotification()">×</span>
+    </div>
+
+
+    <div class="container">
+        <h1>Gestion des Utilisateurs Admin</h1>
+
+        <section id="activeUsersSection">
+            <h2>Utilisateurs Réguliers (Abonnement Actif)</h2>
+            <ul id="activeUsersList" class="user-list">
+                <!-- Active users will be loaded here -->
+                 <li class="user-item"><div class="user-info"><div class="user-details">Chargement...</div></div></li>
+            </ul>
+        </section>
+
+        <section id="expiredUsersSection">
+            <h2>Utilisateurs Non Réguliers (Abonnement Expiré)</h2>
+             <p style="font-size:0.9em; opacity:0.8; margin-bottom:10px;">La suppression d'un utilisateur de cette liste supprime son compte de connexion (`/users/{id}`) **ET** toutes ses données associées (`/users-data/{id}`).</p>
+            <ul id="expiredUsersList" class="user-list">
+                <!-- Expired users will be loaded here -->
+                 <li class="user-item"><div class="user-info"><div class="user-details">Chargement...</div></div></li>
+            </ul>
+             <!-- Actions for Expired Users -->
+            <div class="category-actions" id="expiredUsersActions">
+                 <button class="select-all-btn" data-target-list="expiredUsersList"><i class="fas fa-check-double"></i> Tout sélectionner</button>
+                 <button class="deselect-all-btn" data-target-list="expiredUsersList"><i class="fas fa-times-circle"></i> Tout désélectionner</button>
+                <button class="delete-selected-btn" id="deleteSelectedExpiredBtn"><i class="fas fa-trash"></i> Supprimer Sélectionnés</button>
+                 <!-- Delete All button for expired users is very risky, consider omitting it -->
+                 <!-- <button class="delete-all-btn" id="deleteAllExpiredBtn"><i class="fas fa-dumpster-fire"></i> Supprimer Tout</button> -->
+            </div>
+        </section>
+
+        <section id="nonexistentUsersSection">
+            <h2>Utilisateurs Inexistants (Présents dans users-data, absents dans users)</h2>
+             <p style="font-size:0.9em; opacity:0.8; margin-bottom:10px;">Ces entrées correspondent à des structures de données orphelines. Leur suppression nettoie les données associées (`/users-data/{id}`) sans affecter les comptes de connexion réels.</p>
+            <ul id="nonexistentUsersList" class="user-list">
+                <!-- Non-existent users will be loaded here -->
+                 <li class="user-item"><div class="user-info"><div class="user-details">Chargement...</div></div></li>
+            </ul>
+            <!-- Actions for Non-existent Users -->
+            <div class="category-actions" id="nonexistentUsersActions">
+                 <button class="select-all-btn" data-target-list="nonexistentUsersList"><i class="fas fa-check-double"></i> Tout sélectionner</button>
+                 <button class="deselect-all-btn" data-target-list="nonexistentUsersList"><i class="fas fa-times-circle"></i> Tout désélectionner</button>
+                <button class="delete-selected-btn" id="deleteSelectedNonexistentBtn"><i class="fas fa-trash"></i> Supprimer Sélectionnés</button>
+                 <button class="delete-all-btn" id="deleteAllNonexistentBtn"><i class="fas fa-dumpster-fire"></i> Supprimer Tout</button>
+            </div>
+        </section>
+         <button id="refreshButton" style="display:block; margin: 20px auto; padding: 10px 20px; background-color: var(--primary-color); color: var(--text-color); border:none; border-radius:5px; cursor:pointer; font-size:1em;"><i class="fas fa-sync-alt"></i> Actualiser les données</button>
+
+
+    </div> <!-- End container -->
+
+    <script type="module">
+        // Import necessary functions from the Firebase Modular SDK
+        import { ref, get, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+        // Import the database manager function
+        import { getActiveDatabase } from './firebase-config-manager.js';
+
+        // --- Global Variables ---
+        let db; // Will hold the active database instance from the manager
+
+        // --- DOM Elements ---
+        const loaderWrapper = document.getElementById('loaderWrapper');
+        const loaderMessageEl = document.getElementById('loaderMessage');
+        const activeUsersListEl = document.getElementById('activeUsersList');
+        const expiredUsersListEl = document.getElementById('expiredUsersList');
+        const nonexistentUsersListEl = document.getElementById('nonexistentUsersList');
+
+        // Action Buttons (Non-existent)
+        const nonexistentUsersActions = document.getElementById('nonexistentUsersActions');
+        const deleteSelectedNonexistentBtn = document.getElementById('deleteSelectedNonexistentBtn');
+        const deleteAllNonexistentBtn = document.getElementById('deleteAllNonexistentBtn');
+
+         // Action Buttons (Expired) - Added
+         const expiredUsersActions = document.getElementById('expiredUsersActions');
+        const deleteSelectedExpiredBtn = document.getElementById('deleteSelectedExpiredBtn');
+        // const deleteAllExpiredBtn = document.getElementById('deleteAllExpiredBtn'); // Optional
+
+        const refreshButton = document.getElementById('refreshButton');
+        const notificationEl = document.getElementById('notification');
+        const notificationMessageEl = document.getElementById('notificationMessage');
+
+        // --- State Variables ---
+        let allNonexistentUsers = []; // To store data for the "Non-existent" list
+        let allExpiredUsers = []; // To store data for the "Expired" list
+
+        // --- Utility Functions ---
+        function showLoader(message = 'Chargement...') { loaderWrapper.classList.add('visible'); loaderMessageEl.textContent = message; }
+        function hideLoader() { loaderWrapper.classList.remove('visible'); }
+
+        function showNotification(type, message) {
+             notificationMessageEl.textContent = message;
+             notificationEl.className = `notification ${type}`;
+             notificationEl.style.display = 'block';
+             if (notificationEl._timeout) {
+                  clearTimeout(notificationEl._timeout);
+             }
+             notificationEl._timeout = setTimeout(closeNotification, 5000);
+         }
+         window.closeNotification = function() { // Make global so onclick works
+             if (notificationEl) notificationEl.style.display = 'none';
+             if (notificationEl._timeout) {
+                  clearTimeout(notificationEl._timeout);
+                  notificationEl._timeout = null;
+             }
+         }
+
+        // --- Main Data Fetching and Rendering ---
+        async function loadUsers() {
+            showLoader('Chargement des données utilisateurs...');
+
+            // Clear existing lists and hide action buttons
+            activeUsersListEl.innerHTML = '<li class="user-item"><div class="user-info"><div class="user-details">Chargement...</div></div></li>';
+            expiredUsersListEl.innerHTML = '<li class="user-item"><div class="user-info"><div class="user-details">Chargement...</div></div></li>';
+            nonexistentUsersListEl.innerHTML = '<li class="user-item"><div class="user-info"><div class="user-details">Chargement...</div></div></li>';
+            expiredUsersActions.style.display = 'none'; // Hide expired actions initially
+            nonexistentUsersActions.style.display = 'none'; // Hide non-existent actions initially
+
+            try {
+                 db = await getActiveDatabase();
+                 console.log("Active database obtained from manager.");
+
+                const [usersSnapshot, usersDataSnapshot] = await Promise.all([
+                    get(ref(db, 'users')),
+                    get(ref(db, 'users-data'))
+                ]);
+
+                const usersInUsersNode = usersSnapshot.val() || {};
+                const usersData = usersDataSnapshot.val() || {};
+
+                const activeUsers = [];
+                allExpiredUsers = []; // Reset global state
+                allNonexistentUsers = []; // Reset global state
+
+                const now = new Date();
+                const userIds = Object.keys(usersData);
+
+                if (userIds.length === 0) {
+                     activeUsersListEl.innerHTML = '<li class="user-item"><div class="user-info"><div class="user-details">Aucun utilisateur trouvé dans users-data.</div></div></li>';
+                     expiredUsersListEl.innerHTML = '';
+                     nonexistentUsersListEl.innerHTML = '';
+                     hideLoader();
+                     console.log("No users found in users-data.");
+                     return;
+                }
+                 console.log(`Found ${userIds.length} users in users-data.`);
+
+                userIds.forEach(userId => {
+                    const userData = usersData[userId];
+                    const subscription = userData?.admin?.subscription;
+                    const networkName = userData?.portalConfig?.networkName;
+                    const displayName = (networkName && networkName.trim() !== '') ? networkName : `ID: ${userId.substring(0, 8)}${userId.length > 8 ? '...' : ''}`;
+                    const userDetails = { id: userId, displayName: displayName };
+
+                    if (usersInUsersNode.hasOwnProperty(userId)) {
+                        if (subscription?.status === 'active' && subscription.endDate && new Date(subscription.endDate) >= now) {
+                            activeUsers.push({ ...userDetails, status: `Actif jusqu'au ${new Date(subscription.endDate).toLocaleDateString()}` });
+                        } else {
+                            allExpiredUsers.push({ ...userDetails, status: 'Inactif/Expiré' }); // Add to global state
+                        }
+                    } else {
+                        allNonexistentUsers.push(userDetails); // Add to global state
+                    }
+                });
+                 console.log(`Categorized: ${activeUsers.length} active, ${allExpiredUsers.length} expired, ${allNonexistentUsers.length} nonexistent.`);
+
+                // Sort lists
+                activeUsers.sort((a, b) => a.displayName.localeCompare(b.displayName));
+                allExpiredUsers.sort((a, b) => a.displayName.localeCompare(b.displayName));
+                allNonexistentUsers.sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+                 console.log("Rendering lists...");
+                renderUserList(activeUsersListEl, activeUsers, 'active', false); // No buttons for active users
+                renderUserList(expiredUsersListEl, allExpiredUsers, 'expired', true); // Add buttons for expired users
+                renderUserList(nonexistentUsersListEl, allNonexistentUsers, 'nonexistent', true); // Add buttons for non-existent users
+
+                 // Show action buttons only if the corresponding list is not empty
+                 expiredUsersActions.style.display = allExpiredUsers.length > 0 ? 'block' : 'none';
+                 nonexistentUsersActions.style.display = allNonexistentUsers.length > 0 ? 'block' : 'none';
+
+                 console.log("Rendering complete.");
+
+            } catch (error) {
+                console.error("Erreur lors du chargement des utilisateurs:", error);
+                showNotification("error", "Échec du chargement des utilisateurs.");
+                 activeUsersListEl.innerHTML = '<li class="user-item nonexistent"><div class="user-info"><div class="user-details"><strong>Erreur:</strong> Impossible de charger les utilisateurs actifs.</div></div></li>';
+                 expiredUsersListEl.innerHTML = '<li class="user-item nonexistent"><div class="user-info"><div class="user-details"><strong>Erreur:</strong> Impossible de charger les utilisateurs expirés.</div></div></li>';
+                 nonexistentUsersListEl.innerHTML = '<li class="user-item nonexistent"><div class="user-info"><div class="user-details"><strong>Erreur:</strong> Impossible de charger les utilisateurs inexistants.</div></div></li>';
+            } finally {
+                hideLoader();
+                 console.log("Load users process finished.");
+            }
+        }
+
+        function renderUserList(listElement, users, statusClass, addActionButtons = false) { // Renamed parameter
+            listElement.innerHTML = '';
+            if (users.length === 0) {
+                let message = 'Aucun utilisateur dans cette catégorie.';
+                if (statusClass === 'nonexistent') message = 'Aucun utilisateur inexistant trouvé.';
+                else if (statusClass === 'expired') message = 'Aucun utilisateur non régulier trouvé.';
+                 listElement.innerHTML = `<li class="user-item ${statusClass}"><div class="user-info" style="justify-content: center;"><div class="user-details" style="text-align:center;">${message}</div></div></li>`;
+                return;
+            }
+
+            users.forEach(user => {
+                const listItem = document.createElement('li');
+                listItem.className = `user-item ${statusClass}`;
+                listItem.dataset.userId = user.id;
+
+                const userInfo = document.createElement('div');
+                userInfo.className = 'user-info';
+
+                if (addActionButtons) { // Use the parameter name
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.className = 'user-checkbox';
+                    checkbox.checked = true; // Checked by default
+                    userInfo.appendChild(checkbox);
+                }
+
+                const userDetailsDiv = document.createElement('div');
+                userDetailsDiv.className = 'user-details';
+                userDetailsDiv.innerHTML = `<strong>${user.displayName}</strong><span>${user.status || ''}</span>`;
+                userInfo.appendChild(userDetailsDiv);
+
+                listItem.appendChild(userInfo);
+
+
+                if (addActionButtons) { // Use the parameter name
+                    const actionsDiv = document.createElement('div');
+                    actionsDiv.className = 'user-actions';
+                    const deleteButton = document.createElement('button');
+                    deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
+                    deleteButton.title = `Supprimer ${user.displayName}`;
+                    deleteButton.dataset.userId = user.id; // Store user ID on the button
+                    deleteButton.dataset.listType = statusClass; // Store list type for handler differentiation
+                    deleteButton.addEventListener('click', handleDeleteIndividual); // Use a single handler
+                    actionsDiv.appendChild(deleteButton);
+                    listItem.appendChild(actionsDiv);
+                }
+
+                listElement.appendChild(listItem);
+            });
+        }
+
+        // --- Delete Functionality ---
+
+         function handleDeleteIndividual(event) {
+             const userId = event.currentTarget.dataset.userId;
+             const listType = event.currentTarget.dataset.listType; // Get list type (expired or nonexistent)
+             const listItem = event.currentTarget.closest('.user-item');
+             const displayName = listItem ? listItem.querySelector('.user-details strong').textContent : userId.substring(0, 8) + '...';
+             if (!userId) return;
+
+             let confirmationMessage = '';
+             let deleteFromUsers = false; // Flag to indicate if deletion from /users is needed
+
+             if (listType === 'expired') {
+                  confirmationMessage = `ATTENTION : Êtes-vous sûr de vouloir supprimer COMPLÈTEMENT l'utilisateur "${displayName}" (ID: ${userId.substring(0,8)}...) ? Cela supprimera son compte de connexion ET toutes ses données associées de manière irréversible.`;
+                  deleteFromUsers = true; // Expired users deletion removes from /users as well
+             } else { // nonexistent
+                  confirmationMessage = `Êtes-vous sûr de vouloir supprimer les données associées à l'utilisateur inexistant "${displayName}" (ID: ${userId.substring(0,8)}...) ? Cela ne supprimera que les données dans /users-data.`;
+                  deleteFromUsers = false; // Non-existent users deletion only removes from /users-data
+             }
+
+              if (confirm(confirmationMessage)) {
+                 deleteUsers([userId], deleteFromUsers); // Pass the flag
+             }
+         }
+
+        // --- Modified deleteUsers function ---
+        async function deleteUsers(userIdsToDelete, deleteFromUsersNode = false) { // Added parameter
+             if (userIdsToDelete.length === 0) {
+                 showNotification("info", "Aucun utilisateur sélectionné pour la suppression.");
+                 return;
+             }
+             if (!db) {
+                  showNotification("error", "Base de données non prête pour la suppression.");
+                  return;
+             }
+
+             showLoader(`Suppression de ${userIdsToDelete.length} utilisateur(s)...`);
+             console.log(`Attempting to delete users. Delete from /users: ${deleteFromUsersNode}`, userIdsToDelete);
+
+            const updates = {};
+            userIdsToDelete.forEach(userId => {
+                // Always mark for deletion from users-data
+                updates[`users-data/${userId}`] = null;
+                 // Conditionally mark for deletion from users node
+                if (deleteFromUsersNode) {
+                    updates[`users/${userId}`] = null;
+                }
+            });
+
+            try {
+                await update(ref(db), updates); // Use modular SDK update
+                const nodeMessage = deleteFromUsersNode ? "(/users et /users-data)" : "(/users-data)";
+                showNotification("success", `${userIdsToDelete.length} utilisateur(s) supprimé(s) avec succès ${nodeMessage}.`);
+                console.log(`${userIdsToDelete.length} users successfully deleted. Nodes: ${nodeMessage}`);
+                loadUsers(); // Reload the list after deletion
+            } catch (error) {
+                console.error("Erreur lors de la suppression des utilisateurs:", error);
+                 if (error.code === 'PERMISSION_DENIED' || (error.message && typeof error.message === 'string' && error.message.includes('permission denied'))) {
+                     showNotification("error", "Permission refusée. Vous n'avez pas les droits pour supprimer ces données. Vérifiez vos règles de sécurité Firebase.");
+                 } else {
+                    showNotification("error", `Échec de la suppression : ${error.message}`);
+                 }
+            } finally {
+                hideLoader();
+                 console.log("Delete users process finished.");
+            }
+        }
+
+        // --- Event handlers for group actions ---
+        function handleDeleteSelectedExpired() {
+            const checkboxes = expiredUsersListEl.querySelectorAll('.user-checkbox:checked');
+            const userIdsToDelete = Array.from(checkboxes).map(checkbox => checkbox.closest('.user-item').dataset.userId);
+            if (userIdsToDelete.length === 0) {
+                 showNotification("info", "Aucun utilisateur expiré sélectionné.");
+                 return;
+            }
+            const confirmationMessage = `ATTENTION : Êtes-vous sûr de vouloir supprimer COMPLÈTEMENT les ${userIdsToDelete.length} utilisateur(s) expiré(s) sélectionné(s) ? Cela supprimera leurs comptes de connexion ET toutes leurs données associées de manière irréversible.`;
+            if (confirm(confirmationMessage)) {
+                 deleteUsers(userIdsToDelete, true); // Call with deleteFromUsersNode = true
+            }
+        }
+
+         function handleDeleteSelectedNonexistent() {
+            const checkboxes = nonexistentUsersListEl.querySelectorAll('.user-checkbox:checked');
+            const userIdsToDelete = Array.from(checkboxes).map(checkbox => checkbox.closest('.user-item').dataset.userId);
+             if (userIdsToDelete.length === 0) {
+                 showNotification("info", "Aucun utilisateur inexistant sélectionné.");
+                 return;
+            }
+             const confirmationMessage = `Êtes-vous sûr de vouloir supprimer les données associées aux ${userIdsToDelete.length} utilisateur(s) inexistant(s) sélectionné(s) ?`;
+            if (confirm(confirmationMessage)) {
+                deleteUsers(userIdsToDelete, false); // Call with deleteFromUsersNode = false
+            }
+         }
+
+         function handleDeleteAllNonexistent() {
+             if (allNonexistentUsers.length === 0) {
+                 showNotification("info", "Aucun utilisateur inexistant à supprimer.");
+                 return;
+             }
+             const confirmationMessage = `Êtes-vous sûr de vouloir supprimer TOUTES les données associées aux ${allNonexistentUsers.length} utilisateur(s) inexistant(s) ?`;
+             if (confirm(confirmationMessage)) {
+                 const userIdsToDelete = allNonexistentUsers.map(user => user.id);
+                 deleteUsers(userIdsToDelete, false); // Call with deleteFromUsersNode = false
+             }
+        }
+
+         function toggleAllCheckboxes(listId, checked) {
+             const listElement = document.getElementById(listId);
+             if (!listElement) return;
+             const checkboxes = listElement.querySelectorAll('.user-checkbox');
+             checkboxes.forEach(checkbox => {
+                 checkbox.checked = checked;
+             });
+         }
+
+        // --- Event Listeners ---
+        refreshButton.addEventListener('click', loadUsers);
+
+         // Non-existent User Actions
+         deleteSelectedNonexistentBtn.addEventListener('click', handleDeleteSelectedNonexistent);
+         deleteAllNonexistentBtn.addEventListener('click', handleDeleteAllNonexistent);
+         document.querySelectorAll('#nonexistentUsersActions .select-all-btn').forEach(btn => btn.addEventListener('click', () => toggleAllCheckboxes('nonexistentUsersList', true)));
+         document.querySelectorAll('#nonexistentUsersActions .deselect-all-btn').forEach(btn => btn.addEventListener('click', () => toggleAllCheckboxes('nonexistentUsersList', false)));
+
+        // Expired User Actions
+        deleteSelectedExpiredBtn.addEventListener('click', handleDeleteSelectedExpired);
+        // deleteAllExpiredBtn?.addEventListener('click', ...); // Add if you include the button
+         document.querySelectorAll('#expiredUsersActions .select-all-btn').forEach(btn => btn.addEventListener('click', () => toggleAllCheckboxes('expiredUsersList', true)));
+         document.querySelectorAll('#expiredUsersActions .deselect-all-btn').forEach(btn => btn.addEventListener('click', () => toggleAllCheckboxes('expiredUsersList', false)));
+
+
+        // --- Initial Load ---
+        document.addEventListener('DOMContentLoaded', loadUsers);
+
+    </script>
+
+</body>
+</html>

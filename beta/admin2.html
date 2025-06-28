@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Outil de Suppression Firebase</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #0056b3;
+            margin-bottom: 30px;
+        }
+
+         h2 {
+             text-align: center;
+             color: #666;
+             margin-top: 30px;
+             margin-bottom: 15px;
+             font-size: 1.2em;
+             border-bottom: 1px solid #eee;
+             padding-bottom: 10px;
+         }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        select, input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            box-sizing: border-box; /* Include padding in width */
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+            flex-wrap: wrap; /* Allow buttons to wrap on small screens */
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        button.delete-single {
+            background-color: #ffc107; /* Warning color for single delete */
+            color: #212529;
+        }
+         button.delete-single:hover {
+             background-color: #e0a800;
+         }
+
+
+        button.delete-all {
+            background-color: #dc3545; /* Danger color for delete all */
+            color: white;
+        }
+
+        button.delete-all:hover {
+            background-color: #c82333;
+        }
+
+
+        .feedback {
+            margin-top: 25px;
+            padding: 15px;
+            border-radius: 4px;
+            min-height: 20px; /* Keep some space */
+        }
+
+        .feedback.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .feedback.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .feedback.info {
+             background-color: #e9ecef;
+            color: #495057;
+            border: 1px solid #dee2e6;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Outil de Suppression de Nœuds Firebase</h1>
+
+        <div class="form-group">
+            <label for="dbSelect">Sélectionner la base de données:</label>
+            <select id="dbSelect">
+                <option value="">-- Choisir une base --</option>
+                <!-- Options seront ajoutées par JS -->
+            </select>
+        </div>
+
+         <h2>Supprimer pour un utilisateur spécifique</h2>
+        <div class="form-group">
+            <label for="userIdInput">Entrer l'ID Utilisateur:</label>
+            <input type="text" id="userIdInput" placeholder="Ex: abcdef1234567890">
+        </div>
+
+        <div class="buttons">
+            <button id="deleteArchiveSingleBtn" class="delete-single" disabled>
+                 Supprimer TicketsArchive
+            </button>
+            <button id="deleteMikhmonSingleBtn" class="delete-single" disabled>
+                 Supprimer TicketsMikhmon
+            </button>
+             <button id="deleteVendusSingleBtn" class="delete-single" disabled>
+                 Supprimer TicketsVendus
+            </button>
+        </div>
+
+         <h2>Supprimer pour TOUS les utilisateurs de la base</h2>
+         <p style="text-align: center; color: #dc3545; font-weight: bold;">ATTENTION: Cette action supprime les données des nœuds sélectionnés pour TOUS les utilisateurs de la base sélectionnée et est irréversible.</p>
+        <div class="buttons">
+            <button id="deleteAllArchiveBtn" class="delete-all" disabled>
+                Supprimer TicketsArchive pour TOUS
+            </button>
+            <button id="deleteAllMikhmonBtn" class="delete-all" disabled>
+                Supprimer TicketsMikhmon pour TOUS
+            </button>
+             <button id="deleteAllVendusBtn" class="delete-all" disabled>
+                Supprimer TicketsVendus pour TOUS
+            </button>
+        </div>
+
+
+        <div id="feedback" class="feedback info">
+            Sélectionnez une base de données. Pour une suppression spécifique, entrez aussi l'ID utilisateur.
+        </div>
+    </div>
+
+    <script type="module">
+        // Importer les fonctions nécessaires des SDK Firebase
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        // Importez la fonction 'update' pour les suppressions groupées
+        import { getDatabase, ref, remove, get, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+
+        // Copiez ici la liste de vos configurations de base de données
+        const firebaseConfigs = [
+            { databaseURL: "https://cyber1-51916-default-rtdb.firebaseio.com" },
+            { databaseURL: "https://cyber2-8ca5c-default-rtdb.firebaseio.com" }, // Vérifiez et corrigez l'URL si nécessaire
+            { databaseURL: "https://cyber3-95820-default-rtdb.firebaseio.com" },
+            { databaseURL: "https://cyber4-1b446-default-rtdb.firebaseio.com" },
+            { databaseURL: "https://cyber5-60f70-default-rtdb.firebaseio.com" },
+            { databaseURL: "https://cyber6-eff66-default-rtdb.firebaseio.com" },
+            { databaseURL: "https://cyber7-2296f-default-rtdb.firebaseio.com" },
+            { databaseURL: "https://cyber8-88ca0-default-rtdb.firebaseio.com" },
+            { databaseURL: "https://cyber9-54c58-default-rtdb.firebaseio.com" },
+            { databaseURL: "https://cyber10-52907-default-rtdb.firebaseio.com" },
+            { databaseURL: "https://cyber11-6eae0-default-rtdb.firebaseio.com" },
+            { databaseURL: "https://cyber12-85de8-default-rtdb.firebaseio.com" },
+            { databaseURL: "https://cyber13-79b7b-default-rtdb.firebaseio.com" },
+            { databaseURL: "https://cyber14-69b05-default-rtdb.firebaseio.com" },
+            { databaseURL: "https://cyber15-8e74f-default-rtdb.firebaseio.com" },
+            { databaseURL: "https://cyber16-b8d33-default-rtdb.firebaseio.com" },
+            { databaseURL: "https://fnmcwifi-default-rtdb.firebaseio.com" },
+            { databaseURL: "https://will-dccf0-default-rtdb.firebaseio.com" },
+            { databaseURL: "https://sic-wifi-zone-default-rtdb.firebaseio.com" },
+            { databaseURL: "https://evisions-84300-default-rtdb.firebaseio.com" }
+            // Ajoutez toutes vos configurations ici
+        ];
+
+        // Références aux éléments DOM
+        const dbSelect = document.getElementById('dbSelect');
+        const userIdInput = document.getElementById('userIdInput');
+        const deleteArchiveSingleBtn = document.getElementById('deleteArchiveSingleBtn');
+        const deleteMikhmonSingleBtn = document.getElementById('deleteMikhmonSingleBtn');
+        const deleteVendusSingleBtn = document.getElementById('deleteVendusSingleBtn'); // Nouveau bouton single
+        const deleteAllArchiveBtn = document.getElementById('deleteAllArchiveBtn');
+        const deleteAllMikhmonBtn = document.getElementById('deleteAllMikhmonBtn');
+        const deleteAllVendusBtn = document.getElementById('deleteAllVendusBtn'); // Nouveau bouton all
+        const feedbackDiv = document.getElementById('feedback');
+
+        let firebaseApp = null; // Instance de l'application Firebase
+        let firebaseDb = null; // Instance de la base de données
+
+        // Variable pour suivre si une opération est en cours
+        let isOperationInProgress = false;
+
+
+        // Fonction pour afficher un message de feedback
+        function showMessage(type, text) {
+            feedbackDiv.className = `feedback ${type}`;
+            feedbackDiv.textContent = text;
+        }
+
+        // Fonction pour activer/désactiver les boutons de suppression
+        function toggleDeleteButtons() {
+             // Les boutons "all" ne dépendent que de la sélection de la DB
+             const dbSelected = dbSelect.value !== "";
+             deleteAllArchiveBtn.disabled = !dbSelected || isOperationInProgress;
+             deleteAllMikhmonBtn.disabled = !dbSelected || isOperationInProgress;
+             deleteAllVendusBtn.disabled = !dbSelected || isOperationInProgress; // Gérer le nouveau bouton "all"
+
+             // Les boutons "single" dépendent de la DB *et* de l'ID utilisateur
+             const userIdEntered = userIdInput.value.trim() !== "";
+              deleteArchiveSingleBtn.disabled = !dbSelected || !userIdEntered || isOperationInProgress;
+              deleteMikhmonSingleBtn.disabled = !dbSelected || !userIdEntered || isOperationInProgress;
+              deleteVendusSingleBtn.disabled = !dbSelected || !userIdEntered || isOperationInProgress; // Gérer le nouveau bouton "single"
+        }
+
+         // Fonction pour définir l'état de l'opération en cours
+         function setOperationInProgress(inProgress) {
+             isOperationInProgress = inProgress;
+             toggleDeleteButtons(); // Re-vérifie l'état des boutons en fonction de la nouvelle valeur de isOperationInProgress
+         }
+
+
+        // Initialiser la liste déroulante des bases de données
+        function populateDbSelect() {
+            firebaseConfigs.forEach((config, index) => {
+                const option = document.createElement('option');
+                option.value = index; // Utilise l'index comme valeur
+                // Affiche une partie de l'URL pour identifier la base
+                const urlPart = config.databaseURL.split('//')[1].split('-')[0];
+                option.textContent = `Base de données ${index + 1} (${urlPart}...)`;
+                dbSelect.appendChild(option);
+            });
+        }
+
+        // Connexion à la base de données sélectionnée (ou réutiliser l'existante)
+        function connectToFirebase(index) {
+             try {
+                 const appName = `dbApp${index}`;
+                 // Si l'application existe déjà avec ce nom, l'utiliser
+                 if (getApps().some(app => app.name === appName)) {
+                      firebaseApp = getApp(appName);
+                      console.log(`Using existing Firebase app '${appName}' for index ${index}`);
+                 } else {
+                    // Sinon, initialiser une nouvelle application nommée
+                    console.log(`Initializing new Firebase app '${appName}' for index ${index}`);
+                    const config = firebaseConfigs[index];
+                    if (!config) throw new Error(`Configuration not found for index ${index}`);
+                    firebaseApp = initializeApp(config, appName);
+                 }
+
+                 firebaseDb = getDatabase(firebaseApp);
+                 return firebaseDb;
+
+             } catch (error) {
+                 console.error(`Error connecting to Firebase for index ${index}:`, error);
+                 throw error; // Propager l'erreur
+             }
+         }
+
+
+        // Fonction pour supprimer un nœud pour un utilisateur spécifique
+        async function deleteSingleNode(nodeName) {
+            const userId = userIdInput.value.trim();
+            const selectedIndex = dbSelect.value;
+
+            if (!selectedIndex || selectedIndex === "") {
+                showMessage('warning', 'Veuillez sélectionner une base de données.');
+                return;
+            }
+
+            if (!userId) {
+                showMessage('warning', 'Veuillez entrer l\'ID utilisateur.');
+                return;
+            }
+
+            // Demander confirmation
+            if (!confirm(`Êtes-vous sûr de vouloir supprimer le nœud "${nodeName}" pour l'utilisateur SPECIFIQUE "${userId}" dans la base de données sélectionnée ?\n\nCETTE ACTION EST IRRÉVERSIBLE !`)) {
+                 showMessage('info', `Suppression du nœud "${nodeName}" pour l'utilisateur "${userId}" annulée.`);
+                return; // Annulé par l'utilisateur
+            }
+
+            setOperationInProgress(true);
+            showMessage('info', `Suppression du nœud "${nodeName}" en cours pour l'utilisateur "${userId}" dans base ${parseInt(selectedIndex) + 1}...`);
+
+
+            try {
+                // S'assurer que nous sommes connectés à la bonne base
+                const db = connectToFirebase(parseInt(selectedIndex));
+
+                 // Vérifier d'abord si le chemin existe pour donner plus de feedback
+                 const nodeRefExistsCheck = ref(db, `users-data/${userId}/${nodeName}`);
+                 const snapshot = await get(nodeRefExistsCheck);
+
+                 if (!snapshot.exists()) {
+                      showMessage('info', `Le nœud "users-data/${userId}/${nodeName}" n'existe pas ou est déjà vide. Aucune suppression nécessaire.`);
+                      console.log(`Node "users-data/${userId}/${nodeName}" does not exist.`);
+                 } else {
+                     // Si le nœud existe, procéder à la suppression
+                    const nodeRef = ref(db, `users-data/${userId}/${nodeName}`);
+                    await remove(nodeRef);
+                    showMessage('success', `Nœud "users-data/${userId}/${nodeName}" supprimé avec succès.`);
+                    console.log(`Successfully deleted node: users-data/${userId}/${nodeName}`);
+                 }
+
+
+            } catch (error) {
+                console.error(`Erreur suppression ${nodeName} pour ${userId}:`, error);
+                showMessage('error', `Erreur lors de la suppression du nœud "${nodeName}" pour l'utilisateur "${userId}" : ${error.message}`);
+            } finally {
+                setOperationInProgress(false);
+            }
+        }
+
+
+         // Fonction pour supprimer un nœud pour TOUS les utilisateurs
+         async function deleteAllNodes(nodeName) {
+             const selectedIndex = dbSelect.value;
+
+             if (!selectedIndex || selectedIndex === "") {
+                 showMessage('warning', 'Veuillez sélectionner une base de données.');
+                 return;
+             }
+
+              // Demander confirmation DOUBLE
+             const confirmMsg1 = `CONFIRMATION MAJEURE :\nÊtes-vous CERTAIN de vouloir supprimer le nœud "${nodeName}" pour ABSOLUMENT TOUS les utilisateurs de la base de données ${parseInt(selectedIndex) + 1} ?\n\nCette action est EXTRÊMEMENT DANGEREUSE ET IRRÉVERSIBLE.`;
+             if (!confirm(confirmMsg1)) {
+                 showMessage('info', `Suppression pour TOUS les utilisateurs annulée.`);
+                 return; // Annulé à la première confirmation
+             }
+
+             const confirmMsg2 = `DERNIÈRE ALERTE :\nVous êtes sur le point de supprimer "${nodeName}" pour TOUS les utilisateurs de la base ${parseInt(selectedIndex) + 1}. Tapez "SUPPRIMER TOUT" (en majuscules) pour confirmer.`;
+             const confirmationText = prompt(confirmMsg2);
+
+             if (confirmationText !== "SUPPRIMER TOUT") {
+                 showMessage('info', `Suppression pour TOUS les utilisateurs annulée (confirmation incorrecte).`);
+                 return; // Annulé à la deuxième confirmation
+             }
+
+
+             setOperationInProgress(true);
+             showMessage('info', `Préparation de la suppression du nœud "${nodeName}" pour TOUS les utilisateurs dans base ${parseInt(selectedIndex) + 1}...`);
+
+             try {
+                  const db = connectToFirebase(parseInt(selectedIndex));
+                 const usersDataRef = ref(db, 'users-data'); // Cible le nœud users-data
+
+                 // On pourrait potentiellement récupérer les clés des utilisateurs d'abord,
+                 // mais l'approche 'update' sur users-data avec des chemins relatifs est plus directe
+                 // si l'on veut juste mettre 'null' sur chaque sous-chemin {userId}/{nodeName}.
+                 // Cependant, 'update' est plus adapté à la modification/ajout. Pour la suppression de nombreux sous-chemins
+                 // d'un coup, l'approche update(root, { 'path/to/delete': null, ... }) est correcte.
+
+                 // Il est plus sûr de récupérer les utilisateurs d'abord pour construire l'objet d'updates
+                 // car on ne veut pas accidentellement créer des chemins si users-data n'existe pas,
+                 // ou si la structure est inattendue.
+                 const snapshot = await get(usersDataRef);
+                 const usersData = snapshot.val();
+
+                 if (!usersData) {
+                     showMessage('info', 'Aucun utilisateur trouvé dans cette base de données sous /users-data. Aucune suppression nécessaire.');
+                     console.log("No users-data found in the selected database.");
+                     setOperationInProgress(false);
+                     return;
+                 }
+
+                 const userIds = Object.keys(usersData);
+                 const updates = {};
+                 let count = 0;
+
+                 // Construire l'objet updates avec les chemins relatifs à la racine
+                 // `{userId}/{nodeName}` devient le chemin sous `users-data`
+                 userIds.forEach(userId => {
+                      // Vérifie si l'utilisateur a bien le nœud avant de l'ajouter à la liste de suppression (optionnel mais plus précis)
+                     if (usersData[userId] && usersData[userId][nodeName] !== undefined) {
+                         updates[`users-data/${userId}/${nodeName}`] = null; // Chemin relatif à la racine de la base
+                         count++;
+                     }
+                 });
+
+                 if (count > 0) {
+                      showMessage('info', `Exécution de la suppression groupée pour ${count} nœuds "${nodeName}"...`);
+                      console.log(`Executing batch delete for ${count} nodes "${nodeName}".`);
+                     // Utilise la fonction update sur la racine (ref(db))
+                     await update(ref(db), updates);
+                     showMessage('success', `Suppression du nœud "${nodeName}" effectuée avec succès pour ${count} utilisateurs.`);
+                     console.log(`Batch delete successful for ${nodeName} nodes for ${count} users.`);
+                 } else {
+                      showMessage('info', `Aucun nœud "${nodeName}" trouvé sous /users-data pour les utilisateurs listés. Aucune suppression nécessaire.`);
+                      console.log(`No "${nodeName}" nodes found under /users-data for listed users.`);
+                 }
+
+
+             } catch (error) {
+                 console.error(`Erreur suppression TOUS ${nodeName}:`, error);
+                 showMessage('error', `Erreur lors de la suppression du nœud "${nodeName}" pour TOUS les utilisateurs : ${error.message}`);
+             } finally {
+                 setOperationInProgress(false);
+             }
+         }
+
+
+        // Événements des boutons
+         deleteArchiveSingleBtn.addEventListener('click', () => deleteSingleNode('TicketsArchive'));
+         deleteMikhmonSingleBtn.addEventListener('click', () => deleteSingleNode('TicketsMikhmon'));
+         deleteVendusSingleBtn.addEventListener('click', () => deleteSingleNode('TicketsVendus')); // Nouveau listener single
+
+         deleteAllArchiveBtn.addEventListener('click', () => deleteAllNodes('TicketsArchive'));
+         deleteAllMikhmonBtn.addEventListener('click', () => deleteAllNodes('TicketsMikhmon'));
+         deleteAllVendusBtn.addEventListener('click', () => deleteAllNodes('TicketsVendus')); // Nouveau listener all
+
+
+        // Activer/désactiver les boutons en fonction de la sélection et de l'entrée ID
+        function checkInputs() {
+            // La logique est maintenant entièrement gérée par toggleDeleteButtons
+            toggleDeleteButtons(); // Appelle toggleDeleteButtons pour recalculer l'état des boutons
+        }
+
+        dbSelect.addEventListener('change', checkInputs);
+        userIdInput.addEventListener('input', checkInputs); // Vérifier à chaque saisie
+
+        // Initialisation au chargement de la page
+        document.addEventListener('DOMContentLoaded', () => {
+            populateDbSelect();
+            checkInputs(); // Vérifie l'état initial des inputs/select
+            showMessage('info', 'Sélectionnez une base de données. Pour une suppression spécifique, entrez aussi l\'ID utilisateur.');
+        });
+
+    </script>
+</body>
+</html>

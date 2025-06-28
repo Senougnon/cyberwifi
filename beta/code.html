@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADMIN - Déverrouillage API</title>
+    <link rel="icon" href="logo.png" type="image/png">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #1a2a6c;
+            --secondary-color: #fdbb2d;
+            --background-gradient: linear-gradient(135deg, #424242, #073018, #553a01);
+            --text-color: #ffffff;
+            --modal-bg: rgba(255, 255, 255, 0.95);
+            --input-bg: rgba(255, 255, 255, 0.2);
+            --button-primary-bg: #2ecc71;
+            --button-primary-hover: #27ae60;
+            --loader-color: #fdbb2d;
+            --logs-bg: rgba(0, 0, 0, 0.5);
+            --logs-text: #cccccc;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: var(--background-gradient);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+            font-size: 1.8rem;
+        }
+
+        p {
+            margin-bottom: 25px;
+            opacity: 0.8;
+            font-size: 0.95rem;
+        }
+        
+        #unlockForm {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        label {
+            font-weight: 500;
+            text-align: left;
+            font-size: 1rem;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #555;
+            border-radius: 5px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            background-color: rgba(255, 255, 255, 0.25);
+        }
+
+        button {
+            padding: 12px 20px;
+            background-color: var(--button-primary-bg);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background-color 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        button:hover {
+            background-color: var(--button-primary-hover);
+        }
+        
+        button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+
+        #logOutput {
+            margin-top: 25px;
+            background-color: var(--logs-bg);
+            color: var(--logs-text);
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.9rem;
+            text-align: left;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        #logOutput p {
+            margin-bottom: 5px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            line-height: 1.4;
+        }
+        
+        #logOutput p:last-child {
+            border-bottom: none;
+        }
+        
+        .log-info { color: #cccccc; }
+        .log-success { color: #2ecc71; }
+        .log-warning { color: #f39c12; }
+        .log-error { color: #e74c3c; }
+
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--loader-color);
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            animation: spin 1s linear infinite;
+            display: none; /* Hidden by default */
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        footer {
+            margin-top: 20px;
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        footer a {
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1><i class="fas fa-unlock-alt"></i> Panneau Admin</h1>
+        <p>Cet outil permet de déverrouiller les champs API pour un utilisateur spécifique dans le panneau principal.</p>
+
+        <form id="unlockForm">
+            <label for="userIdInput">ID de l'utilisateur à déverrouiller :</label>
+            <input type="text" id="userIdInput" name="userIdInput" required placeholder="Collez l'ID utilisateur ici">
+            <button type="submit" id="unlockButton">
+                <span id="buttonText">Déverrouiller les champs API</span>
+                <div class="loader" id="loader"></div>
+            </button>
+        </form>
+
+        <div id="logOutput">
+            <p class="log-info">En attente d'une action...</p>
+        </div>
+        
+        <footer>
+            <a href="index.html">Retour au panneau principal</a>
+        </footer>
+    </div>
+
+    <!-- Firebase -->
+    <script type="module">
+        // Importer les fonctions nécessaires depuis le SDK Firebase et le gestionnaire de configuration
+        import { getActiveDatabase } from './firebase-config-manager.js';
+        import { ref, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+        // Références aux éléments du DOM
+        const unlockForm = document.getElementById('unlockForm');
+        const userIdInput = document.getElementById('userIdInput');
+        const unlockButton = document.getElementById('unlockButton');
+        const buttonText = document.getElementById('buttonText');
+        const loader = document.getElementById('loader');
+        const logOutput = document.getElementById('logOutput');
+
+        let db;
+
+        // --- Utilitaire de journalisation ---
+        function logToUI(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const p = document.createElement('p');
+            p.className = `log-${type}`;
+            p.textContent = `[${timestamp}] ${message}`;
+            
+            // Insérer le nouveau message en haut
+            if (logOutput.firstChild && logOutput.firstChild.textContent === "En attente d'une action...") {
+                logOutput.innerHTML = ''; // Effacer le message initial
+            }
+            logOutput.insertBefore(p, logOutput.firstChild);
+        }
+
+        // --- Initialisation de la base de données ---
+        async function initialize() {
+            try {
+                db = await getActiveDatabase();
+                logToUI("Connexion à la base de données réussie.", "success");
+            } catch (error) {
+                console.error("Échec de l'initialisation de la base de données :", error);
+                logToUI(`Erreur de connexion à la base de données: ${error.message}`, "error");
+                unlockButton.disabled = true;
+                buttonText.textContent = "Erreur de connexion DB";
+            }
+        }
+
+        // --- Fonction principale de déverrouillage ---
+        async function unlockApiKeys(event) {
+            event.preventDefault(); // Empêcher le rechargement de la page
+            
+            const userId = userIdInput.value.trim();
+            if (!userId) {
+                logToUI("L'ID utilisateur ne peut pas être vide.", "warning");
+                return;
+            }
+            
+            if (!db) {
+                 logToUI("La connexion à la base de données n'est pas établie.", "error");
+                 return;
+            }
+
+            // Désactiver le bouton et afficher le loader
+            unlockButton.disabled = true;
+            buttonText.textContent = "Déverrouillage...";
+            loader.style.display = 'block';
+
+            try {
+                logToUI(`Tentative de déverrouillage pour l'utilisateur : ${userId}`);
+
+                // Construire la référence au nœud portalConfig de l'utilisateur
+                const portalConfigRef = ref(db, `users-data/${userId}/portalConfig`);
+                
+                // Préparer la mise à jour pour définir apiKeysLocked à false
+                const updates = {
+                    'apiKeysLocked': false
+                };
+
+                // Exécuter la mise à jour
+                await update(portalConfigRef, updates);
+                
+                logToUI(`Succès ! Les champs API pour l'utilisateur ${userId} ont été déverrouillés.`, 'success');
+                userIdInput.value = ''; // Vider le champ après succès
+
+            } catch (error) {
+                console.error(`Erreur lors du déverrouillage pour l'utilisateur ${userId}:`, error);
+                logToUI(`Échec du déverrouillage : ${error.message}`, 'error');
+            } finally {
+                // Réactiver le bouton et cacher le loader
+                unlockButton.disabled = false;
+                buttonText.textContent = "Déverrouiller les champs API";
+                loader.style.display = 'none';
+            }
+        }
+        
+        // Attacher l'événement au formulaire
+        unlockForm.addEventListener('submit', unlockApiKeys);
+
+        // Initialiser la connexion à la base de données au chargement de la page
+        initialize();
+
+    </script>
+</body>
+</html>

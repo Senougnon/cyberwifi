@@ -1,0 +1,10 @@
+/ip hotspot walled-garden add dst-host="*.fedapay.com" dst-port=80,443 action=allow
+/ip hotspot walled-garden add dst-host="*.firebaseio.com" dst-port=80,443 action=allow
+/ip hotspot walled-garden add dst-host="*.googleapis.com" dst-port=80,443 action=allow
+/ip hotspot walled-garden add dst-host="*.cloudflare.com" dst-port=80,443 action=allow
+/ip hotspot walled-garden add dst-host="www.gstatic.com" dst-port=80,443 action=allow
+/ip hotspot walled-garden add dst-host="ssl.gstatic.com" dst-port=80,443 action=allow
+/ip hotspot walled-garden add dst-host="fonts.gstatic.com" dst-port=80,443 action=allow
+/ip hotspot walled-garden add dst-host="*.netlify.app" dst-port=80,443 action=allow
+/ip hotspot walled-garden add dst-host="firebasejs.com" dst-port=80,443 action=allow
+/ip hotspot walled-garden add dst-host="*.github.io" dst-port=80,443 action=allow

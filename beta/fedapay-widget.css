@@ -1,0 +1,465 @@
+
+/* --- Fedapay Ticket Widget Styles --- */
+.login-section {
+  /*  display: none; /* Cache l'élément et retire l'espace qu'il occupait */
+}
+
+.login-section1 {
+    display: none; /* Cache l'élément et retire l'espace qu'il occupait */
+}
+
+
+
+#fedapay-ticket-widget-container {
+    /* Add any overall container styling if needed, e.g., max-width */
+    font-family: sans-serif; /* Basic font */
+    box-sizing: border-box;
+    position: relative; /* Needed for absolute positioning of potential loaders within */
+}
+#fedapay-ticket-widget-container *,
+#fedapay-ticket-widget-container *:before,
+#fedapay-ticket-widget-container *:after {
+    box-sizing: inherit;
+}
+
+
+/* Styles for the rates section */
+#fedapay-ticket-widget-container .widget-rates-section {
+    background-color: #47ff1900;
+    padding: 15px;
+    margin-top: 15px; /* Adjusted margin */
+    margin-bottom: 15px; /* Adjusted margin */
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    border: 1px solid #DDD;
+}
+
+#fedapay-ticket-widget-container .widget-rates-section h2 {
+    color: #06005f;
+    margin-top: 0;
+    margin-bottom: 15px;
+    text-align: center;
+    font-size: 1.1em;
+    font-weight: bold;
+}
+
+/* Container for dynamic options */
+#fedapay-ticket-widget-container #widget-dynamic-ticket-options {
+    display: none; /* Initially hidden, shown by JS */
+    flex-wrap: wrap;
+    justify-content: center; /* Center items if they don't fill the row */
+    gap: 10px;
+    padding: 10px 0;
+}
+
+/* Individual dynamic ticket option */
+#fedapay-ticket-widget-container .widget-dynamic-ticket-option {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    background-color: #e4e4e4;
+    text-align: center;
+    /* Default: 3 per row */
+    width: calc(33.33% - 10px);
+    min-width: 120px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin-bottom: 10px; /* Add margin-bottom here instead of gap only if needed */
+}
+
+#fedapay-ticket-widget-container .widget-dynamic-ticket-option p {
+    margin: 0 0 10px 0;
+    font-size: 13px;
+}
+#fedapay-ticket-widget-container .widget-dynamic-ticket-option p font {
+    font-weight: bold; /* Make text bold like original */
+    color: #b60064; /* Keep color */
+}
+
+
+/* Dynamic payment button */
+#fedapay-ticket-widget-container .widget-dynamic-payment-button {
+    background-color: #000768;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+    display: inline-block;
+    margin-top: auto; /* Push to bottom */
+}
+
+#fedapay-ticket-widget-container .widget-dynamic-payment-button:hover {
+    background-color: #ff0404;
+}
+
+/* Loading message */
+#fedapay-ticket-widget-container .widget-loading-message {
+    text-align: center;
+    padding: 20px;
+    font-style: italic;
+    color: #00001a;
+    display: block; /* Shown by default, hidden by JS */
+}
+
+/* Notification Popup Styles */
+#fedapay-ticket-widget-container .widget-notification {
+    position: fixed; /* Keep fixed positioning */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    z-index: 1001; /* Ensure it's above most content */
+    display: none;
+    color: #333;
+    text-align: center;
+    width: 90%;
+    max-width: 350px;
+    font-size: 14px;
+}
+#fedapay-ticket-widget-container .widget-notification h2 {
+    color: #3B5998;
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.2em;
+}
+#fedapay-ticket-widget-container .widget-notification p { /* Style paragraphs within the message div */
+    margin-bottom: 10px;
+    white-space: pre-wrap; /* Keep line breaks */
+}
+#fedapay-ticket-widget-container .widget-notification .widget-ticket-info { /* Class for ticket details */
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 15px;
+    text-align: left;
+    font-size: 13px;
+}
+#fedapay-ticket-widget-container .widget-notification .widget-ticket-info p {
+    margin: 5px 0;
+}
+#fedapay-ticket-widget-container .widget-notification .widget-ticket-info strong {
+    color: #000;
+}
+/* Style buttons added dynamically */
+#fedapay-ticket-widget-container .widget-notification button {
+    background-color: #02b839;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-size: 14px;
+    margin: 5px;
+}
+#fedapay-ticket-widget-container .widget-notification button:hover {
+    background-color: #4c69ba;
+}
+#fedapay-ticket-widget-container .widget-notification .widget-delete-button { /* Specific style for delete */
+    background-color: #f44336;
+}
+#fedapay-ticket-widget-container .widget-notification .widget-delete-button:hover {
+    background-color: #d32f2f;
+}
+#fedapay-ticket-widget-container .widget-close-icon {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+    color: #aaa;
+    transition: color 0.3s ease;
+}
+#fedapay-ticket-widget-container .widget-close-icon:hover {
+    color: #666;
+}
+#fedapay-ticket-widget-container .widget-notification.error {
+    background-color: #ffdddd;
+    border: 1px solid #ffaaaa;
+    color: #cc0000;
+}
+#fedapay-ticket-widget-container .widget-notification.error h2 {
+    color: #cc0000;
+}
+
+/* "Payer/Voir Ticket" button style */
+#fedapay-ticket-widget-container #widget-payTicketButton {
+    display: block;
+    width: 100%;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    background-color: #ffd900;
+    color: rgb(2, 0, 0);
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+    text-align: center;
+}
+#fedapay-ticket-widget-container #widget-payTicketButton:hover {
+    background-color: #4c69ba;
+}
+
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+    #fedapay-ticket-widget-container .widget-dynamic-ticket-option {
+        /* 2 items per row for tablets and smaller */
+        width: calc(50% - 10px);
+        min-width: 100px; /* Adjust min-width if needed for 2 columns */
+    }
+    #fedapay-ticket-widget-container .widget-notification {
+        width: 95%; padding: 15px; font-size: 13px;
+    }
+    #fedapay-ticket-widget-container .widget-notification h2 { font-size: 1.1em; }
+    #fedapay-ticket-widget-container .widget-notification button { padding: 6px 12px; font-size: 13px; }
+    #fedapay-ticket-widget-container #widget-payTicketButton { padding: 8px; font-size: 13px; }
+}
+
+@media screen and (max-width: 480px) {
+    /* Styles specifically for small phones (under 480px) */
+
+    /* The .widget-dynamic-ticket-option now inherits the 2-column layout (width: calc(50% - 10px))
+       from the max-width: 768px media query above. No need to redefine the width here. */
+
+     /* We can keep other adjustments specific to very small screens */
+     #fedapay-ticket-widget-container .widget-notification { padding: 10px; font-size: 12px; }
+     #fedapay-ticket-widget-container .widget-notification h2 { font-size: 1em; }
+     #fedapay-ticket-widget-container .widget-notification button { padding: 5px 10px; font-size: 12px; }
+     #fedapay-ticket-widget-container #widget-payTicketButton { padding: 6px; font-size: 12px; }
+}
+
+/* --- Styles pour le lien de paiement direct (ajouté par JS) --- */
+#fedapay-ticket-widget-container .widget-direct-link-block {
+    padding: 10px; /* Add padding */
+    border: 1px solid #DDD;
+    border-radius: 8px;
+    background-color: #f9f9f9; /* Un fond léger pour le distinguer */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+#fedapay-ticket-widget-container .widget-link-instruction {
+    font-size: 13px;
+    color: #555;
+    margin-top: 0;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+#fedapay-ticket-widget-container .widget-link-area {
+    display: flex;
+    align-items: center;
+    background-color: #e0e0e0; /* Un fond plus marqué pour le lien */
+    border: 1px solid #ccc;
+    padding: 5px; /* Add padding inside the link area */
+    border-radius: 4px; /* Match input border-radius */
+}
+
+#fedapay-ticket-widget-container .widget-direct-link {
+    flex-grow: 1; /* Permet au lien de prendre tout l'espace disponible */
+    color: #000768; /* Couleur du lien */
+    text-decoration: none; /* Supprime le soulignement par défaut */
+    font-size: 13px;
+    cursor: text; /* Indique qu'on peut sélectionner le texte */
+    border: none; /* Remove border */
+    background: none; /* Remove background */
+    padding: 0; /* Remove padding */
+    margin: 0; /* Remove margin */
+    word-break: break-all; /* Ensure long links break */
+    outline: none; /* Remove outline on focus */
+}
+#fedapay-ticket-widget-container .widget-direct-link:focus {
+     outline: none; /* Ensure no outline on focus */
+}
+
+
+/* --- Fin Styles pour le lien de paiement direct --- */
+
+
+/* --- NEW Styles for "Ticket Not Received" Modal --- */
+#fedapay-ticket-widget-container .widget-search-modal {
+    position: fixed; /* Or absolute if container has position:relative */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    z-index: 1002; /* Higher than notification, lower than main loaders */
+    display: none;
+    color: #333;
+    text-align: center;
+    width: 90%;
+    max-width: 350px;
+    font-size: 14px;
+}
+
+#fedapay-ticket-widget-container .widget-search-modal h2 {
+    color: #3B5998;
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.2em;
+}
+
+#fedapay-ticket-widget-container .widget-search-modal p {
+    margin-bottom: 15px;
+    color: #555;
+    font-size: 13px;
+}
+
+#fedapay-ticket-widget-container .widget-search-modal input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box; /* Include padding in width */
+}
+
+#fedapay-ticket-widget-container .widget-search-modal button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-size: 14px;
+}
+
+#fedapay-ticket-widget-container .widget-search-modal button:hover {
+    background-color: #0056b3;
+}
+#fedapay-ticket-widget-container .widget-search-modal button:disabled {
+     background-color: #cccccc;
+     cursor: not-allowed;
+}
+
+
+#fedapay-ticket-widget-container .widget-search-modal .widget-search-message {
+    margin-top: 15px;
+    font-size: 13px;
+    color: #555;
+    min-height: 1.2em; /* Reserve space */
+}
+#fedapay-ticket-widget-container .widget-search-modal .widget-search-message.error {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+#fedapay-ticket-widget-container .widget-search-modal .widget-close-icon {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+    color: #aaa;
+    transition: color 0.3s ease;
+}
+#fedapay-ticket-widget-container .widget-search-modal .widget-close-icon:hover {
+    color: #666;
+}
+
+/* Loader specifically for the search modal */
+#fedapay-ticket-widget-container .widget-search-modal .widget-search-loader {
+    display: none; /* Hidden by default */
+    margin: 10px auto; /* Center the loader */
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db; /* Blue color */
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1.5s linear infinite;
+}
+/* Re-use the spin animation defined elsewhere or define here */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+
+/* Style for the new 'Ticket Non Reçu?' button */
+#fedapay-ticket-widget-container #widget-ticketNotReceivedButton {
+    display: block;
+    width: 100%;
+    margin-top: 5px; /* Small margin below the main button */
+    margin-bottom: 15px; /* Match margin below main button */
+    background-color: #cf001c; /* A neutral grey */
+    color: white;
+    border: none;
+    padding: 8px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.3s ease;
+    text-align: center;
+}
+#fedapay-ticket-widget-container #widget-ticketNotReceivedButton:hover {
+    background-color: #272727;
+}
+
+/* NOUVEAU : Styles pour le chargement "Squelette" */
+@keyframes skeleton-shine {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.skeleton-offering {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #f5f5f5;
+  width: 100%;
+  max-width: 280px;
+  min-height: 100px; /* Assure une hauteur minimale cohérente */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.skeleton-text {
+  height: 20px;
+  width: 80%;
+  background-color: #e0e0e0;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  background-image: linear-gradient(90deg, #e0e0e0, #f0f0f0, #e0e0e0);
+  background-size: 200px 100%;
+  background-repeat: no-repeat;
+  animation: skeleton-shine 1.5s infinite linear;
+}
+
+.skeleton-button {
+  height: 38px;
+  width: 100px;
+  background-color: #d1d1d1;
+  border: none;
+  border-radius: 5px;
+  background-image: linear-gradient(90deg, #d1d1d1, #e1e1e1, #d1d1d1);
+  background-size: 200px 100%;
+  background-repeat: no-repeat;
+  animation: skeleton-shine 1.5s infinite linear;
+}
