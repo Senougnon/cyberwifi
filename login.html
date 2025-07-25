@@ -743,6 +743,80 @@
                 font-size: 11px;
             }
         }
+
+        /* Option 1: Carrousel 3D Rotatif */
+.gallery-section {
+    flex-basis: 100%;
+    min-height: 500px;
+    perspective: 1200px;
+    overflow: hidden;
+}
+
+.gallery-3d-carousel {
+    position: relative;
+    width: 300px;
+    height: 400px;
+    margin: 50px auto;
+    transform-style: preserve-3d;
+    animation: rotate360 20s infinite linear;
+}
+
+.gallery-item-3d {
+    position: absolute;
+    width: 300px;
+    height: 400px;
+    left: 0;
+    top: 0;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    transition: transform 0.5s;
+}
+
+.gallery-item-3d:nth-child(1) { transform: rotateY(0deg) translateZ(350px); }
+.gallery-item-3d:nth-child(2) { transform: rotateY(90deg) translateZ(350px); }
+.gallery-item-3d:nth-child(3) { transform: rotateY(180deg) translateZ(350px); }
+.gallery-item-3d:nth-child(4) { transform: rotateY(270deg) translateZ(350px); }
+
+.gallery-item-3d img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(0.8);
+    transition: all 0.5s;
+}
+
+.gallery-item-3d:hover {
+    transform: scale(1.2) translateZ(400px);
+    z-index: 10;
+}
+
+.gallery-item-3d:hover img {
+    filter: brightness(1.2) contrast(1.1);
+}
+
+@keyframes rotate360 {
+    from { transform: rotateY(0deg); }
+    to { transform: rotateY(-360deg); }
+}
+
+/* Particules flottantes autour */
+.gallery-section::before,
+.gallery-section::after {
+    content: '';
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: rgba(255,255,255,0.8);
+    border-radius: 50%;
+    animation: float-particle 10s infinite;
+}
+
+@keyframes float-particle {
+    0% { transform: translate(0, 0) scale(0); opacity: 0; }
+    20% { opacity: 1; }
+    100% { transform: translate(300px, -300px) scale(2); opacity: 0; }
+}
             </style>
 
     $(if chap-id)
@@ -873,36 +947,23 @@ function _0x437770(_0x365fc7,_0x55957b,_0x2297e7,_0x5268a6,_0x1d3dcc){return _0x
         <!--    'const firebaseConfigManagerPath = ...' DANS 'fedapay-widget.js' -->
         <!--    pointe correctement vers celui-ci (relativement à l'emplacement de fedapay-widget.js). -->
         
-        <!-- NOUVELLE SECTION GALERIE -->
-        <section class="gallery-section">
-            <h2>Notre Galerie</h2>
-            <div class="gallery-grid">
-                <!-- Élément 1 -->
-                <figure class="gallery-item">
-                    <img src="img/img3.jpg" alt="Description de l'image 1">
-                    <figcaption>Explorez un monde de possibilités.</figcaption>
-                </figure>
-                <!-- Élément 2 (GIF) -->
-                <figure class="gallery-item">
-                    <img src="img/img4.jpg" alt="GIF animé illustrant la vitesse">
-                    <figcaption>Une connexion rapide et illimitée.</figcaption>
-                </figure>
-                <!-- Élément 3 -->
-                <figure class="gallery-item">
-                    <img src="img/img5.jpg" alt="Description de l'image 3">
-                    <figcaption>Restez connecté, où que vous soyez.</figcaption>
-                </figure>
-                <!-- Élément 4 -->
-                <figure class="gallery-item">
-                    <img src="img/img6.jpg" alt="Description de l'image 4">
-                    <figcaption>Le futur de la connectivité est ici.</figcaption>
-                </figure>
-                <!-- Ajoutez autant d'éléments <figure> que vous le souhaitez -->
-            </div>
-        </section>
-        <!-- FIN DE LA NOUVELLE SECTION GALERIE -->
-
-
+<section class="gallery-section">
+    <h2>Notre Galerie</h2>
+    <div class="gallery-3d-carousel">
+        <figure class="gallery-item-3d">
+            <img src="img/img3.jpg" alt="Image 1">
+        </figure>
+        <figure class="gallery-item-3d">
+            <img src="img/img4.jpg" alt="Image 2">
+        </figure>
+        <figure class="gallery-item-3d">
+            <img src="img/img5.jpg" alt="Image 3">
+        </figure>
+        <figure class="gallery-item-3d">
+            <img src="img/img6.jpg" alt="Image 4">
+        </figure>
+    </div>
+</section>
 
 
          <section class="locations-section">
